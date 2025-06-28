@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap');
+
+:root {
+        font-family:         'Monospace';
+        --fillColor:               #0007;
+        --highlightedColor:      #007d86;
+        --selectedColor:         #33ff00;
+        --strokeColor:             white;
+        --controlColor:          #ff3300;
+        --controlColorLine:         gray;
+        --backgroundColor:   transparent;/*#14141455;*/
+        --gridColor:             #3c3c3c;
+        --highlightPointColor:   #268651;
+        --textColor:             #223344}
+
+svg path {
+        cursor: crosshair;
+        position:relative;
+        stroke-width:1px; 
+        stroke: var(--strokeColor);
+        fill:var(--fillColor); 
+        fill:transparent;
+        width: 100%;
+        height:400%}
+
+svg #highlightCircle {stroke: #0000ff}
+
+svg #selectionCircle {stroke: #ffffff}
+
+svg #controlCircle,
+svg #controlCircle2 {stroke: #ff0000}
+
+svg #controlPath1,
+svg #controlPath2 {
+        stroke: var(--controlColorLine);
+        stroke-width: 1}
+
+.marker {
+        fill: #ff0000;
+        stroke:#ff0000
+}
+.groupdotsPath {
+        fill: #ff0000;
+        stroke:#ff0000
+}
+
+
+
+svg, 
+#backgroundImage {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        white-space: pre-wrap}
+
+#datadiv{
+        position: absolute;
+        top: 10;
+        left:calc(100% - 570px);
+        height: 200%;
+        width: 570;
+        overflow: hidden;
+        white-space: pre-wrap}        
+
+#datadiv span {
+        color: var(--highlightPointColor);
+        font-weight: bold}
+
+
+#transformedPattern rect {
+        stroke: var(--gridColor);
+        fill: none}
+
+
+
+@media screen and (min-aspect-ratio: 10/9) and (min-height: calc(1rem * 40)) {
+        :root {--fontSize: var(--fontSizeHorizontal)}
+}
+
+@media screen and (max-aspect-ratio: 10/9) and (min-height: calc(1rem * 40)) {
+        :root {--fontSize: var(--fontSizeVertical)}
+}

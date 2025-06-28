@@ -1,0 +1,2237 @@
+<!-- /HTML/desktop.html 1 -->
+<!DOCTYPE html>
+<html xml:lang="en" lang="en">
+        <head>
+                <!-- Meta tags to prevent caching -->
+                <meta http-equiv="cache-control" content="max-age=0">
+                <meta http-equiv="cache-control" content="no-cache">
+                <meta http-equiv="expires" content="-1">
+                <meta http-equiv="expires" content="Tue, 01 Jan 1980 11:00:00 GMT">
+                <meta http-equiv="pragma" content="no-cache">
+                <meta charset="UTF-8">
+
+                <title>HobbyLaser!</title>           
+
+                <!-- favicon -->
+                <link rel="icon" type="image/png" href="../IMG/lsr.svg">
+
+                <link rel="stylesheet" href="https://necolas.github.io/normalize.css/8.0.1/normalize.css">
+
+                <!-- style -->    
+                <link rel="stylesheet" href="../CSS/drawing.css">
+                <link rel="stylesheet" href="../CSS/jquery.css">
+
+                <!-- third parties -->
+                <script src="../JS/src/jquery.js"></script>
+                <script src="../JS/src/jquery-ui.js"></script>
+                <script src="../JS/src/fabric.js"></script>               
+                <script src="../JS/ace/ace.js"></script>                
+                <script src="../JS/src/clipper.js"></script>         
+                <script src="../JS/src/opentype.js"></script> 
+                <script src="../JS/src/potrace.js"></script>
+                <script src="../JS/src/polyfill.js"></script>
+                <script src="../JS/src/drawing.js"></script>
+                <script src="../JS/src/ruler.js"></script>
+                <script src="../JS/src/dxf.js"></script>
+
+                <!-- three.js -->
+                <script src="../JS/three/three.js"></script>
+                <script src="../JS/three/gcode-model.js"></script>
+                <script src="../JS/three/OrbitControls.js"></script>  
+        </head>
+
+        <style>
+                * {box-sizing: border-box}
+
+                html, body {width:100%; height:auto; margin:0; color:#fff}        
+                .hidden-cursor {cursor: none} 
+                @font-face {
+                        font-family: test-family;
+                        src: url("FONT/Roboto-Black.ttf")
+                }   
+         
+                ::-webkit-scrollbar {width:7px}
+                ::-webkit-scrollbar-thumb {
+                        background:rgba(0,0,0,0);
+                        border-radius: 4px; cursor:pointer
+                }
+
+                ::selection {color:white; background: rgb(25,25,25)}  
+
+                .center_H{position:absolute; text-align: center}  
+                
+                .bs {
+                        position:absolute;
+                        width: 100px; height: 20px;
+                        color:#fff; font-size:10px; 
+                        border:none; background:none; outline:none
+                }
+                .btImg {
+                        position:absolute;
+                        width: 100px; height: 20px;
+                        color:#fff; cursor:pointer; font-size:10px;
+                        border: none; background:none; outline:none
+                }
+                .btImg:hover {color:#f0f}                   
+
+                #_2D {
+                        overflow-x:hidden;
+                        position: absolute;
+                        background:#080808;
+                        top: 20px; left: 0; right: 0;
+                        width: 100%; height: 100%; 
+                }
+
+                #n_Line {
+                        outline:none;user-select: none;
+                        position:absolute; resize:none;
+                        font-size:18px; line-height:0.72; 
+                        border: 0; text-align: left;
+                        overflow:hidden; width:30px;
+                        color:gray;top:35px; height:100%; 
+                        background:transparent}
+                #n_Line:focus-visible,
+
+                #editor {position:absolute;bottom:0; top:10px; border: 0;
+                        left:0; right:0; line-height: 1.2;background:#050505}
+                .ace_editor *{font-size: 11px !important; color:gray}
+                .ace_editor {border: none !important}
+                .ace_scrollbar {display: none !important}
+                .ace_editor .ace_marker-layer .ace_selection {background:#202020}
+                .ace_editor .ace_cursor {color: red}
+                .ace_tooltip {display: none !important} 
+                #TA.closed {transform: translateX(100%)}                   
+
+                a {color:gray}
+                                 
+                #progress-container {
+                        position:absolute;     
+                        width: 100%; bottom:0px;
+                        background-color:transparent;
+                        height: 2px; margin-top: 0px;
+                }
+                #progress-bar {
+                        width: 0%; height: 100%;
+                        background-color: #ff00ff;
+                }
+
+                .fade_2 {opacity: 0; transition: opacity 2s ease-in-out}
+
+                #crud-wrapper {
+                        position: absolute;
+                        width:450px; top:50px; right:0px;
+                }
+                #crud {
+                        top:30px; left:30px;
+                        flex-direction: column;            
+                        padding: 2px 2px 2px 0px;            
+                        display:flex; max-width:360px;    
+                        position:relative; overflow-y:auto;
+                }
+                #fileList {
+                        width: 100%;
+                        list-style: none;
+                        padding: 0; margin: 0;
+                }
+                #fileList li {
+                        font-size:12px;
+                        display: flex;
+                        align-items: center;
+                        padding: 2px; width: 100%;
+                        justify-content: space-between;    
+                }
+                .button-container {
+                        display: flex; gap: 10px;
+                        justify-content: flex-end;    
+                }
+
+                #svgCont .custom-svg {
+                        width: 300px; height: 200px;
+                        border: 1px solid #3c3c3c;
+                        box-sizing: border-box;
+                        position: absolute;
+                        padding: 10; z-index:500; top: 100px; left:100px
+                }
+
+                .alert-box {
+                        z-index: 1000; display: flex;width:60%;
+                        position: fixed; top: 40%; left: 50%; top:50%;
+                        transform: translate(-50%, -50%);
+                        background: #101010; padding: 20px;
+                        border: 1px solid #444; border-radius: 8px;
+                        align-items: center;  text-align: center;
+                }
+                .alert-content {
+                        font-size:14px; font-weight:bold; width:100%;
+                }
+                .alert-img {
+                        position: relative;
+                        background: transparent;
+                        height: 120px; width: 100px;
+                }
+                .disclaimer-text {
+                        font-size: 12px; width: 80%;
+                        margin: 0 auto; text-align: center;
+                }
+                .btAlert {
+                        cursor: pointer; appearance: none; outline: 0;
+                        border:1px solid gray; width:150px; background:#101010;
+                        text-align: center; height: 25px; color:gray;
+                        font-weight: 250; font-size: 12px; border-radius:15px;
+                        margin: 0; position: relative;
+                }                        
+                .btAlert::before {
+                        content: ""; position: absolute; left: 0;
+                        top: 0; width: 100%; height: 100%;
+                        border-radius: 30px; border: 1px solid white;
+                        box-sizing: border-box; clip-path: inset(0 100% 0 0);
+                        transition: clip-path 0.3s ease-in;color:#fff
+                }
+                .btAlert:hover::before {clip-path: inset(0 0 0 0)}
+                .btAlert:hover {background: #050505; color:#fff}
+                .btAlert:focus {
+                        background: #0a0a0a;
+                        color: #f0f;
+                        box-shadow: 0 0 0 2px #ffffff44;
+                }
+                .btAlert:focus::before {
+                        clip-path: inset(0 0 0 0);
+                }
+
+                
+                /*@media (max-width: 1400px) {
+                        #panel {
+                                left: 50px;  right: 50px;
+                        }
+                }
+                @media (max-width: 1200px) {
+                        #panel {
+                                left: 20px;  right: 20px;
+                        }
+                }
+                @media (max-width: 800px) {
+                        #panel {
+                                align-items: center;
+                                flex-direction: column;
+                                height: auto; display: flex; 
+                                left: 5vw; right: 5vw; padding: 10px;
+                        }
+                        #preview {
+                                width: 100%; height: auto; margin: 10px 0;    
+                        }
+                        #first {
+                                flex-direction: column;
+                        }
+                        .right-column { 
+                                width: 100%;  margin-left: 0; margin-top: 10px;
+                        }
+                        #third {
+                                width: 100%; height: 150px; margin: 10px 0;
+                        }
+                }*/
+
+                .panel {
+                        height: 50vh; aspect-ratio: 1 / 1; background: #101010;
+                        border: 1px solid #3c3c3c; flex-shrink: 0; z-index:500; 
+                }              
+
+                #tbScroll {
+                        overflow: auto; max-height: calc(100% - 20px) !important; 
+                }
+                table {
+                        z-index:500;
+                        max-width: 100%; font-size: 12px;
+                        border-collapse: collapse;
+                        max-height: 100% !important; 
+                }
+                th {background: transparent; padding-left: 10px; font-size: 12px}
+                #td:first-child {padding-right: 30px}
+
+                .close-btn {
+                        font-weight: bold; font-size: 18px;
+                        width:30px; height:30px; background-color:#080808;
+                        position:absolute; top:0px; left:0px; z-index:500;
+                        text-align:center; line-height:26px; cursor:pointer;        
+                        border:2px solid #3c3c3c; color:white; border-radius:50%
+                }
+                .close-btn:hover {background-color: #1a1a1a} 
+        </style>
+                                                              
+        <body>                                  
+                <!-- html HEAD -->
+                <div id="head" style="background:#080808;
+                        z-index:9; border-bottom:0px solid #3c3c3c;
+                        width:100%; height:40px; position:fixed;
+                        top:0px; border-top:0px solid #11e1e">
+
+                        <div class="bs" style="top:13px; width:200px; left:30px" onclick="">
+                                <img src="../IMG/HLB.png" width="200px" height="16px"/>
+                        </div>
+
+                        <button class="btImg" style="cursor:pointer; font-size:10px;
+                                top:10px; right:180px" onclick="">about</button>
+
+                        <button class="btImg" style="cursor:pointer; font-size:10px;
+                                top:10px; right:100px" onclick="window.location.reload(true)">refresh</button>
+
+                        <input style="display:none" type="file" id="input"/>
+
+                        <div id="progress-container">
+                                <div id="progress-bar"></div>
+                        </div>
+                </div>
+                                  
+                <div id="toolHelp" style="z-index:500; position:absolute; left:200px;right:200px; height:30px; 
+                bottom:-40px; background:#101010; border:1px solid #3c3c3c; border-radius:50px; display:none">
+                        <span id="wrn" style="font-size:10px; position:absolute; top:10px; width:100%;
+                        color:gray; font-weight:bold; text-align:center">waiting for ...</span>
+                </div> 
+                                  
+                <div id="_2D">
+                        <script>
+                                $("#_2D").load("../HTML/rend.html")
+                        </script>
+                </div>
+
+                <button style="position:fixed; z-index:100; left:1px; top:40px; width:18px; height:20px; border:0; cursor:pointer;
+                        background:#101010; border-right:1px solid #888; border-bottom:1px solid #888;"
+                        onclick="createInteractiveGuide()"></button>
+
+                <div id="horizontalLabel" class="label"></div>
+                <div id="verticalLabel" class="label"></div>
+
+                <!-- UserGUIDE -->
+                <button id="OCug" class="bs" style="z-index:290; cursor:pointer;
+                        width:150px; top:10px; left:300px" title="user guide"
+                        onclick="window.open('https://github.com/marco-f/HL/wiki/Home', '_blank')">
+                        <img id="sx" style="display:block" src="../IMG/sx.svg" width="24px" height="10px"/>
+                </button>
+
+                <div id="OV" style="z-index:400; border:0px solid #3c3c3c; display:none;
+                        position:fixed; width:101%; height:100%; left:0; top:40px; background:transparent">
+                </div>                            
+
+
+                <!-- editor (scriptArea) -->
+                <div id="TA" style="border-left:1px solid #3c3c3c; z-index:150; resize: horizontal; cursor: ew-resize; transform: translateX(100%);
+                        position: fixed; width: 40%; height:100%; right: 0; top: 60px; background: #050505; transition: transform 0.5s ease">
+
+                        <!-- Textarea for line indicators (read-only) -->
+                        <textarea id="n_Line" style="right: 0px; top: 10px; height: calc(100% - 150px); overflow: hidden" wrap="off" readonly></textarea>
+
+                        <!-- Div container for the Ace editor -->
+                        <div id="editor" class="language-javascript" style="position: absolute; color: white; width: calc(50% - 50px); height: calc(100% - 150px)"></div>
+
+                        <script>
+                                var cE = document.getElementById('editor');
+                                cE.addEventListener("contextmenu", function(e) {
+                                        e.stopPropagation()
+                                })
+
+                                var nL = document.getElementById('n_Line')
+                                nL.style.fontSize = '18px'
+                                nL.style.pointerEvents = "none"
+
+                                var editor = ace.edit("editor")
+                                var taClosed = true
+
+                                function updateLayout() {
+                                        var taWidth = $("#TA").width();
+                                        var editorWidth = taWidth - 30;
+                                        var windowHeight = $(window).height();
+                                        var footerHeight = $("#footer").height();
+                                        var editorHeight = windowHeight - footerHeight - 90 ///////////////////////////////////////////////////////////////
+
+                                        $("#editor").width(editorWidth).height(editorHeight);
+                                        $("#n_Line").height(editorHeight);
+
+                                        if (typeof editor.resize === 'function') {
+                                                editor.resize();
+                                        }
+
+                                        if (taWidth <= 50) {$("#n_Line").hide()}
+                                        else {$("#n_Line").show()}
+                                }
+
+                                function TAClose() {
+                                        if (!taClosed) {
+                                                $("#TA").css("transform", "translateX(100%)");
+                                                taClosed = true;
+                                        }
+                                }
+
+                                function TAOpen() {
+                                        if (taClosed) {
+                                                $("#TA").css("transform", "translateX(0)");
+                                                taClosed = false;
+                                                setTimeout(updateLayout, 500);
+                                        }
+                                }
+
+                                $("#TA").resizable({
+                                        handles: 'w', minWidth: 0,
+                                        maxWidth: $(window).width() - 250,
+                                        resize: function(event, ui) {
+                                                var newWidth = ui.size.width
+                                                var editorWidth = newWidth - 30
+                                                $("#editor").width(editorWidth)
+                                                if (typeof editor.resize === 'function') {
+                                                        editor.resize()
+                                                }
+                                                if (newWidth <= 50){$("#n_Line").hide()}
+                                                else {$("#n_Line").show()}
+                                        },
+                                        stop: function(event, ui){
+                                                var newWidth = ui.size.width;
+                                                if (newWidth <= 50 && !taClosed) {
+                                                        TAClose();
+                                                }
+                                        }
+                                })
+
+                                $(window).on('resize', updateLayout)
+
+                                editor.setTheme("ace/theme/pastel_on_dark")
+                                editor.session.setMode("ace/mode/javascript")
+                                editor.getSession().setUseWrapMode(true)
+                                editor.getSession().setWrapLimitRange(null, null)
+                                editor.setOption("scrollPastEnd", 0)
+                                editor.setOption("showGutterTooltip", false)
+                                editor.setBehavioursEnabled(false)
+                                editor.setOptions({
+                                        fontFamily: "'Courier New', monospace"
+                                })
+                                editor.getSession().setUseWorker(false)
+                                editor.session.clearAnnotations()
+
+                                editor.getSession().on('change', function() {
+                                        end_line()
+                                })
+
+                                editor.setValue(`function simpleGear(numberOfTeeth, radius, heightOfTooth){
+        var paths = [[]];    
+        var centerX = 30; 
+        var centerY = 30;
+        var radiusMinusTeeth = radius - heightOfTooth;
+
+        var distancesOfVerticesFromCenter = [
+                radius, radius,
+                radiusMinusTeeth,
+                radiusMinusTeeth,
+        ];
+        var verticesPerTooth = distancesOfVerticesFromCenter.length;
+        var numberOfVertices = numberOfTeeth * verticesPerTooth;
+
+        for (var v = 0; v < numberOfVertices; v++) {
+                var angleInRadians = (Math.PI * 2 * v) / numberOfVertices;
+                var distanceOfVertexFromCenter = distancesOfVerticesFromCenter[v % verticesPerTooth];
+
+                var drawPosX = centerX + distanceOfVertexFromCenter * Math.cos(angleInRadians);
+                var drawPosY = centerY + distanceOfVertexFromCenter * Math.sin(angleInRadians);
+
+                paths[0].push({ X: drawPosX, Y: drawPosY });        
+        }
+        paths[0].push(paths[0][0]); return use(paths);
+}
+//simpleGear(15, 20, 4).gcode()`)
+                                editor.clearSelection()
+                                editor.moveCursorTo(0, 0);
+
+                                function end_line() {
+                                        var totalLines = editor.getSession().getLength(),
+                                                outarr = [];
+                                        for (var x = 0; x < totalLines; x++) {
+                                                outarr[x] = '↩';
+                                        }
+                                        nL.value = outarr.join('\n')
+                                }
+
+                                function appToEdt(text) {
+                                        var session = editor.getSession()
+                                        var oldText = session.getValue()
+                                        session.setValue(oldText + text)
+                                }
+
+                                function autoScroll() {
+                                        var session = editor.getSession()
+                                        var length = session.getLength()
+                                        editor.scrollToLine(length, true, true, function() {})
+                                }
+
+                                editor.getSession().on('change', function() {
+                                        autoScroll()
+                                })
+
+                                function remToEdt(searchString) {
+                                        var content = editor.getValue();
+                                        var regex = new RegExp(searchString + "\\([^)]*\\)", "g")
+                                        var lines = content.split("\n"),
+                                                modifiedLine = -1;
+                                        for (var i = 0; i < lines.length; i++) {
+                                                if (regex.test(lines[i])) {
+                                                        modifiedLine = i; break
+                                                }
+                                        }
+                                        var updatedContent = content.replace(regex, "")
+                                        editor.setValue(updatedContent, -1)
+                                        if (modifiedLine !== -1) {
+                                                editor.gotoLine(modifiedLine + 2, 0, true)
+                                        }; editor.focus()
+                                }
+
+                                editor.commands.addCommand({
+                                        name: "executeCommand",
+                                        bindKey: {win: "Ctrl-Enter", mac: "Command-Enter"},
+                                        exec: function(editor) {
+                                                var command = editor.getValue().trim()
+                                                try { runSCRIPT() }
+                                                catch (e){ console.error("error", e) }
+                                        }
+                                })
+
+                                var runSCRIPT = () => {
+                                        //try {
+                                                clearCNVS(); TAClose();
+                                                var userCode = editor.getValue()
+                                                var content = edtContent(userCode)
+                                                if (cancBool == true){
+                                                        canvas.remove(imgInstance)
+                                                }
+                                                pts = eval(content);
+                                                tempGuideLines = interactiveGuides
+                                                for (var i = 0; i < tempGuideLines.length; i++){
+                                                        var guidePair = tempGuideLines[i]
+                                                        canvas.add(guidePair.verticalLine).bringToFront()                                        
+                                                        canvas.add(guidePair.horizontalLine).bringToFront()
+                                                        canvas.add(guidePair.intersectionCircle).bringToFront()                                       
+                                                }
+                                                cancBool = false
+                                        //} catch(error) {console.error(error)}
+                                }
+                        </script>
+                </div>
+
+                <!-- Footer container (acts as a control panel and log area) -->
+                <div id="footer" style="z-index:300; cursor:default; font-family:'Monospace'; font-size:9px; overflow: hidden; left:0;
+                position:fixed; bottom:0px; width:100%; height:80px; background:#080808; border-top:2px solid #000; color:#ffffff">
+
+                        <!-- Console log display area -->
+                        <div id="cnsLog" class="center_H" style="position: absolute; overflow-x: hidden; background:#050505; line-height:1.5;
+                        font-size:10px; border-top:1px solid #3c3c3c; color:gray; top:0px; left:0px; width: 100%; height: calc(100% - 25px)">
+                                <p id="cnsl" style="position:absolute; top:-5px; right:20px; font-size:10px">>_ ConsoleLog</p>
+                        </div>
+
+                        <!-- JavaScript code -->
+                        <script>
+var toolHelpDiv = document.getElementById('toolHelp')                  
+function showTHelp() {
+        $("#toolHelp").stop(true, true).css({display: "block", opacity: 0, bottom: "-40px"})
+        .animate({bottom: "100px", opacity: 1}, 500)
+}
+
+function hideTHelp() {
+        $("#toolHelp").stop(true, true)
+        .animate({ bottom: "-40px", opacity: 0 }, 500, function () {
+                $(this).css("display", "none")
+        })
+}
+                                  
+var toggleFT
+function ftr() {
+        let previousHeight = 80
+
+        function updateLayout() {
+                var footerHeight = $("#footer").height()
+                var windowHeight = $(window).height()
+                var desiredH = windowHeight - footerHeight + 20
+                $("#_2D").height(desiredH);
+
+                if (toolHelpDiv) {
+                        $("#toolHelp").css("bottom", `${footerHeight + 20}px`);
+                } 
+        }
+
+        FTRClose = function () {
+                var currentHeight = $("#footer").height()
+                if (currentHeight > 80) {
+                        previousHeight = currentHeight
+                        $("#footer").height(120)
+                        $("#footer").css('top', 'calc(100% - 80px)')
+                        updateLayout()
+                }
+        }
+
+        FTROpen = function () {
+                $("#footer").height(previousHeight)
+                $("#footer").css('height', `80px)`)
+                updateLayout()
+        }
+
+        $("#footer").resizable({
+                handles: 'n',
+                minHeight: 80,
+                maxHeight: 600,
+                resize: updateLayout
+        });
+
+        $(window).on('resize', updateLayout)
+        $(window).trigger('resize')                                
+}; ftr()
+
+var cnsLog = document.getElementById('cnsLog')
+function logging() {
+        var MAX_LOG_LINES = 200
+        var logBuffer = []
+        var bufferFlushInterval = 200  // ms
+
+        function customLog(type, color, ...args) {
+                var  t = new Date()
+                var  hh = String(t.getHours()).padStart(2, '0')
+                var  mm = String(t.getMinutes()).padStart(2, '0')
+                var  ss = String(t.getSeconds()).padStart(2, '0')
+                var  time = `${hh}:${mm}:${ss}&nbsp;&nbsp;`
+
+                var output = ''
+                args.forEach(arg => {
+                        output += `<span style="color:${color}">`
+                        if (arg instanceof Error) {
+                                output += `<b>${arg.name}: ${arg.message}</b><br>`
+                        } else if (typeof arg === 'object') {
+                                output += JSON.stringify(arg, null, 2)
+                        } else {
+                                output += arg
+                        }
+                        output += '</span>&nbsp;'
+                })
+
+                var html = `<br>
+                        <span style="color: rgb(60,60,60); line-height:0.2">${"&nbsp;&nbsp;" + time}</span>
+                        <span style="color: gray; font-weight:bold; line-height:0.2">${"&nbsp;&nbsp;" + type.toUpperCase()}</span>
+                        <span style="color: red; left:20; line-height:0.2"> >>> </span>
+                        ${output}`
+
+                logBuffer.push(html)
+        }
+
+        function flushLogBuffer() {
+                if (logBuffer.length === 0) return
+                var html = logBuffer.join('')
+                cnsLog.insertAdjacentHTML('beforeend', html)
+                cnsLog.scrollTop = cnsLog.scrollHeight
+                logBuffer = []
+        }
+
+        function trimLogLines() {
+                var children = cnsLog.children
+                var excess = children.length - MAX_LOG_LINES
+                for (var i = 0; i < excess; i++) {
+                        cnsLog.removeChild(children[0])
+                }
+        }
+
+        console.log = (...args) => customLog('log', '#32CD32', ...args)
+        console.error = (...args) => customLog('error', '#b3d5e0', ...args)
+        console.gcode = (msg, color = 'gray') => {customLog('gc', color, msg)}
+
+        console.log('ready ...')
+        setInterval(flushLogBuffer, bufferFlushInterval)
+        setInterval(trimLogLines, bufferFlushInterval * 25)
+}; logging()
+
+var scrollTimeout
+var observer = new MutationObserver(() => {
+        if (scrollTimeout) clearTimeout(scrollTimeout)
+        scrollTimeout = setTimeout(() => {
+                cnsLog.scrollTop = cnsLog.scrollHeight
+        }, 100)
+}); observer.observe(cnsLog, {childList: true})
+
+var objNumber = 0;
+function addToConsole() {
+        objNumber = canvas.getObjects().length - 1
+        console.log("HL obj on canvas: " + objNumber)
+}
+
+                        </script>
+                </div>
+
+                <!-- Bottom fixed control bar -->
+                <div id="srv" style="z-index:650; position:fixed; bottom:0px; width:100%; height:
+                25px; left:0px; font-size:11px; background:#080808; border-top:1px solid #ff00ff">
+
+                        <!-- Position indicators -->
+                        <p id="mPos" style="position:fixed; color:gray; bottom:-7px; left: 20px; font-size:11px">pos (x:, y:)</p>
+                        <p id="cPos" style="position:fixed; color:gray; bottom:-7px; left:200px; font-size:11px">pos (row:, col:)</p>
+                        <p id="wa" style="position:fixed; color:gray; bottom:-7px; left:380px; font-size:11px">WorkArea (w:, h:)</p>
+                        <p id="fps" style="position:fixed; color:gray; bottom:-7px; right:20px; width:70px; font-size:11px"></p>
+
+                        <p style="position:fixed; color:gray; bottom:-7px; right:300px; width:70px; font-size:11px; cursor:pointer" onclick="TAOpen()">OpenTA</p>
+
+                        <!-- Clear Log and Reset Swap buttons with onclick events -->
+                        <p style="position:fixed; color:gray; bottom:-7px; right:150px; width:70px; font-size:11px; cursor:pointer"
+                        onclick="cnsLog.innerHTML=''; console.log('ready ...')">< Clear Log ></p>
+
+                        <script>
+var pos = document.getElementById("mPos")
+function mousePos(ev) {
+        var dpi = window.devicePixelRatio * 96
+        posX = (ev.clientX * (25.4 / dpi)).toFixed(0) - 5
+        posY = (ev.clientY * (25.4 / dpi)).toFixed(0) - 15
+        pos.innerHTML = 'mPos (x: ' + posX + ', y: ' + posY + ')'
+}; document.addEventListener('mousemove', mousePos, false)
+
+var cur = document.getElementById("cPos")
+function cursorPos(ev) {
+        var cursorPosition = editor.getCursorPosition()
+        row = cursorPosition.row + 1
+        col = cursorPosition.column
+        cur.innerHTML = 'cPos (row: ' + row + ', col: ' + col + ')'
+}; document.addEventListener('mousemove', cursorPos, false)
+
+var wa = document.getElementById("wa")
+function calculateWASize() {
+        wa.innerHTML = 'WorkArea (w: ' + dWidth + ',h: ' + dHeight + ')'
+}; calculateWASize()
+
+var fpsElement = document.getElementById('fps')
+var frame = 0, startTime = performance.now()
+function calculateFPS() {
+        frame++
+        var now = performance.now();
+        if (now - startTime > 1000) {
+                var fps = (frame / ((now - startTime) / 1000)).toFixed(2)
+                fpsElement.textContent = `${fps} fps`
+                frame = 0; startTime = now
+        }; requestAnimationFrame(calculateFPS)
+}; calculateFPS()
+
+                        </script>
+                </div>
+
+                <!-- GCode Section -->
+                <div id="GCC" style="z-index:350; position:absolute; background:#101010; width:780px; height:300px; 
+                left: 50%; top: 50%; transform: translate(-50%,-50%); border: 1px solid #3c3c3c; display:none">
+                        <h3 style="text-align:center">< GCODE GENERATOR ></h3>
+                        <button class="bs" style="top:20px; right:-20px; cursor:pointer" onclick="toggleGCconv()">X</button>       
+                               
+                        <div class="buttons-container" style="top:70px">
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px; color:#fff">MODE&nbsp&nbsp</span>
+                                <button class="btRD" id="m_1" onclick="setMODE('m_1')">●</button>cutter
+                                <button class="btRD" id="m_2" onclick="setMODE('m_2')">●</button>engrave                  
+                        </div>
+                                          
+                        <div id="t_1" class="buttons-container" style="top:120px">
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">min POWER(%)</span>
+                                <input class="txtInp" type="text" id="_02" placeholder="set power" maxlength="4" value="0"/>
+
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px;">max POWER(%)</span>
+                                <input class="txtInp" type="text" id="_03" placeholder="set power" maxlength="4" value="255"/>
+
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">speed TRAVEL</span>
+                                <input class="txtInp" type="text" id="_04" placeholder="radius" value="10000"/>
+
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px;">speed LASER</span>
+                                <input class="txtInp" type="text" id="_05" placeholder="radius" value="6000"/>
+                                          
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">n° PASS.</span>
+                                <input class="txtInp" type="text" id="_06" placeholder="n° passes" value="1"/>
+                        </div>
+                        <div id="t_2" class="buttons-container" style="top:160px">
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">rowsPerMM</span>
+                                <input class="txtInp" type="text" id="_07" placeholder="rows/mm" maxlength="4" value="3"/>
+
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">Z-AXIS</span>
+                                <input class="txtInp" type="text" id="_08" placeholder="inc. Z" maxlength="4" value="0"/>
+
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">Z-MAX</span>
+                                <input class="txtInp" type="text" id="_09" placeholder="inc. Z" maxlength="4" value="0"/>                                
+
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">&nbsp;air&nbsp;
+                                ASSIST</span><input class="txtInp" type="text" id="_10" placeholder="set air" maxlength="4" value="0"/>
+                               
+                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">fileNAME</span>
+                                <input class="txtInp" type="text" id="_11" placeholder="set name" value="a"/>
+                        </div>
+                        <div id="t_3" class="buttons-container" style="top:210px; width:100%">
+                                <div id="d_1" style="width:auto; height:auto; margin:0 auto; position:relative; display:flex; align-items:center; gap:6px">
+                                
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">toGCODE</span>
+                                        <button class="btTool" onclick="obj2gc()">create</button>                    
+                               </div>                     
+                        </div>                                  
+
+                        <p class="bs" style="width:100%; top:265px; text-align:center">* download if you need to keep the file</p>
+                               
+                        <script>                       
+var t_1 = document.getElementById('t_1')
+var t_2 = document.getElementById('t_2')
+var t_3 = document.getElementById('t_3')
+
+var gcBool = false
+function toggleGCconv() {
+        if (gcBool == false) {
+                $('#GCC').show(); gcBool = true; GCSenderHide() //; FTRClose()
+        } else if (gcBool == true) {
+                $('#GCC').hide(); gcBool = false
+        }
+}
+
+var mode = 'image'
+var setMODE = function(activeId) {
+        var button1 = document.getElementById('m_1')
+        var button2 = document.getElementById('m_2')
+
+        if (activeId === 'm_1') {
+                button1.focus(); button2.blur(); mode = 'cutter'
+        }
+        else if (activeId === 'm_2') {
+                button1.blur(); button2.focus(); mode = 'engrave'
+        }
+        else {
+                mode = 'image'
+        }
+}
+
+var dlBool = false
+var setDL = function() {
+        var button4 = document.getElementById('dl')
+        if (dlBool == false) {
+                button4.focus(); dlBool = true; console.log('true')
+        }
+}
+
+var GCSenderShow = function() {
+        lines = 0
+        progressBar.innerHTML = ''
+        leftPanel.style.visibility = 'visible'
+        centerPanel.style.visibility = 'visible'
+        rightPanel.style.visibility = 'visible'
+        var view3d = document.getElementById("3dView")
+        view3d.style.display = "block"
+        progressBar.style.width = "0%"
+
+        TAClose(); toggleGCconv()
+}
+
+var GCSenderHide = function() {
+        $("#configArea").hide()
+        leftPanel.style.visibility = 'hidden'
+        centerPanel.style.visibility = 'hidden'
+        rightPanel.style.visibility = 'hidden'
+        var view3d = document.getElementById("3dView")
+        view3d.style.display = "none"
+        setTimeout(() => {
+                progressBar.style.width = "0%"
+                sentGCodeLines = 0; totalGCodeLines = 0
+        }, 1000); isImageMode = false
+}
+
+var usedFileNames = []
+function makeUniqueFlName(value) {
+        var uniqueValue = value, counter = 1
+        while (usedFileNames.includes(uniqueValue)) {
+                uniqueValue = value + "_" + counter
+                counter++
+        }; return uniqueValue
+}
+
+                                
+var isImageMode = false
+function obj2gc() {
+        if (mode === 'cutter') {
+                isImageMode = false; svg2gc(md = 0)
+        } else if (mode === 'engrave') {
+                isImageMode = false; svg2gc(md = 1);
+        } else if (mode === 'image') {
+                isImageMode = true; img2gc();
+        } else {
+                throw new Error("mode must be 'image', 'cutter' or 'engrave'")
+        }
+
+        mode = 'image'; var content = editor.getValue()
+        var updatedContent = content.replace(/obj2gc\([^)]*\)/g, "")
+        editor.setValue(updatedContent, -1); editor.focus()
+}
+
+function svg2gc(md){
+        function contour() {
+                for (var pass = 0; pass < passes; pass++) {
+                        var zStep = zeta * pass
+                        paths.forEach(originalPath => {
+                                var path = originalPath.slice();
+                                if (path.length > 0) {
+                                        path.forEach((point, index) => {
+                                                const x = point.X.toFixed(2);
+                                                const y = (dHeight + 6 - point.Y).toFixed(2)
+
+                                                if (index === 0) {
+                                                        gcode += `G0 X${x} Y${y} Z${zMax} F${speedTRVL} S${minPWR}\n`
+                                                        gcode += `G4 P${pause}; Pausa per stabilizzazione;\n`;
+                                                        gcode += `M3;laser ON\n`;
+                                                        gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
+                                                } else {
+                                                        gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
+                                                }
+                                        }); gcode += `M5; laser OFF\n`
+                                }
+                        })
+                }; return gcode;
+        }
+
+        function intersectInfill(infillLines){
+                window.alert = function(){}
+                var clipper = new ClipperLib.Clipper()
+                var infillPaths = infillLines.map(line => 
+                line.map(([x, y]) => ({ X: x * 1000, Y: y * 1000 })))
+
+                var scaledPaths = JSON.parse(JSON.stringify(paths))
+                ClipperLib.JS.ScaleUpPaths(scaledPaths, 1000)
+
+                var result = new ClipperLib.Paths();
+                clipper.AddPaths(infillPaths, ClipperLib.PolyType.ptSubject, false)
+                clipper.AddPaths(scaledPaths, ClipperLib.PolyType.ptClip, true)
+
+                var subj = ClipperLib.PolyFillType.pftNonZero
+                var clip = ClipperLib.PolyFillType.pftNonZero
+
+                clipper.Execute(ClipperLib.ClipType.ctIntersection, result, subj, clip)
+                ClipperLib.JS.ScaleDownPaths(result, 1000)
+                return result
+        }
+
+        function infillLines(rect){
+                var lines = []
+                for (let y = rect[1]; y <= rect[3]; y += 1/rowPerMM){
+                        const line = [
+                                [rect[0], y], [rect[2], y]
+                        ]; lines.push(line)
+                }; return lines
+        }
+
+        function engrave(intersectedPaths){
+                isForward = true
+                for (var pass = 0; pass < passes; pass++){
+                        let zStep = zeta * pass                                
+                        intersectedPaths.forEach(originalPath => {
+                                var path = isForward ? originalPath.slice() : originalPath.slice().reverse()
+                                        path.forEach((point, index) => {
+                                        if(index === 0){
+                                                gcode += `M5; laser OFF\n`
+                                                gcode += `G0 X${point.X.toFixed(2)} Y${(dHeight + 6 - point.Y).toFixed(2)} Z${zMax} F${speedTRVL} S${minPWR}\n`
+                                        } else {
+                                                gcode += `M3;laser ON\n`
+                                                gcode += `G1 X${point.X.toFixed(2)} Y${(dHeight + 6 - point.Y).toFixed(2)} Z${zStep} F${speedLSR} S${maxPWR}\n`
+                                        }
+                                }); isForward = !isForward                                        
+                        })
+                }; return gcode
+        }
+        
+        Points = svgpath.replace(/,/g, ' ')
+        Points_1 = svgPathToPoints(Points)
+        pointsArray = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ')
+        Points_2 = svgPathToClipperPaths(pointsArray)
+
+        var paths = use(Points_2.slice())
+        var bounds = calculateBoundingBox(paths)
+
+        var minPWR = parseInt($("#_02").val())                     
+        var maxPWR = parseInt($("#_03").val())
+        var speedTRVL = parseInt($("#_04").val())                     
+        var speedLSR = parseInt($("#_05").val())
+        var passes = parseInt($("#_06").val())                   
+        var rowPerMM = parseInt($("#_07").val())
+        var zeta = parseFloat($("#_08").val())
+        var zMax = parseFloat($("#_09").val())
+        var air = parseInt($("#_10").val())
+        var flName = $("#_11").val()                       
+        try {
+                function isValidInteger(value){
+                        return Number.isInteger(value) && value >= 0
+                }
+                function isValidDecimal(value){
+                        return typeof value === "number" && value >= 0
+                }
+                function isValidAir(value){
+                        return value === 0 || value === 1
+                }
+                function isValidFlName(value){
+                        return(typeof value === "string" &&
+                                value.trim() !== "" &&
+                                /^[a-zA-Z0-9_-]+$/.test(value)
+                        )
+                }
+                function isUniqueFlName(value){
+                        return !usedFileNames.includes(value)
+                }                                
+                if (!isValidInteger(minPWR)){
+                        throw new Error("minPWR must be a positive integer")
+                }
+                if (!isValidInteger(maxPWR)){
+                        throw new Error("maxPWR must be a positive integer")
+                }
+                if (!isValidInteger(speedTRVL)){
+                        throw new Error("speedTRVL must be a positive integer")
+                }
+                if (!isValidInteger(speedLSR)){
+                        throw new Error("speedLSR must be a positive integer")
+                }
+                if (!isValidInteger(passes)){
+                        throw new Error("passes must be a positive integer")
+                }
+                if (!isValidInteger(rowPerMM)){
+                        throw new Error("rowPerMM must be a positive integer")
+                }
+                if (!isValidAir(air)){
+                        throw new Error("air must be 0 or 1")
+                }
+                if (!isValidFlName(flName)){
+                        throw new Error("flName must be a non-empty string");
+                }
+                if (!isUniqueFlName(flName)){
+                        flName = makeUniqueFlName(flName)
+                }; usedFileNames.push(flName)
+                
+                gcode = '', pre = '', post = ''
+                pause = 0.5, now = new Date()
+                now = 
+                        ('0' + now.getDate()).slice(-2) + '/' + 
+                        ('0' + (now.getMonth() + 1)).slice(-2) + '/' + 
+                        now.getFullYear() + ' ' + 
+                        ('0' + now.getHours()).slice(-2) + ':' + 
+                        ('0' + now.getMinutes()).slice(-2) + ':' + 
+                        ('0' + now.getSeconds()).slice(-2)                        
+                        
+                pre = "; Created using HobbyLaser "+now+"\n\n"
+                pre += "; mode: vector\n"
+                pre += "; Laser Speed: " + speedTRVL + " mm/sec\n"
+                pre += "; Travel Speed: " + speedLSR + " mm/sec\n"
+                pre += "; Power: [" + minPWR + ", " + maxPWR + "]\n"
+                pre += `G21; units: mm\n`
+                pre += `G90\n`                                
+                pre += "G0 X0 Y0 Z0 F" + speedTRVL + "\n"
+                if (air !== 0) pre = pre + "M8\n"                             
+                if (air !== 0) post = "\nM9; stop airAssist\n"
+                post += "G0 X0 Y0 Z0 F" + speedTRVL + "; homing...\n"
+                post += "M2; end program\n"                                
+                
+                
+                if (md == 0){
+                        contour()
+                        gcode = pre + gcode + post
+                }
+                else {
+                        const lines = infillLines([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY])
+                        var intersectedPaths = intersectInfill(lines)
+                        engrave(intersectedPaths); contour()
+                        gcode = pre + gcode + post
+                }
+                sendGCODE(gcode); GCSenderShow()
+        } catch(error){console.error(error.message)}                                
+}
+
+
+function img2gc(){
+        var minPWR = parseInt($("#_02").val())                     
+        var maxPWR = parseInt($("#_03").val())
+        var speedTRVL = parseInt($("#_04").val())                     
+        var speedLSR = parseInt($("#_05").val())
+        var passes = parseInt($("#_06").val())                   
+        var rowPerMM = parseInt($("#_07").val())
+        var zeta = parseFloat($("#_08").val())
+        var zMax = parseFloat($("#_09").val())
+        var air = parseInt($("#_10").val())
+        var flName = $("#_11").val()                          
+        try {
+                function isValidInteger(value){
+                        return Number.isInteger(value) && value >= 0
+                }
+                function isValidDecimal(value){
+                        return typeof value === "number" && value >= 0
+                }
+                function isValidAir(value){
+                        return value === 0 || value === 1
+                }
+                function isValidFlName(value){
+                        return(typeof value === "string" &&
+                                value.trim() !== "" &&
+                                /^[a-zA-Z0-9_-]+$/.test(value)
+                        )
+                }
+                function isUniqueFlName(value){
+                        return !usedFileNames.includes(value)
+                }                                                               
+                if (!isValidInteger(minPWR)){
+                        throw new Error("minPWR must be a positive integer")
+                }
+                if (!isValidInteger(maxPWR)){
+                        throw new Error("maxPWR must be a positive integer")
+                }
+                if (!isValidInteger(speedTRVL)){
+                        throw new Error("speedTRVL must be a positive integer")
+                }
+                if (!isValidInteger(speedLSR)){
+                        throw new Error("speedLSR must be a positive integer")
+                }
+                if (!isValidInteger(passes)){
+                        throw new Error("passes must be a positive integer")
+                }
+                if (!isValidInteger(rowPerMM)){
+                        throw new Error("rowPerMM must be a positive integer")
+                }
+                if (!isValidAir(air)){
+                        throw new Error("air must be 0 or 1")
+                }
+                if (!isValidFlName(flName)){
+                        throw new Error("flName must be a non-empty string");
+                }  
+                if (!isUniqueFlName(flName)){
+                        flName = makeUniqueFlName(flName)
+                }; usedFileNames.push(flName)
+                
+                var passes = parseInt(passes), zStep = parseFloat(zeta), gcode = ''  
+
+                try{
+                        var imageData = ctxIMG.getImageData(0, 0, scaledWidth, scaledHeight)
+                        var width = imageData.width, height = imageData.height, data = imageData.data
+                } catch{console.error('no image on canvas'); return}
+
+                var travelSpeedCmd = ' F' + speedTRVL.toString()
+                var laserSpeedCmd = ' F' + speedLSR.toString()
+                var densityMultiplier = parseInt(rowPerMM)
+                var lineSpacing = 1 / densityMultiplier
+                var now = new Date()
+                now = 
+                        ('0' + now.getDate()).slice(-2) + '/' + 
+                        ('0' + (now.getMonth() + 1)).slice(-2) + '/' + 
+                        now.getFullYear() + ' ' + 
+                        ('0' + now.getHours()).slice(-2) + ':' + 
+                        ('0' + now.getMinutes()).slice(-2) + ':' + 
+                        ('0' + now.getSeconds()).slice(-2)                        
+                
+                gcode = "; Created using HobbyLaser "+now+"\n\n"
+                gcode += "; mode: raster\n"
+                gcode += "; Laser Speed: " + speedTRVL + " mm/sec\n"
+                gcode += "; Travel Speed: " + speedLSR + " mm/sec\n"
+                gcode += "; Power: [" + minPWR + ", " + maxPWR + "]\n"
+                gcode += `G21; unità in millimetri\n`
+                gcode += `G90; posizionamento assoluto\n`                                
+                gcode += "G0 X0 Y0" + travelSpeedCmd + "; Torna all'origine\n"
+                gcode += "M4; laser ON\n"
+                
+                if (air !== 0) gcode += "M8; start airAssist\n\n"                    
+
+                /*var mirroredData = new Uint8ClampedArray(data.length);
+                for (var y = 0; y < height; y++) {
+                        for (var x = 0; x < width; x++) {
+                                var index = (y * width + x) * 4;
+                                var mirroredIndex = ((height - y - 1) * width + x) * 4;
+                                mirroredData[mirroredIndex] = data[index];         // R
+                                mirroredData[mirroredIndex + 1] = data[index + 1]; // G
+                                mirroredData[mirroredIndex + 2] = data[index + 2]; // B
+                                mirroredData[mirroredIndex + 3] = data[index + 3]; // A
+                        }
+                }
+
+                var mirroredImageData = new ImageData(mirroredData, width, height)
+                data = mirroredImageData.data*/                      
+
+                function findActivePixelRange(y){
+                        var firstActivePixel = -1
+                        var lastActivePixel = -1
+
+                        for (var ix = 0; ix < width; ix++){
+                                var index = (y * width + ix) * 4
+                                var red = data[index];
+                                var green = data[index + 1]
+                                var blue = data[index + 2]
+                                var alpha = data[index + 3]
+
+                                var isWhite = (red > 240 && green > 240 && blue > 240)
+                                var isTransparent = (alpha <= 10)
+
+                                if (!isWhite && !isTransparent){
+                                        if (firstActivePixel === -1) firstActivePixel = ix
+                                        lastActivePixel = ix
+                                }
+                        }; return { firstActivePixel, lastActivePixel }
+                }
+
+                function generatePassGcode(zOffset) {
+                        var powerStep = 5  
+                        var powerTolerance = 5 
+
+                        for (let yMM = 0; yMM < convertToMM(height); yMM += lineSpacing) {
+                                var y = Math.round(yMM * 96 / 25.4)
+                                if (y >= height) break
+
+                                var { firstActivePixel, lastActivePixel } = findActivePixelRange(y)
+                                if (firstActivePixel === -1) continue
+
+                                var startX = firstActivePixel
+                                var endX = lastActivePixel
+                                var step = (y % 2 === 0) ? 1 : -1
+                                if (step === -1) [startX, endX] = [endX, startX]
+
+                                var yCoord = dHeight - (yMM - borderY)
+                                var rowGcode = ''
+                                var drawing = false
+                                var lastPower = 0
+                                var segmentStartX = null
+
+                                for (let ix = startX; ix !== endX + step; ix += step) {
+                                        var idx = (y * width + ix) * 4
+                                        var red = data[idx]
+                                        var green = data[idx + 1]
+                                        var blue = data[idx + 2]
+                                        var alpha = data[idx + 3]
+
+                                        var isWhite = red > 240 && green > 240 && blue > 240
+                                        var isTransparent = alpha <= 10
+
+                                        var power = 0
+                                        if (!isWhite && !isTransparent) {
+                                                const brightness = red * 0.3 + green * 0.59 + blue * 0.11
+                                                power = minPWR + (1.0 - brightness / 255.0) * (maxPWR - minPWR)
+                                                power = Math.round(power / powerStep) * powerStep
+                                        }
+
+                                        if (power > 0) {
+                                                if (!drawing) {
+                                                        segmentStartX = convertToMM(ix) + borderX
+                                                        rowGcode += `G0 X${segmentStartX.toFixed(3)} Y${yCoord.toFixed(3)} Z${zMax} ${travelSpeedCmd}\n`
+                                                        drawing = true
+                                                        lastPower = power
+                                                } else if (Math.abs(power - lastPower) > powerTolerance) {
+                                                        var xCoord = convertToMM(ix) + borderX
+                                                        rowGcode += `G1 X${xCoord.toFixed(3)} Y${yCoord.toFixed(3)} Z${zOffset.toFixed(3)} S${lastPower} ${laserSpeedCmd}\n`
+                                                        rowGcode += `G1 X${xCoord.toFixed(3)} Y${yCoord.toFixed(3)} Z${zOffset.toFixed(3)} S${power} ${laserSpeedCmd}\n`
+                                                        lastPower = power
+                                                }
+                                        } else {
+                                                if (drawing) {
+                                                        var xCoord = convertToMM(ix - step) + borderX
+                                                        rowGcode += `G1 X${xCoord.toFixed(3)} Y${yCoord.toFixed(3)} Z${zOffset.toFixed(3)} S${lastPower} ${laserSpeedCmd}\n`
+                                                        drawing = false
+                                                }
+                                        }
+                                }
+
+                                if (drawing) {
+                                        const xCoord = convertToMM(endX) + borderX
+                                        rowGcode += `G1 X${xCoord.toFixed(3)} Y${yCoord.toFixed(3)} Z${zOffset.toFixed(3)} S${lastPower} ${laserSpeedCmd}\n`
+                                }
+
+                                gcode += rowGcode
+                        }
+                }
+
+
+                for (var pass = 0; pass < passes; pass++){
+                        generatePassGcode(pass * zStep)
+                }
+                
+                if (air !== 0) gcode += "M9; stop airAssist\n\n"
+
+                gcode += "M5; laser OFF\n"
+                gcode += "G0 X0 Y0" + travelSpeedCmd + "; Torna all'origine\n"
+                gcode += "M2; Fine del programma\n"                        
+                
+                sendGCODE(gcode); GCSenderShow()
+        } catch(error){console.error(error.message)}               
+}
+function roundCoord(coord){return Math.round(coord * 10) / 10}
+function convertToMM(value, dpi = 96){var mmPerInch = 25.4; return (value / dpi) * mmPerInch}
+
+
+
+function download(gcodeText){
+        var fileName = $("#_11").val() || "download"
+        if (!fileName.endsWith(".gcode")) {
+                fileName += ".gcode"
+        }
+
+        var blob = new Blob([gcodeText], { type: "text/plain" })
+        var link = document.createElement("a")
+        link.href = URL.createObjectURL(blob)
+        link.download = fileName
+        document.body.appendChild(link)
+        link.click(); document.body.removeChild(link)
+}
+var gcodeText = ""
+function sendGCODE(data){
+        if(dlBool == true){download()}
+       // document.getElementById("_11").value = ""
+        gcodeText = data; gcode = ""
+        gcVIEW(gcodeText); dlBool = false; //download(gcodeText)
+}   
+                            
+                        </script>
+                </div>
+
+                <div id="leftPanel" style="background:#101010; position:absolute; width:190px; top:200px; z-index:500;
+                left:calc(50% - (var(--viewWidth) / 2) - 100px); border:1px solid #3c3c3c; z-index:500; visibility:hidden">
+
+                        <button id="connect" class="btAlert" style="position:absolute; margin-left:20px; top:10px">connect</button>
+                        <button id="stop" class="btAlert" style="position:absolute; margin-left:20px; top:45px">Stop</button>                
+                        <button id="send" class="btAlert" style="position:absolute; margin-left:20px; top:80px">Send ...</button>
+                        <button id="pause" class="btAlert" style="position:absolute; margin-left:20px; top:115px">Pause</button>
+                        <button id="resume" class="btAlert" style="position:absolute; margin-left:20px; top:150px">Resume</button>
+
+                        <button id="config"class="btAlert" style="position:absolute;  margin-left:20px; bottom:10px">setGRBL</button>
+                </div>             
+
+                <div id="centerPanel" class="panel" style="position:absolute; top:200px; left:0; overflow:hidden; visibility:hidden">
+                        <div id="3dView"></div>
+                        <script>
+var centerPanel = document.getElementById('centerPanel')
+var centPHeight = centerPanel.offsetHeight
+
+window.addEventListener('DOMContentLoaded', function () {
+        var leftPanel = document.getElementById("leftPanel")
+        var rightPanel = document.getElementById("rightPanel")
+        var confArea = document.getElementById('configArea')
+
+        leftPanel.style.height = centPHeight + "px"
+        rightPanel.style.height = centPHeight + "px"
+
+        var leftWidth = 190
+        var centerWidth = centPHeight
+        var rightWidth = 30
+
+        var totalWidth = leftWidth + centerWidth + rightWidth
+        var startX = (window.innerWidth - totalWidth) / 2
+
+        leftPanel.style.left = startX + "px"
+        centerPanel.style.left = (startX + leftWidth +20) + "px"
+        confArea.style.left = (startX + leftWidth +20) + "px"
+        rightPanel.style.left = (startX + leftWidth + centerWidth+40) + "px"
+})             
+
+//------ gcode VIEW
+function clrScene(scene) {
+        while (scene.children.length > 0) {
+                const obj = scene.children[0];
+                if (obj.geometry) obj.geometry.dispose();
+                if (obj.material) obj.material.dispose();
+                scene.remove(obj);
+        }
+}
+
+function GCodeParser(handlers) {
+        this.handlers = handlers || {}
+}
+GCodeParser.prototype.parseLine = function (text) {
+        text = text.replace(/;.*$/, '').trim()
+        if (text) {
+                var tokens = text.split(' ')
+                var cmd = tokens[0]
+                var args = { 'cmd': cmd }
+                tokens.slice(1).forEach(function (token) {
+                        if (token.length < 2) return
+                        var key = token[0].toLowerCase()
+                        var value = parseFloat(token.substring(1))
+                        if (!isNaN(value)) {
+                                args[key] = value
+                        }
+                })
+                var handler = this.handlers[cmd] || this.handlers['default']
+                if (handler) {
+                        handler(args)
+                }
+        }
+}
+GCodeParser.prototype.parse = function (gcode) {
+        var lines = gcode.split('\n')
+        for (var i = 0; i < lines.length; i++) {
+                this.parseLine(lines[i])
+        }
+}
+
+var visitedSegments = [], lastPower = 0
+function createObjFromGC(gcode) {
+        var positions = [], colors = [], pathPoints = [], lastLine = { x: 0, y: 0, z: 0 }
+        var white = new THREE.Color(0xffffff), gray = new THREE.Color(0x3c3c3c)
+        visitedSegments = []
+
+        function addSegment(p1, p2, cmd) {
+                positions.push(p1.x, p1.y, p1.z)
+                positions.push(p2.x, p2.y, p2.z)
+
+                var intensity = lastPower / 255
+                var color = new THREE.Color().setRGB(intensity, intensity, intensity)
+
+                colors.push(color.r, color.g, color.b)
+                colors.push(color.r, color.g, color.b)
+
+                pathPoints.push({ ...p2 })
+                visitedSegments.push(false)
+        }
+        
+        function moveTo(args, cmd) {
+                if ('s' in args) lastPower = args.s
+
+                let powerRatio = lastPower / 255
+                if (isImageMode) {
+                        powerRatio = 1 - powerRatio
+                }
+
+                let zOffset = -1 * powerRatio
+                let zReal = args.z ?? lastLine.z
+
+                let newLine = {
+                        x: args.x ?? lastLine.x,
+                        y: args.y ?? lastLine.y,
+                        z: zReal + zOffset
+                }
+
+                var color = new THREE.Color().setRGB(powerRatio, powerRatio, powerRatio)
+
+                positions.push(lastLine.x, lastLine.y, lastLine.z + zOffset)
+                positions.push(newLine.x, newLine.y, newLine.z)
+
+                colors.push(color.r, color.g, color.b)
+                colors.push(color.r, color.g, color.b)
+
+                pathPoints.push({ ...newLine })
+                visitedSegments.push({
+                        from: { ...lastLine },
+                        to: { ...newLine },
+                        zReal: zReal,
+                        s: lastPower,
+                        zOffset: zOffset 
+                })
+
+                lastLine = {
+                        x: newLine.x,
+                        y: newLine.y,
+                        z: zReal + 0.2 //
+                }
+        }
+        function moveWithoutDrawing(args) {
+                if ('s' in args) lastPower = args.s
+
+                let zReal = args.z ?? lastLine.z
+                lastLine = {
+                        x: args.x ?? lastLine.x,
+                        y: args.y ?? lastLine.y,
+                        z: zReal
+                }
+        }
+
+        var parser = new GCodeParser({
+                G0: args => moveWithoutDrawing(args),
+                G1: args => moveTo(args, 'G1')
+        })
+
+        parser.parse(gcode)
+        if (positions.length === 0) return null
+
+        var geometry = new THREE.BufferGeometry()
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+        geometry.computeBoundingBox()
+
+        var center = geometry.boundingBox.getCenter(new THREE.Vector3())
+        var size = geometry.boundingBox.getSize(new THREE.Vector3()).length()
+
+        var posAttr = geometry.getAttribute('position')
+        for (var i = 0; i < posAttr.count; i++) {
+                posAttr.setXYZ(
+                        i,
+                        posAttr.getX(i) - center.x,
+                        posAttr.getY(i) - center.y,
+                        posAttr.getZ(i) - center.z
+                )
+        }
+        posAttr.needsUpdate = true
+
+        pathPoints = pathPoints.map(p => ({
+                x: p.x - center.x,
+                y: p.y - center.y,
+                z: p.z - center.z
+        }))
+
+        var material = new THREE.LineBasicMaterial({vertexColors: true})
+        var line = new THREE.LineSegments(geometry, material)
+
+        return { line, pathPoints, center, size }
+}
+
+
+var view = document.getElementById("3dView")
+var tW = window.innerHeight * 0.5
+var tH = window.innerHeight * 0.5
+
+var renderer = new THREE.WebGLRenderer({antialias: true})
+renderer.setSize(tW, tH)
+renderer.setPixelRatio(window.devicePixelRatio)
+renderer.setClearColor(0x101010, 1)
+view.appendChild(renderer.domElement)
+
+var scene = new THREE.Scene()
+var camera = new THREE.PerspectiveCamera(40, tW / tH, 1, 1000)
+camera.lookAt(0,0,0); camera.up.set(0, 1, 0)
+var controls = new THREE.OrbitControls(camera, renderer.domElement)
+
+function resetCAMERA() {
+        camera = new THREE.PerspectiveCamera(40, tW / tH, 0.1, 1000)
+        camera.position.set(5, -22, 138)
+        controls = new THREE.OrbitControls(camera, renderer.domElement)
+        controls.update()
+}
+
+function loop() {
+        requestAnimationFrame(loop)
+        controls.update()
+        renderer.render(scene, camera)
+}; loop()
+
+function renderGCode(object) {
+        clrScene(scene); scene.add(object)
+        if (typeof line !== 'undefined' && line !== null) {
+                scene.add(line)
+        }
+        camera.position.set(5, -22, 138)
+        camera.lookAt(center)
+}
+
+var pathPoints = [], isPaused = false, step = 0, object
+var gcVIEW = function (gcode) {
+        var result = createObjFromGC(gcode); if (!result) return
+        object = result.line; pathPoints = result.pathPoints
+        center = result.center; size = result.size
+
+        renderGCode(object)
+        view.style.visibility = 'visible'
+}
+
+window.addEventListener('resize', function () {
+        tW = view.offsetWidth
+        tH = view.offsetHeight
+        renderer.setSize(tW, tH)
+        camera.aspect = tW / tH
+        camera.updateProjectionMatrix()
+})
+
+
+
+
+
+var sidePanel = document.getElementById("leftPanel")
+sidePanel.style.height = tH + 5 + "px"
+
+var centerX = window.innerWidth / 2
+var viewLeft = centerX - (tW / 2)
+sidePanel.style.left = (viewLeft - 120) + "px"
+
+// ------ GCSender
+var port, writer, pump, reconnecting = false
+var isSending = false, stopRequested = false, isPaused = false
+
+var currentIndex = 0, sentGCodeLines = 0, totalGCodeLines = 0
+var BUFFER_LIMIT = 50, encoder = new TextEncoder()
+var reconnectDelay = 500
+
+var isConnected = false
+var isManualDisconnect = false
+
+// --- okListeners & reader ---
+var okListeners = [], onOkCallback = null
+
+function addOkListener(cb) {
+        okListeners.push(cb)
+}
+
+var statusListeners = []
+var lineNumber = 0
+var OK_TIMEOUT = 1000
+
+function checksum(line) {
+        return line
+                .split('')
+                .reduce((cs, ch) => cs ^ ch.charCodeAt(0), 0)
+}
+
+function formatGcodeLine(rawLine, n) {
+        var body = `N${n} ${rawLine}`
+        var cs = checksum(body)
+        return `${body}*${cs}\n`
+}
+
+async function sendWithRetry(rawLine) {
+        return new Promise(async (resolve, reject) => {
+                var thisLine = ++lineNumber
+                var formatted = formatGcodeLine(rawLine, thisLine)
+                var logEntry = `→ ${formatted.trim()}`
+                var timeoutId
+
+                function onOk(receivedNum) {
+                        if (receivedNum === thisLine) {
+                                clearTimeout(timeoutId)
+                                okListeners = okListeners.filter(cb => cb !== onOk)
+                                resolve()
+                        }
+                }
+
+                okListeners.push(onOk)
+
+                var data = new TextEncoder().encode(formatted)
+                await writer.write(data)
+
+                timeoutId = setTimeout(() => {
+                        okListeners = okListeners.filter(cb => cb !== onOk)
+                        console.warn(`Line ${thisLine} timeout, retrying…`)
+                        sendWithRetry(rawLine).then(resolve).catch(reject)
+                }, OK_TIMEOUT);
+        });
+}
+
+async function readSerialData() {
+        var decoder = new TextDecoderStream()
+        var inputDone = port.readable.pipeTo(decoder.writable)
+        reader = decoder.readable.getReader()
+
+        var buffer = ''
+        try {
+                while (true) {
+                        var { value, done } = await reader.read()
+                        if (done) break
+                        buffer += value
+                        var lines = buffer.split(/\r?\n/)
+                        buffer = lines.pop()
+                        for (var raw of lines) {
+                                var line = raw.trim().toLowerCase()
+                                if (!line) continue
+
+                                if (line === 'ok') {
+                                        okListeners.forEach(cb => cb()); continue
+                                }
+
+                                if (line.startsWith('error:')) {
+                                        var code = line.split(':')[1].trim()
+                                        console.warn(`GRBL error ${code}`)
+                                        if (code === '24') {
+                                                console.log("bypassing error 24")
+                                        } else {
+                                                console.log("retrying via soft reset")
+                                                await softReset()
+                                        }; continue
+                                }
+
+                                if (line.startsWith('alarm:')) {
+                                        var match = line.match(/\d+/);
+                                        if (match && match[0]) {
+                                                var code = parseInt(match[0], 10)
+                                                console.error(`GRBL alarm ${code}`)
+                                                if ([2, 4, 5, 7, 10].includes(code)) {
+                                                        console.log("auto-reset alarm")
+                                                        await softReset()
+                                                } else if ([1, 3, 6].includes(code)) {
+                                                        console.log("reset + homing alarm")
+                                                        await softReset(); await homing()
+                                                } else {
+                                                        console.error("unknown alarm, manual check required");
+                                                }
+                                        } else {
+                                                console.warn("Could not parse alarm code from:", line);
+                                        }; continue
+                                }
+
+                                if (line.startsWith('<') && line.endsWith('>')) {
+                                        statusListeners.forEach(cb => cb(line)); continue
+                                }
+
+                                if (/^grbl\s+[\d.]+/i.test(line)) {
+                                        var version = line.match(/grbl\s+([\d.]+)/i)[1]
+                                        console.info('→ GRBL version detected:', version)
+                                        continue
+                                }; console.debug('GRBL:', line);
+                        }
+                }
+        } catch (e) {
+                console.error('Error serial:', e)
+                isConnected = false; scheduleReconnect()
+        } finally {
+                try {reader.releaseLock()} catch {}
+                if (isManualDisconnect) {
+                        try {await port.close()} catch {}
+                }
+        }
+}
+
+async function connectSerial() {
+        if (isConnected) return;
+        try {
+                if (!port) {
+                        const ports = await navigator.serial.getPorts();
+                        port = ports[0] || await navigator.serial.requestPort()
+                }
+                await port.open({ baudRate: 115200 })
+                writer = port.writable.getWriter()
+                isConnected = true
+                isManualDisconnect = false
+                console.log('Connected')
+                readSerialData()
+        } catch (e) {
+                console.error('Connect fail:', e)
+        }
+}
+
+async function disconnectSerial() {
+        try {
+                isManualDisconnect = true;
+                if (reader) {await reader.cancel(); reader.releaseLock()}
+                if (writer) {await writer.close(); writer.releaseLock()}
+                if (port) {await port.close()}
+                console.log('Serial disconnected')
+        } catch (e) {
+                console.error('Error during disconnect:', e)
+        }
+}
+
+function scheduleReconnect() {
+        if (!reconnecting) {
+                reconnecting = true;
+                console.log(`reconnecting ...`)
+                setTimeout(() => {
+                        reconnecting = false; connectSerial()
+                }, reconnectDelay)
+        }
+}
+
+function addStatusListener(cb) {
+        statusListeners.push(cb)
+}
+
+function removeOkListener() {
+        if (onOkCallback) {
+                const i = okListeners.indexOf(onOkCallback)
+                if (i > -1) okListeners.splice(i, 1)
+                onOkCallback = null
+        }
+}
+
+// --- pipeline buffered + drawing ---
+var parser = makeStreamParser(scene);
+
+function makeStreamParser(scene) {
+        return new GCodeParser({
+                G0: args => {
+                        if ('s' in args) lastPower = args.s;
+                        var zReal = ('z' in args) ? args.z : lastLine.z;
+                        lastLine = {
+                                x: args.x ?? lastLine.x,
+                                y: args.y ?? lastLine.y,
+                                z: zReal
+                        };
+                },
+                G1: args => {
+                        if ('s' in args) lastPower = args.s;
+                        var powerRatio = isImageMode
+                                ? 1 - (lastPower / 255)
+                                : (lastPower / 255);
+                        var zReal = ('z' in args) ? args.z : lastLine.z;
+                        var zOffset = -powerRatio;
+
+                        var newPt = {
+                                x: (args.x ?? lastLine.x) - center.x,
+                                y: (args.y ?? lastLine.y) - center.y,
+                                z: (zReal + zOffset) - center.z
+                        };
+
+                        var oldPt = {
+                                x: lastLine.x - center.x,
+                                y: lastLine.y - center.y,
+                                z: lastLine.z + zOffset - center.z
+                        };
+
+                        var geom = new THREE.BufferGeometry();
+                        var pos = new Float32Array([
+                                oldPt.x, oldPt.y, oldPt.z,
+                                newPt.x, newPt.y, newPt.z
+                        ]);
+                        geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+
+                        var c = new THREE.Color().setRGB(powerRatio, powerRatio, powerRatio);
+                        var cols = new Float32Array([
+                                c.r, c.g, c.b,
+                                c.r, c.g, c.b
+                        ]);
+                        geom.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+
+                        var mat = new THREE.LineBasicMaterial({ vertexColors: true });
+                        var lineSeg = new THREE.LineSegments(geom, mat);
+                        scene.add(lineSeg);
+
+                        lastLine = {
+                                x: args.x ?? lastLine.x,
+                                y: args.y ?? lastLine.y,
+                                z: zReal
+                        };
+                }
+        });
+}
+
+async function streamGCodeBuffered() {
+        if ($("#configArea").is(":visible")) {
+                console.error("Streaming blocked: config area is visible"); return
+        }
+
+        clrScene(scene)
+        var pre = createObjFromGC(gcodeText)
+        if (pre) center = pre.center
+
+        lastLine = { x: 0, y: 0, z: 0 }
+        lastPower = 0;
+        var parser = makeStreamParser(scene)
+
+
+        var  lines = gcodeText.split('\n')
+        totalGCodeLines = lines.length;
+        sentGCodeLines = 0; currentIndex = 0
+        isSending = true; stopRequested = false; lastPos = null
+
+        var bufferUsed = 0
+        var  pendingLines = []
+        var  pendingSizes = []
+
+        function onOk() {
+                var confirmed = pendingLines.shift()
+                var size = pendingSizes.shift();
+                bufferUsed -= size
+
+                if (confirmed) {
+                        try {parser.parseLine(confirmed)}
+                        catch (err) {console.warn('error:', err, 'on line:', confirmed)}
+                }
+
+                setTimeout(pump, 0)
+        }; addOkListener(onOk)
+
+        async function resendLastLineForced() {
+                const lastSent = gcodeText.split('\n')[currentIndex - 2]?.trim()
+                if (!lastSent || lastSent.startsWith(';')) return
+                await writer.write(encoder.encode(lastSent + '\n'))
+        }               
+
+        pump = async function () {
+                if (!isSending || isPaused || stopRequested) return
+
+                while (currentIndex < lines.length) {
+                        var  raw = lines[currentIndex].trim()
+
+                        if (!raw || raw.startsWith(';')) {
+                                currentIndex++; sentGCodeLines++
+                                updateProgressBar(); continue
+                        }
+
+                        var  enc = encoder.encode(raw + '\n')
+                        if (bufferUsed + enc.length > BUFFER_LIMIT)
+                                break
+
+                        var success = false
+                        for (var attempt = 1; attempt <= 3; attempt++) {
+                                try {
+                                        await writer.write(enc)
+                                        console.gcode(`→ ${raw}`, attempt === 1 ? 'gray' : 'white')
+
+                                        bufferUsed += enc.length
+                                        pendingLines.push(raw)
+                                        pendingSizes.push(enc.length)
+                                        currentIndex++
+                                        sentGCodeLines++
+                                        updateProgressBar()
+
+                                        success = true
+                                        break
+                                } catch (err) {
+                                        console.warn(`error (attempt ${attempt}):`, err)
+                                        await new Promise(r => setTimeout(r, 200))
+                                }
+                        }
+
+                        if (!success) {
+                                console.warn(`skipping line: ${raw}`)
+                                currentIndex++; sentGCodeLines++
+                                updateProgressBar(); continue
+                        }
+                }
+                if (currentIndex >= lines.length) {
+                        if (pendingLines.length === 1) {
+                                setTimeout(async () => {
+                                    if (pendingLines.length === 1) {
+                                        var  last = pendingLines[0];
+                                        await writer.write(encoder.encode(last + '\n'));
+                                    }
+                                }, 500)
+                        } else if (pendingLines.length === 0) {
+                                isSending = false; removeOkListener()
+                                console.log("Streaming completed")
+                        }
+                }   
+        }; pump()
+}
+
+// --- UI event bindings ---
+document.getElementById('connect').addEventListener('click', connectSerial);
+document.getElementById('stop').addEventListener('click', disconnectSerial);
+document.getElementById('send').addEventListener('click', () => {
+        if (port && !isSending) streamGCodeBuffered();
+});
+// Pause / Resume / homing
+document.getElementById('pause').onclick = () => {
+        if (isSending) {
+                isPaused = true;
+                console.log("⏸ Paused");
+        }
+};
+document.getElementById('resume').onclick = () => {
+        if (isPaused) {
+                isPaused = false;
+                console.log("▶️ Resumed");
+                pump();
+        }
+};
+async function homing() {
+        console.log("homing…");
+        await writer.write(new TextEncoder().encode("$H\n"));
+}
+// Utility
+async function softReset() {
+        await writer.write(new Uint8Array([0x18]));
+        await new Promise(r => setTimeout(r, 500));
+}
+// --- Progress bar update ---
+var progressBar = document.getElementById('progress-bar');
+function updateProgressBar() {
+        if (totalGCodeLines > 0) {
+                var pct = sentGCodeLines / totalGCodeLines * 100;
+                progressBar.style.width = pct + '%';
+        }
+}
+
+                        </script>
+                </div>
+
+                <div id="configArea" class="panel" style="position:absolute; top:200px; left:0; overflow:auto; display:none">                
+
+                        <table id="configTable">
+                                <thead>
+                                        <tr>
+                                                <th style="text-align:left"></th>
+                                                <th style="text-align:right"></th>
+                                                <th style="text-align:right"></th>
+                                        </tr>
+                                </thead>
+                                <tbody>
+                                        <!-- Le righe saranno aggiunte dinamicamente qui -->
+                                </tbody>
+                        </table>
+
+
+                        <script>                                
+var configVisible = false;
+document.getElementById('config').addEventListener('click', function () {
+        if (isConnected == true) {
+                configVisible = !configVisible;
+                if (configVisible) {
+                        loadConfigData();
+                        $("#configArea").show();
+                } else {
+                        $("#configArea").hide();
+                        sendConfigToGRBL();
+                }
+        } else {
+                console.error("ConnectController");
+        }
+});
+
+function loadConfigData() {
+        $('#configTable tbody').empty();
+
+        var configData = [
+                { setting: "$0", value: "10", description: "Step pulse time, microseconds" },
+                { setting: "$1", value: "25", description: "Step idle delay, milliseconds" },
+                { setting: "$2", value: "0", description: "Step pulse invert, mask" },
+                { setting: "$3", value: "0", description: "Step direction invert, mask" },
+                { setting: "$4", value: "0", description: "Invert step enable pin, boolean" },
+                { setting: "$5", value: "0", description: "Invert limit pins, boolean" },
+                { setting: "$6", value: "0", description: "Invert probe pin, boolean" },
+                { setting: "$10", value: "255", description: "Status report options, mask" },
+                { setting: "$11", value: "0.010", description: "Junction deviation, millimeters" },
+                { setting: "$12", value: "0.002", description: "Arc tolerance, millimeters" },
+                { setting: "$13", value: "0", description: "Report in inches, boolean" },
+                { setting: "$20", value: "0", description: "Soft limits enable, boolean" },
+                { setting: "$21", value: "0", description: "Hard limits enable, boolean" },
+                { setting: "$22", value: "0", description: "Homing cycle enable, boolean" },
+                { setting: "$23", value: "0", description: "Homing direction invert, mask" },
+                { setting: "$24", value: "25.000", description: "Homing locate feed rate, mm/min" },
+                { setting: "$25", value: "500.000", description: "Homing search seek rate, mm/min" },
+                { setting: "$26", value: "250", description: "Homing switch debounce delay, milliseconds" },
+                { setting: "$27", value: "1.000", description: "Homing switch pull-off distance, millimeters" },
+                { setting: "$30", value: "1000", description: "Maximum spindle speed, RPM" },
+                { setting: "$31", value: "0", description: "Minimum spindle speed, RPM" },
+                { setting: "$32", value: "0", description: "Laser-mode enable, boolean" },
+                { setting: "$100", value: "250.000", description: "X-axis steps per millimeter" },
+                { setting: "$101", value: "250.000", description: "Y-axis steps per millimeter" },
+                { setting: "$102", value: "250.000", description: "Z-axis steps per millimeter" },
+                { setting: "$110", value: "500.000", description: "X-axis maximum rate, mm/min" },
+                { setting: "$111", value: "500.000", description: "Y-axis maximum rate, mm/min" },
+                { setting: "$112", value: "500.000", description: "Z-axis maximum rate, mm/min" },
+                { setting: "$120", value: "10.000", description: "X-axis acceleration, mm/sec^2" },
+                { setting: "$121", value: "10.000", description: "Y-axis acceleration, mm/sec^2" },
+                { setting: "$122", value: "10.000", description: "Z-axis acceleration, mm/sec^2" },
+                { setting: "$130", value: dWidth, description: "X-axis maximum travel, millimeters" },
+                { setting: "$131", value: dHeight, description: "Y-axis maximum travel, millimeters" },
+                { setting: "$132", value: "200.000", description: "Z-axis maximum travel, millimeters" }
+        ];
+
+        configData.forEach(data => {
+                var row = `<tr>
+                                <td>${'&nbsp;&nbsp;' + data.setting}</td>
+                                <td><input class="txtInp configValue" type="text" value="${data.value}"></td>
+                                <td style="padding-left:50px">${data.description}</td>
+                        </tr>`;
+                $('#configTable tbody').append(row);
+        });
+}
+
+function getConfigData() {
+        var configData = [];
+        $('#configTable tbody tr').each(function () {
+                var key = $(this).find('td').eq(0).text().trim();
+                var value = $(this).find('input').val();
+                var description = $(this).find('td').eq(2).text();
+
+                if (key && value) {
+                        configData.push({ setting: key, value: value, description: description });
+                }
+        });
+        return configData;
+}
+
+var isSendingConfig = false;
+async function sendConfigToGRBL() {
+        if (isSendingConfig) return;
+        if (!writer) {
+                console.error("ConnectController");
+                return;
+        }
+
+        isSendingConfig = true;
+        var config = getConfigData();
+        for (let item of config) {
+                if (!item.setting || item.value === undefined) {
+                        console.warn("Skipping invalid config item:", item);
+                        continue;
+                }
+                var line = `${item.setting}=${item.value}`;
+                await new Promise(async (resolve, reject) => {
+                        var timeout = setTimeout(() => {
+                                okListeners = okListeners.filter(cb => cb !== onOk);
+                                reject("Timeout waiting for OK from GRBL");
+                        }, OK_TIMEOUT);
+
+                        function onOk() {
+                                clearTimeout(timeout);
+                                okListeners = okListeners.filter(cb => cb !== onOk);
+                                resolve();
+                        }
+                        okListeners.push(onOk);
+                        await writer.write(encoder.encode(line + "\n"));
+                }).catch(err => {
+                        console.error("Error sending config:", err);
+                });
+        }
+        isSendingConfig = false;
+}
+
+                        </script>
+                </div>
+
+                <div id="rightPanel" style="background:transparent; position:absolute; width:30px;
+                top:200px; z-index:500; border:0px solid #3c3c3c; visibility:hidden">
+
+                        <button id="close" class="close-btn" onclick='GCSenderHide()'>x</button>
+                </div>
+                
+
+                        <script>
+var speedTRVL = 1000;
+var XSize = 10, YSize = 10, ZSize = 10;
+document.addEventListener('keydown', async (event) => {
+        if (!port) return;
+        var command = ''
+
+        switch (event.key) {
+                case 'ArrowUp':
+                        YSize += 10
+                        command = `G0 Y${YSize} F${speedTRVL}`
+                        await sendToGRBL("G92 X0 Y0 Z0"); break
+                case 'ArrowDown':
+                        YSize -= 10
+                        command = `G0 Y${YSize} F${speedTRVL}`
+                        await sendToGRBL("G92 X0 Y0 Z0"); break
+                case 'ArrowLeft':
+                        XSize -= 10
+                        command = `G0 X${XSize} F${speedTRVL}`
+                        await sendToGRBL("G92 X0 Y0 Z0"); break
+                case 'ArrowRight':
+                        XSize += 10
+                        command = `G0 X${XSize} F${speedTRVL}`
+                        await sendToGRBL("G92 X0 Y0 Z0"); break
+                case 'PageUp':
+                        XSize += 10
+                        command = `G0 Z${ZSize} F${speedTRVL}`
+                        await sendToGRBL("G92 X0 Y0 Z0"); break
+                case 'PageDown':
+                        XSize -= 10
+                        command = `G0 Z${ZSize} F${speedTRVL}`
+                        await sendToGRBL("G92 X0 Y0 Z0"); break
+                default: return
+        }
+
+        if (command) {
+                await sendToGRBL(command);
+                console.log(`Command sent: ${command}`)
+        }
+})
+async function sendToGRBL(command) {
+        return new Promise(async (resolve, reject) => {
+                if (!writer) {
+                        reject('Serial port writer not available')
+                        return
+                }
+                function onOk() {
+                        okListeners = okListeners.filter(cb => cb !== onOk)
+                        resolve()
+                }
+                okListeners.push(onOk)
+
+                try {
+                        const data = new TextEncoder().encode(command + '\n')
+                        await writer.write(data)
+
+                        const timeoutId = setTimeout(() => {
+                                okListeners = okListeners.filter(cb => cb !== onOk)
+                                reject('Timeout: No OK response from device')
+                        }, OK_TIMEOUT)
+
+                        function onOk() {
+                                clearTimeout(timeoutId)
+                                okListeners = okListeners.filter(cb => cb !== onOk)
+                                resolve()
+                        }
+                        okListeners.push(onOk)
+                } catch (e) {
+                        okListeners = okListeners.filter(cb => cb !== onOk)
+                        reject(e)
+                }
+        })
+}
+
+document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === 'Delete') {
+                clearCNVS()
+                if (imgInstance) { canvas.remove(imgInstance); }
+                cancBool = true; objNumber = 0
+        }
+        else if (event.ctrlKey && event.key === 'i') {
+                event.preventDefault()
+                document.getElementById('input').click()
+        }
+        else if (event.ctrlKey && event.key === '+') {
+                event.preventDefault()
+                updateZoom(zoomLevel - zoomFactor)
+        }
+        else if (event.ctrlKey && event.key === '-') {
+                event.preventDefault()
+                updateZoom(zoomLevel + zoomFactor)
+        }
+        else if (event.ctrlKey && event.key === 'r') {
+                event.preventDefault()
+                resetZoom()
+        }
+        else if (event.ctrlKey && event.key === 'm') {
+                event.preventDefault()
+                resetCAMERA()
+        }
+        else if (event.ctrlKey && event.key === 'g') {
+                event.preventDefault();
+                for (var i = 0; i < interactiveGuides.length; i++) {
+                        var guide = interactiveGuides[i];
+                        canvas.remove(guide.horizontalLine)
+                        canvas.remove(guide.verticalLine)
+                        canvas.remove(guide.intersectionCircle)
+                }
+                interactiveGuides = [];
+                canvas.renderAll();
+        }
+        else if (event.altKey && event.key === 'a') {
+                event.preventDefault()
+                addPOLYLINE()
+        }
+        else if (event.altKey && event.key === 's') {
+                event.preventDefault()
+                addPOLYGON(20, 100, 100, 30)
+        }
+        else if (event.altKey && event.key === 'd') {
+                event.preventDefault()
+                addTEXT('roboto_b', 100, 100, 100, 'test')
+        }
+})
+
+
+                               
+ setWorkArea()                     
+                        </script>
+                </div>                       
+
+                <!-- div id="fd" style="z-index:10000;position:absolute; width:100%; left: 50%; top: 50%; color: #fff; transform: translate(-50%, -50%);">
+                        <div id="customAlert" class="alert-box">
+                                <div class="alert-img">
+                                        <img style="position:absolute; top:20px; left:10px;" src="../IMG/c_1.png" width="100px" height="auto"/>
+                                </div>
+                                <div class="alert-content">
+                                        <p>DISCLAIMER</p>
+                                        <p style="color:#ff00ff">A CNC OR A LASER ARE NOT TOYS!</p>
+                                        <p>
+                                                <a href="https://www.lasersafetyfacts.com/laserclasses.html" target="_blank" style="color:gray">Read more</a>
+                                        </p>
+                                        <p class="disclaimer-text" style=" font-weight:normal">
+                                                Using a CNC or laser without proper training and protection can cause serious injury and blindness. We do not accept any liability for damages resulting from the use of this software.
+                                        </p>
+                                        <p style="color:#ff00ff;">ALWAYS WEAR SAFETY GLASSES!</p>
+
+                                        <br>
+                                        <button class="btAlert" id="alertButton">OK</button>
+                                </div>
+                                <div class="alert-img">
+                                        <img style="position:absolute; top:20px; right:10px;" src="../IMG/c_2.png" width="100px" height="auto"/>
+                                </div>
+                                
+                                <script>                                    
+                                        document.getElementById('alertButton').addEventListener('click', function() {
+                                                var alertBox = document.getElementById('fd')
+                                                setTimeout(() => {
+                                                        alertBox.remove();
+                                                        $("#splash").load("../HTML/anim.html", function() {
+                                                                setTimeout(() => {
+                                                                        $("#splash").addClass("fade");
+                                                                        setTimeout(() => { $("#splash").remove(); }, 2000)
+                                                                }, 3000)
+                                                        })
+                                                        setTimeout(() => {setWorkArea()}, 5000)
+                                                }, 0)
+                                        })
+                                </script>   
+                        </div>
+                </div>
+                <div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)"></div -->
+        </body>             
+</html>  
+
+<!--
+
+-->

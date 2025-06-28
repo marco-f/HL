@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" href="https://necolas.github.io/normalize.css/8.0.1/normalize.css">
+</head>
+
+<style>
+        .ef-ruler {position:absolute;top:0;
+                left:0;width:100%;height:100%;overflow:hidden}
+        .ef-ruler .corner{display:none;
+                position:absolute;top:0;left:0;width:15px;height:15px;
+                background-color:#080808;border-width: 0 1px 1px 0;
+                border-style:solid;border-color:#888;z-index:10 !important}
+        .ef-ruler .ruler{z-index: 1;user-select: none;
+                background:none repeat scroll 0% 0%  #080808;
+                color:gray;font-family:source code pro,"monospace";
+                font-size:8px; overflow: hidden}
+        .ef-ruler .top-line{z-index:3;background:#080808;
+                position: absolute; transform: translate(1px, 10px);                 
+                width:0; height:15px;border-left: 1px solid #888}
+        .ef-ruler .left-line {z-index: 3;
+                position: absolute; transform: translateY(15px);
+                left:0;width:15px;height:0;border-top:1px solid #888}      
+        .ef-ruler .tick{background: none repeat scroll 0% 0% #444;}
+        .ef-ruler .top{position:fixed; background:#090909;
+                top:45px !important; left:18px !important;
+                height:15px;border-bottom: 1px solid #888}
+        .ef-ruler .top .major{
+                position:absolute;top:0;
+                width:1px;height: 100%;text-indent: 1px}
+        .ef-ruler .top .minor{position:absolute;
+                bottom:0px;width:1px;height:6px}
+        .ef-ruler .top .micro{position:absolute;bottom:0px;width:1px;height:4px}
+        .ef-ruler .left{left:0px !important;
+                position:absolute;top:25px !important;
+                width:15px;border-right:1px solid #888}
+        .ef-ruler .left .major{position:absolute;
+                right:0; height:1px; width:100%; text-indent:1px}
+        .ef-ruler .left .major span{
+                display:block;position:absolute;top:1px;right:0;margin-right:15px;
+                transform:rotate(-90deg);transform-origin:right top 0px}
+        .ef-ruler .left .minor{position:absolute;right:0px;height:1px;width:6px}
+        .ef-ruler .left .micro{position:absolute;right:0px; height:1px; width:4px}
+        .ef-ruler .stage {position:absolute;top:15px;left:15px;width:auto;height:auto}
+
+        .menuBtn {
+                cursor: pointer; align-items:center;               
+                font-size: 14px; position: absolute;
+                background: #151515; left: 30px; top:35px;
+                justify-content:center; border: 0px solid #888;
+                z-index: 100; width: 50px; height: 25px; color: white;
+        }
+        .menuBtn:hover {color:#ff313f}                            
+
+        .span {font-size:11px}
+
+        .label {
+                font-size:10px;
+                display:none;
+                position: absolute;
+                bottom: 30px; left: 50%;
+                transform: translateX(-50%);
+                color: #fff border:0;
+                pointer-events: none;
+                transition: left 0.1s;
+        }
+
+        .buttons-container {
+                color:#fff; font-size: 10px;
+                position: absolute; display: flex;       
+                align-items:center; gap:10px;// margin:20px 20px      
+        }
+        .txtInp {
+                outline:none;
+                background: #080808;                
+                width: 80px; padding: 4px;         
+                margin: 0;font-size: 10px;           
+                border: 1px solid #3c3c3c;                          
+                text-align:right; color:#fff;         
+        }
+        .btTool {margin-left: 0px;
+                text-align: center;  color: white;        
+                cursor: pointer; border-radius: 50px;
+                border: 1px solid #3c3c3c; font-size: 10px;        
+                background:#080808; width:80px; padding:5px;              
+        }
+        .btTool:hover {color:#f0f}
+            
+                  
+
+        .btRD {
+                display: flex;align-items: center; 
+                justify-content:center;color: white;        
+                cursor: pointer; border-radius: 50%;
+                border: 1px solid #3c3c3c; font-size: 15px; outline:none;       
+                background:#080808; width:16px; height:16px; padding-bottom:2px           
+        }
+        .btRD:focus {outline:none; color:#f0f}                       
+
+                             
+        .ghost {
+                opacity: 0.5;
+                background-color: #202020;
+        }
+        .fade {opacity: 0; transition: opacity 2s ease-in-out}
+</style> 
+<body>
+        <svg id="allSVG" style="display:block; height:200%;">
+                <path id="svgPath" marker-mid="url(#markerdot)"/>
+                <defs>
+                        <marker id="markerdot" overflow="visible" markerUnits="strokeWidth">
+                                <circle id="MD" r="1.5" style="stroke:white"/>
+                        </marker>
+                        <pattern id="transformedPattern" x="0" y="0" width="0" height="0" patternUnits="userSpaceOnUse">
+                                <rect
+                                        x="0" y="0" width="100%" height="100%"
+                                        style="fill: url(#transformedPattern)"
+                                />
+                        </pattern>
+                </defs>
+
+                <circle id="highlightCircle" refX="center" refY="center"/>
+                <circle id="selectionCircle" refX="center" refY="center"/>
+                <circle id="controlCircle" refX="center" refY="center" r="0"/>
+                <circle id="controlCircle2" refX="center" refY="center" r="0"/>
+                <path id="controlPath1"/><path id="controlPath2"/>
+        </svg>
+        <div id="datadiv" style="display:none" oncontextmenu="return false"></div>
+
+        <div id="wrapper" style="position:absolute; left:4px; top:14px; width:120%; height:200%">            
+                <canvas id="canvas" style="z-index:1; cursor:none !important"></canvas>
+        </div>
+	
+
+
+                     
+        <script>
+                var DPI = 96, mmPerInch = 25.4, inchPerMm = 1 / 25.4;
+                var CONV = function(dt, toPixels = false){
+                        var conversionFactor = toPixels ? DPI * inchPerMm : 1 / (DPI * inchPerMm);
+
+                        if (typeof dt === 'string'){
+                                dConv = dt.replace(/(\d+(\.\d+)?)/g, (match, num) => {
+                                        const converted = (parseFloat(num) * conversionFactor) 
+                                        return `${converted.toFixed(2)}`
+                                }); return dConv
+                        }
+                        else if (Array.isArray(dt)){return dt.map(value => (value * conversionFactor).toFixed(2))}
+                        else if (typeof dt === 'number'){return parseFloat((dt * conversionFactor).toFixed(2))}
+                }
+                      
+                function edtContent(input) {
+                        var lines = input.split('\n')
+                        var output = '', i = 0
+
+                        while (i < lines.length) {
+                                var line = lines[i].trim()
+                                if (line === '') {i++; continue}
+
+                                if (line.startsWith('function')) {
+                                        output += line + '\n'; i++
+                                        while (i < lines.length && !lines[i].includes('}')) {
+                                                output += lines[i] + '\n'; i++
+                                        }
+                                        if (i < lines.length) {
+                                                output += lines[i] + '\n'; i++
+                                        }; continue
+                                }
+
+                                var callMatch = line.match(/^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/)
+                                if (callMatch) {
+                                        var fnName = callMatch[1]
+                                        if (fnName === "IMAGE") {
+                                                output += line + '\n'; i++; continue
+                                        }
+
+                                        var accumulatedLine = line
+                                        var nestingLevel = 0
+
+                                        if (line.includes('('))
+                                                nestingLevel += (line.match(/\(/g) || []).length
+                                        if (line.includes(')'))
+                                                nestingLevel -= (line.match(/\)/g) || []).length
+
+                                        while (nestingLevel > 0 && i + 1 < lines.length) {
+                                                i++
+                                                var nextLine = lines[i]
+                                                accumulatedLine += '\n' + nextLine
+                                                if (nextLine.includes('('))
+                                                        nestingLevel += (nextLine.match(/\(/g) || []).length
+                                                if (nextLine.includes(')'))
+                                                        nestingLevel -= (nextLine.match(/\)/g) || []).length
+                                        }
+
+                                        output += `SVG(${accumulatedLine})\n`
+                                        console.log('compiling...')
+                                } else {output += line + '\n'}; i++
+                        }; return output
+                }
+
+                var variableCount = 1, PV = {}, pts
+
+                                
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------- addCANVAS                               
+                state = JSON.parse(JSON.stringify(stateInitialize))
+                stateInitialize.gridSnapSize = GRID; initialize()
+                        
+                $.ajaxSetup({cache: false})
+                document.addEventListener("contextmenu",
+                function(e) {e.preventDefault()}, false)                                      
+
+                var rulerInstance, updateZoom, zoomLevel
+                $(document).ready(function(){
+                        var wrapper = document.getElementById('wrapper');
+                        rulerInstance = new Ruler(wrapper, {
+                                unit: 'mm', tickMajor: 10,
+                                tickMinor: 5, tickMicro: 1, zoomLevel: 1
+                        })
+                        zoomLevel = 1, zoomFactor = 0.1
+                        updateZoom = function (newZoomLevel) {
+                                zoomLevel = newZoomLevel
+                                rulerInstance.options.zoomLevel = zoomLevel
+                                rulerInstance.refresh()
+                                if (typeof canvas !== 'undefined' && typeof canvas.setZoom === 'function'){
+                                        canvas.setZoom(1 / zoomLevel)
+                                }
+                        }
+                        resetZoom = function (){
+                                zoomLevel = 1
+                                rulerInstance.options.zoomLevel = zoomLevel;
+                                rulerInstance.refresh()
+                                if (typeof canvas !== 'undefined' && typeof canvas.setZoom === 'function'){
+                                        canvas.setZoom(1)
+                                }
+                        }                     
+                })
+                  
+                var canvas = new fabric.Canvas('canvas', {
+                        selection: false, hoverCursor: 'none', defaultCursor: 'none' 
+                })                 
+                canvas.preserveObjectStacking = true
+                var ctx = canvas.getContext('2d')
+
+                var cW = window.innerWidth
+                var cH = (window.innerHeight * 2) -200
+                canvas.setDimensions({width:cW, height:cH})     
+
+                function drawGRID() {
+                        var gridLines = [];
+                        for (var i = 0; i < (canvas.height / GRID); i++){
+                                gridLines.push(new fabric.Line(
+                                        [0, i * GRID + 11, canvas.width, i * GRID + 11],
+                                        {stroke:'#202020', selectable:false, evented:false, excludeFromExport:true}
+                                ))
+                        }
+
+                        for (var i = 0; i < (canvas.width / GRID); i++){
+                                gridLines.push(new fabric.Line(
+                                    [i * GRID, 0, i * GRID, canvas.height],
+                                    {stroke:'#202020', selectable:false, evented:false, excludeFromExport:true}
+                                ))
+                        }
+
+                        gdGroup = new fabric.Group(gridLines, {selectable:false, evented:false, excludeFromExport:true})
+                        canvas.add(gdGroup)
+                }; drawGRID();
+                              
+                var lineHrz, lineVrt
+                setTimeout(() => {
+                        lineHrz = new fabric.Line([0, 0, 0, 0], {
+                                stroke: '#888', selectable: false, strokeWidth: 1, excludeFromExport:true
+                        })
+                        lineVrt = new fabric.Line([0, 0, 0, 0], {
+                                stroke: '#888', selectable: false, strokeWidth: 1, excludeFromExport:true
+                        })
+                        canvas.add(lineHrz); canvas.add(lineVrt)
+                        canvas.on('mouse:move', function(event){
+                                var pointer = canvas.getPointer(event.e)
+                                var x = pointer.x, y = pointer.y
+                                lineHrz.set({x1: 0, y1: y, x2: canvas.width, y2: y})
+                                lineVrt.set({x1: x, y1: 0, x2: x, y2: canvas.height})
+                                canvas.renderAll()
+                        })
+                        canvas.on('mouse:out', function() {
+                                lineHrz.set({x1: 0, y1: 0, x2: 0, y2: 0})
+                                lineVrt.set({x1: 0, y1: 0, x2: 0, y2: 0 })
+                                canvas.renderAll()
+                        })                        
+                },0)                            
+
+                var isDragging = false, activeIntersection = null
+                var horizontalLabel = document.getElementById('horizontalLabel')
+                var interactiveGuides = []
+
+                function createGuideLine(x1, y1, x2, y2, isHorizontal){
+                        return new fabric.Line([x1, y1+10, x2, y2+10], {
+                                stroke: '#aecce4',
+                                strokeDashArray: [5, 5],
+                                selectable: false,
+                                strokeWidth: 0.5,
+                                isHorizontal: isHorizontal,
+                                hasControls: false,
+                                hasBorders: false,
+                                hoverCursor: 'default',
+                                excludeFromExport: true
+                        })
+                }
+                function createIntersectionCircle(x, y){                      
+                        var circle = new fabric.Circle({
+                                left: x - 5,
+                                top: y - 5,
+                                radius: 5,
+                                stroke: '#000000',
+                                fill: 'transparent',
+                                selectable: true,
+                                hasControls: false,
+                                hasBorders: false,
+                                hoverCursor: 'move',
+                                excludeFromExport: true
+                        })
+                        circle.on('mouseover', function(){
+                                lineHrz.set({opacity: 0})
+                                lineVrt.set({opacity: 0})
+                                canvas.renderAll()
+                        })
+                        circle.on('mouseout', function(){
+                                lineHrz.set({opacity: 1})
+                                lineVrt.set({opacity: 1})
+                                canvas.renderAll()
+                        }); return circle                       
+                }
+                function snapToGrid(value){return Math.round(value / GRID) * GRID}
+                function createInteractiveGuide(){
+                        var initialX = snapToGrid(GRID)
+                        var initialY = snapToGrid(GRID)        
+                        var canvasWidth = canvas.getWidth()
+                        var canvasHeight = canvas.getHeight()
+                        var horizontalLine = createGuideLine(0, initialY, canvasWidth, initialY, true)
+                        var verticalLine = createGuideLine(initialX, 0, initialX, canvasHeight, false)
+                        var intersectionCircle = createIntersectionCircle(initialX, initialY)
+
+                        intersectionCircle.on('mousedown', function () {
+                                isDragging = true;
+                                activeIntersection = {horizontalLine, verticalLine, intersectionCircle}
+                        })
+
+                        canvas.add(verticalLine).bringToFront()                                        
+                        canvas.add(horizontalLine).bringToFront()
+                        canvas.add(intersectionCircle).bringToFront()   
+                        interactiveGuides.push({horizontalLine, verticalLine, intersectionCircle})
+                        canvas.renderAll()
+                }
+                                  
+                canvas.on('mouse:down', function (event){
+                        var target = event.target
+                        if (target && (target.isHorizontal || !target.isHorizontal)){
+                                isDragging = true; activeLine = target
+                        }
+                })                           
+                canvas.on('mouse:move', function(event){
+                        if (isDragging && activeIntersection){
+                                lineHrz.set({opacity: 0})
+                                lineVrt.set({opacity: 0})
+                                
+                                var pointer = canvas.getPointer(event.e)
+
+                                var snappedX = snapToGrid(pointer.x)
+                                var snappedY = snapToGrid(pointer.y)+11
+
+                                activeIntersection.intersectionCircle.set({left: snappedX - 5, top: snappedY - 5})
+
+                                activeIntersection.horizontalLine.set({y1: snappedY, y2: snappedY})
+                                activeIntersection.verticalLine.set({x1: snappedX, x2: snappedX})
+
+                                horizontalLabel.style.left = (snappedX + canvas._offset.left + 70) + 'px'
+                                horizontalLabel.style.top = (snappedY + canvas._offset.top + 20) + 'px'
+                                horizontalLabel.innerHTML = `X: ${parseFloat(CONV(snappedX).toFixed())}mm, Y: ${parseFloat(CONV(snappedY).toFixed())-3}mm`
+                                horizontalLabel.style.display = 'block'; canvas.renderAll();
+                        }
+                })
+                canvas.on('mouse:up', function(){
+                        lineHrz.set({opacity: 1})
+                        lineVrt.set({opacity: 1})                        
+                        isDragging = false
+                        activeIntersection = null
+                        horizontalLabel.style.display = 'none'
+                })
+
+                canvas.on('mouse:over', function(event) {
+                        if (event.target && event.target.hoverCursor === 'pointer'){
+                                lineHrz.set({opacity:0}); lineVrt.set({opacity:0}); canvas.renderAll()
+                        }
+                })
+                canvas.on('mouse:out', function(event) {
+                        if (event.target && event.target.hoverCursor === 'pointer'){
+                                lineHrz.set({opacity:1}); lineVrt.set({opacity:1}); canvas.renderAll();
+                        }
+                })   
+                        
+                function snapToGrid(value, isHorizontal = false){
+                        if (isHorizontal){return Math.round(value / GRID) * GRID}
+                        else {return Math.round(value / GRID) * GRID}
+                }
+
+                var GRID = 18.897637795, dWidth=200, dHeight=100, numSEG=30
+                var intersectionCircleWA, isDraggingWA = false
+
+
+                function setWorkArea() {
+                        canvas.getObjects().forEach(obj => {
+                                if (obj.workAreaLine || obj.waImage || obj.intersectionCircleWA) {
+                                        canvas.remove(obj);
+                                }
+                        })
+
+                        const pxWidth = CONV(dWidth, true)
+                        const pxHeight = CONV(dHeight, true) + 10
+
+                        vLineWA = new fabric.Line([pxWidth, 10, pxWidth, pxHeight], {
+                                stroke: '#555',
+                                strokeDashArray: [2, 5],
+                                strokeWidth: 1,
+                                selectable: false,
+                                evented: false,
+                        }); vLineWA.workAreaLine = true;
+
+                        oLineWA = new fabric.Line([0, pxHeight, pxWidth, pxHeight], {
+                                stroke: '#555',
+                                strokeDashArray: [2, 5],
+                                strokeWidth: 1,
+                                selectable: false,
+                                evented: false,
+                        }); oLineWA.workAreaLine = true;
+
+                        intersectionCircleWA = new fabric.Circle({
+                                left: pxWidth - 5,
+                                top: pxHeight - 5,
+                                radius: 5,
+                                stroke: '#000000',
+                                fill: 'transparent',
+                                selectable: true,
+                                hasControls: false,
+                                hasBorders: false,
+                                hoverCursor: 'move',
+                                excludeFromExport: true                                
+                        })
+                        intersectionCircleWA.intersectionCircleWA = true;
+                        intersectionCircleWA.on('mousedown', function () {
+                                isDraggingWA = true;
+                                lineHrz.set({opacity: 0})
+                                lineVrt.set({opacity: 0})
+                                canvas.renderAll()                                
+                        })
+                        intersectionCircleWA.on('mouseover', function(){
+                                lineHrz.set({opacity: 0})
+                                lineVrt.set({opacity: 0})
+                                canvas.renderAll()
+                        })
+                        intersectionCircleWA.on('mouseout', function(){
+                                lineHrz.set({opacity: 1})
+                                lineVrt.set({opacity: 1})
+                                canvas.renderAll()
+                        })                        
+
+                        fabric.Image.fromURL('../IMG/wa.svg', function(img) {
+                                img.set({
+                                        left: pxWidth,
+                                        top: pxHeight,
+                                        originX: 'left',
+                                        originY: 'top',
+                                        selectable: false,
+                                        evented: false,
+                                })
+                                img.waImage = true;
+                                imgWA = img;
+
+                                canvas.add(imgWA).bringToFront() 
+                                canvas.renderAll()
+                        })
+
+                                canvas.add(vLineWA).bringToFront() 
+                                canvas.add(oLineWA).bringToFront() 
+                                canvas.add(intersectionCircleWA).bringToFront() 
+                                canvas.renderAll()                        
+                }
+
+                canvas.on('mouse:move', function(event) {
+                        if (isDraggingWA && intersectionCircleWA) {
+                                const pointer = canvas.getPointer(event.e);
+                                const newX = snapToGrid(pointer.x);
+                                const newY = snapToGrid(pointer.y) + 10;
+
+                                dWidth = CONV(newX)
+                                dHeight = CONV(newY) - 2.65;
+
+                                vLineWA.set({ x1: newX, x2: newX, y1: 10, y2: newY })
+                                oLineWA.set({ x1: 0, y1: newY, x2: newX, y2: newY })
+
+                                if (imgWA) {
+                                        imgWA.set({ left: newX, top: newY })
+                                }
+                                intersectionCircleWA.set({ left: newX - 5, top: newY - 5 })
+                                canvas.renderAll()
+                        }
+                })
+                canvas.on('mouse:up', function() {isDraggingWA = false; calculateWASize()})
+
+                //------ utils                  
+                var vLineWA, oLineWA, imgWA
+                var cancBool = false, tempGuideLines
+                function clearCNVS(){  
+                        canvas.clear(); drawGRID()
+                        canvas.add(lineHrz); canvas.add(lineVrt)
+                        
+                        if (vLineWA) canvas.add(vLineWA)
+                        if (oLineWA) canvas.add(oLineWA)
+                        if (imgWA) canvas.add(imgWA)
+                        if (intersectionCircleWA) canvas.add(intersectionCircleWA)
+                        if(tempGuideLines){
+                                tempGuideLines = interactiveGuides
+                                for (var i = 0; i < tempGuideLines.length; i++){
+                                        var guidePair = tempGuideLines[i]
+                                        canvas.add(guidePair.verticalLine).bringToFront()                                        
+                                        canvas.add(guidePair.horizontalLine).bringToFront()
+                                        canvas.add(guidePair.intersectionCircle).bringToFront()                                        
+                                }
+                        }; canvas.renderAll(); 
+                }
+                     
+                  
+
+         
+                                  
+                //----------------------------------------------------------------------------------------------------------------------------------------------------------- addSVGPATHS                          
+                var bV = true, pt
+                stroke = color = '#fff', fill = '#00000003'
+                var POLYLINE = function(pt){
+                        Points = pt.replace(/,/g, ' ')
+                        Points_1 = svgPathToPoints(Points)
+                        Points_1 = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ')
+                        Points_2 = svgPathToClipperPaths(Points_1);
+
+                        if (!Array.isArray(Points_2) || Points_2.length === 0){
+                                console.error("array is empty"); return []
+                        }
+
+                        var result = use(Points_2)
+                        if (typeof result === 'object' && result !== null){
+                                result.toSTR = function(){return Points_1.replace(/Z/g, '')}
+                        }; return result
+                }
+                            
+                var pathVIEW = function(txt,pt){
+                        var state = JSON.parse(JSON.stringify(stateInitialize))
+                        stateInitialize.placeholderPath = ''; initialize()
+                        
+                        if (pt){
+                                var paths = pt.split('M')
+                                paths = paths.filter(Boolean).map(function(path){
+                                        return 'M ' + path.trim()
+                                })
+                                var lastPath = paths[paths.length - 1]
+                                lastPath = CONV(lastPath,false)
+                                lastPath = lastPath.replace(/(-?\d+)\.\d+/g, '$1')
+                                if(lastPath){                                                                    
+
+                                        var variableName = `p_${variableCount}`;
+                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                        PV[variableName] = lastPath; const editorContent = editor.getValue()
+                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
+                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++                                        
+                                }
+                        } else {console.log("No to convert")}; TAOpen()//; runSCRIPT()
+                }
+                var addPOLYLINE = function(){
+                        resetZoom()                        
+                        if (bV == true){
+                                bV = false
+                                state = JSON.parse(JSON.stringify(stateInitialize))
+                                stateInitialize.gridSnapSize = GRID; initialize()
+                                toolHelpDiv.style.display = 'block'; showTHelp()
+                                wrn.innerHTML = "tool POLYLINE:&nbsp&nbsp;leftBtn → add segment;&nbsp&nbsp;click-drag-drop → add curve;&nbsp&nbsp;rightBtn → closePath;\
+                                &nbsp&nbsp;shiftKey + 'u' → undo;&nbsp&nbsp;shiftKey + 'r' → redo;&nbsp&nbsp;shiftKey + 'Del'→ clear;&nbsp&nbsp;shiftKey + 'esc'→ leave"
+
+                                //------ add listen events
+                                window.addEventListener('mousemove', handleMouseMove)
+                                window.addEventListener('mousedown', handleMouseDown)
+                                window.addEventListener('mouseup', handleMouseUp)
+                                window.addEventListener('keydown', handleKeyDown)
+                                window.addEventListener('keydown', handleCancel)
+                        } else {
+                                bV = true
+                                pt = $('#datadiv').html(); pathVIEW('POLYLINE',pt)                                
+       
+                                //------ remove listen events
+                                window.removeEventListener('mousemove', handleMouseMove)
+                                window.removeEventListener('mousedown', handleMouseDown)
+                                window.removeEventListener('mouseup', handleMouseUp)
+                                window.removeEventListener('keydown', handleKeyDown)
+                                window.removeEventListener('keydown', handleCancel)                          
+                        }
+                }                              
+                var handleCancel = function(event){
+                        if (event.key === 'Escape'){
+                                //------ Remove listen events
+                                window.removeEventListener('mousemove', handleMouseMove)
+                                window.removeEventListener('mousedown', handleMouseDown)
+                                window.removeEventListener('mouseup', handleMouseUp)
+                                window.removeEventListener('keydown', handleKeyDown)
+                                window.removeEventListener('keydown', handleCancel)
+
+                                var state = JSON.parse(JSON.stringify(stateInitialize))
+                                stateInitialize.placeholderPath = ''; initialize()                               
+                        }
+                }
+                var shortcutMap = {
+                        'e': () => {// Leave
+                                setTimeout(() => {bV = false; addPOLYLINE()}, 500)  
+                        },
+                        'c': () => {// CLEAR
+                                mouse = JSON.parse(JSON.stringify(mouseInitialize))
+                                state.path = []; state.activePoint = null; updateHistory()
+                        },        
+                        'u': () => {// UNDO
+                                if (state.historyIndex > 0) {
+                                        state.historyIndex--
+                                        state.path = JSON.parse(state.history[state.historyIndex])
+                                        state.activePoint = null
+                                        mouse.lastSelectedIndex = null
+                                        mouse.highlightIndex = null
+                                        const lastPoint = state.path[state.path.length - 1]
+                                        if (lastPoint && lastPoint.type !== 'Z') {
+                                                state.activePoint = state.path.length - 1
+                                                mouse.lastSelectedIndex = state.path.length - 1
+                                        } else {
+                                                state.activePoint = null
+                                                mouse.lastSelectedIndex = null
+                                        }
+                                } else {
+                                        state.path = []
+                                        state.activePoint = null
+                                        mouse.lastSelectedIndex = null
+                                }
+                        },
+                        'r': () => {// REDO
+                                if (state.historyIndex <= state.history.length - 2) {
+                                        state.historyIndex++
+                                        state.path = JSON.parse(state.history[state.historyIndex])
+                                        state.activePoint = null
+                                        mouse.lastSelectedIndex = null
+                                        mouse.highlightIndex = null
+                                        const lastPoint = state.path[state.path.length - 1]
+                                        if (lastPoint && lastPoint.type !== 'Z') {
+                                                state.activePoint = state.path.length - 1
+                                                mouse.lastSelectedIndex = state.path.length - 1
+                                        }
+                                }
+                        },
+                        'a': () => {// AddPOINT
+                                if(mouse.lastSelectedIndex !== null &&  state.activePoint === null) {
+                                        var selectedPoint = state.path[mouse.lastSelectedIndex]
+                                        var copyPoint = JSON.parse(JSON.stringify(selectedPoint))
+                                        if (isDoublePointType(copyPoint.type)) {
+                                                copyPoint.xC = copyPoint.x
+                                                copyPoint.yC = copyPoint.y
+                                                copyPoint.xC2 = copyPoint.x
+                                                copyPoint.yC2 = copyPoint.y
+                                                copyPoint.isCurved = false
+                                        }
+                                        state.path.splice(mouse.lastSelectedIndex, 0, copyPoint)
+                                        mouse.lastSelectedIndex++; updateHistory()
+                                }
+                        },        
+                        'd': () => {// DelPOINT
+                                if (mouse.lastSelectedIndex !== null && state.activePoint === null) {
+                                        var pointBefore = state.path[mouse.lastSelectedIndex - 1]
+                                        var twoPointsAfter = state.path[mouse.lastSelectedIndex + 2]
+                                        var twoPointsBefore = state.path[mouse.lastSelectedIndex - 2]
+                                        var pointAfter = state.path[mouse.lastSelectedIndex + 1]
+                                        var preceedingIndexM = mouse.lastSelectedIndex
+                                        while (state.path[--preceedingIndexM].type !== 'M');
+                                        var preceedingM = state.path[preceedingIndexM]
+
+                                        if (pointAfter.type === 'Z' &&
+                                        isSelectabvarype(pointBefore.type) &&
+                                        twoPointsBefore.type !== 'M'){
+                                                pointBefore.x = preceedingM.x
+                                                pointBefore.y = preceedingM.y
+                                                pointBefore.xC = preceedingM.x
+                                                pointBefore.yC = preceedingM.y
+                                                state.path.splice(mouse.lastSelectedIndex, 1)}
+                                        else if (pointBefore.type === 'M' && pointAfter.type === 'Z'){
+                                                state.path.splice(mouse.lastSelectedIndex - 1, 3)}
+                                        else if (twoPointsAfter &&
+                                        pointBefore.type === 'M' &&
+                                        twoPointsAfter.type === 'Z'){
+                                                state.path.splice(mouse.lastSelectedIndex - 1, 4)}
+                                        else if(twoPointsBefore &&
+                                        twoPointsBefore.type === 'M' &&
+                                        pointAfter.type === 'Z'){
+                                                state.path.splice(mouse.lastSelectedIndex - 2, 4)}
+                                        else {state.path.splice(mouse.lastSelectedIndex, 1)}
+                                        mouse.lastSelectedIndex = null
+                                        mouse.nearby = []; updateHistory()
+                                }
+                        },
+                        'q': () => {// QuadToCubic
+                                var selected = state.path[mouse.lastSelectedIndex];
+                                if (selected){
+                                        selected.type = 'C'
+                                        selected.xC = selected.xC || selected.x
+                                        selected.yC = selected.yC || selected.y
+                                        selected.xC2 = selected.xC2 || selected.x
+                                        selected.yC2 = selected.yC2 || selected.y
+                                        selected.isCurved = selected.isCurved || false
+                                        updateHistory()
+                                }
+                        }        
+                }
+
+                var keySequence = [], sequenceTimer = null
+
+                var handleKeyDown = e => {
+                        if (e.shiftKey && e.key === 'Escape') {
+                                e.preventDefault(); e.stopPropagation()
+                                if (shortcutMap.e) shortcutMap.e()
+                                return;
+                        }
+                        if (e.shiftKey && e.key === 'Delete') {
+                                e.preventDefault(); e.stopPropagation();
+                                if (shortcutMap.c) shortcutMap.c()
+                                return
+                        }        
+
+                        if (e.shiftKey) {
+                                e.preventDefault(); e.stopPropagation()
+                                if (sequenceTimer) clearTimeout(sequenceTimer)
+                                if (/^[a-z]$/i.test(e.key)) {
+                                        keySequence.push(e.key.toLowerCase())
+                                }
+
+                                const key = e.key.toLowerCase()
+                                const action = shortcutMap[key]
+                                if (action) {
+                                        e.preventDefault(); e.stopPropagation()
+                                        action();
+                                }
+
+                                sequenceTimer = setTimeout(() => keySequence = [], 1000)
+                        }
+                }
+
+                     
+                function POLYGON(seg, centerX, centerY, radius){
+                        var pt='', ang = 2*Math.PI/seg                                                
+                        var plgX = centerX, plgY = centerY, rds = radius
+
+                        if(plgX != null && plgX == '' || plgY != null && plgY == ''){                              
+                                console.error("[ no correct input! ]")
+                        }else if(isNaN(plgX) || isNaN(plgY)){
+                                console.error("[ must input numbers! ]")
+                        }else{
+                                if(plgX){ 
+                                        var x = plgX + rds, y = plgY
+                                        pt=`M ${x.toFixed(2)} ${y.toFixed(2)}`
+
+                                        for(let i = 0; i < seg; i++){
+                                                var x = plgX + rds * Math.cos(i*ang) 
+                                                var y = plgY + rds * Math.sin(i*ang)
+                                                 pt+=` L ${x.toFixed(2)} ${y.toFixed(2)}`
+                                        }
+                                        pt = pt + ' Z '
+                                        Points = pt.replace(/,/g, ' ')
+                                        Points_1 = svgPathToPoints(Points)
+                                        pointsArray = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ')
+                                        Points_2 = svgPathToClipperPaths(pointsArray)
+                                        if (!Array.isArray(Points_2) || Points_2.length === 0){
+                                                console.error("array is empty"); return []
+                                        }
+                                        return use(Points_2);                                      
+                                }
+                        }
+                }
+
+                var addPOLYGON = function(){
+                        resetZoom()
+                        displayString = "\nPOLYGON(seg=20, centerX=10, centerY=10, r=5)"
+                        toolHelpDiv.style.display = 'block'; showTHelp()
+                        wrn.innerHTML = "tool POLYGON:&nbsp&nbsp;set: Segments(num);&nbsp&nbsp;Coordinates CenterX, CenterY(mm);&nbsp&nbsp;radius(mm)" 
+
+                        var editorContent = editor.getValue()
+                        editor.setValue(editorContent ? `${editorContent}${displayString}` : `${displayString}`)
+                        editor.clearSelection(); editor.focus(); TAOpen()//; runSCRIPT()
+                }
+                     
+
+                var fonts = {}, preloadFonts = function () {
+                        var fontPromises = [
+                                opentype.load("../FONT/Army.ttf").then(function(font){fonts.stncl = font}),
+                                opentype.load("../FONT/arial.ttf").then(function(font){fonts.arial = font}),
+                                opentype.load("../FONT/Times.ttf").then(function(font){fonts.times = font}),
+                                opentype.load("../FONT/Gilroy.ttf").then(function(font){fonts.gilroy = font}),
+                                opentype.load("../FONT/WildWest.ttf").then(function(font){fonts.wildwest = font}),                               
+                                opentype.load("../FONT/WestIcons.ttf").then(function(font){fonts.westicon = font}),                               
+                                opentype.load("../FONT/Roboto-Black.ttf").then(function(font){fonts.roboto_b = font}),
+                                opentype.load("../FONT/Roboto-Light.ttf").then(function(font){fonts.roboto_l = font}),
+                                opentype.load("../FONT/Ruler.ttf").then(function(font){fonts.ruler = font}),
+
+                                opentype.load("../FONT/ems.ttf").then(function(font){fonts.ems = font}),
+                                opentype.load("../FONT/AVH_1.ttf").then(function(font){fonts.cnc_1 = font}),
+                                opentype.load("../FONT/AVH_2.ttf").then(function(font){fonts.cnc_2 = font}),
+                                opentype.load("../FONT/AVH_3.ttf").then(function(font){fonts.cnc_3 = font}),
+
+                                opentype.load("../FONT/digital.ttf").then(function(font){fonts.digit = font}),
+                        ]; return Promise.all(fontPromises)
+                }
+                preloadFonts().then(function(){console.log('Fonts preloaded')})
+                
+                function transformGlyphPath(glyphPath, matrix){
+                        function transformCoordinates(cmd, key){
+                                if (typeof cmd[key] !== "undefined"){
+                                        let x = Number(cmd[key]), y = Number(cmd[key.replace("x", "y")])
+                                        if (!isFinite(x) || !isFinite(y)) { 
+                                                x = 0
+                                                y = 0
+                                        }
+                                        cmd[key] = matrix.a * x + matrix.c * y + matrix.e
+                                        cmd[key.replace("x", "y")] = matrix.b * x + matrix.d * y + matrix.f
+                                }
+                        }
+
+                        for (let cmd of glyphPath.commands){
+                                transformCoordinates(cmd, "x")
+                                transformCoordinates(cmd, "x1")
+                                transformCoordinates(cmd, "x2")
+                        }; return glyphPath
+                }                              
+                var TEXT = function(FONT, fontSZ, startX, startY, str) {
+                        var font = fonts[FONT];
+                        if (!font) {
+                                console.error("Invalid or unloaded font specified");
+                                return;
+                        }
+
+                        function separatePaths(svgPath) {
+                                var commands = svgPath.split(' M');
+                                var outerPaths = [], innerPaths = [];
+                                if (commands.length > 1) {
+                                        outerPaths.push(' M ' + commands[1].trim());
+                                }
+                                for (var i = 2; i < commands.length; i++){
+                                        var cmd = commands[i].trim();
+                                        if (cmd.indexOf('Z') !== -1){
+                                                innerPaths.push(' M ' + cmd);
+                                        }
+                                }
+                                return { outer: outerPaths.join(''), inner: innerPaths.join('') };
+                        }
+
+                        function processFinalPath(finalPath) {
+                                var pointsStr = finalPath.replace(/,/g, ' ');
+                                var pointsArr = svgPathToPoints(pointsStr);
+                                var pointsString = pointsArr.map(function(cmd) {
+                                        return cmd.command + (cmd.values ? cmd.values.join(' ') : '');
+                                }).join(' ');
+                                var clipperPaths = svgPathToClipperPaths(pointsString);
+                                if (!Array.isArray(clipperPaths) || clipperPaths.length === 0) {
+                                        console.error("Array is empty");
+                                        return [];
+                                }
+                                return use(clipperPaths);
+                        }
+
+                        function buildOnPath(pathSTR) {
+                                var finalOuterPaths = '', finalInnerPaths = '';
+                                var svgNS = "http://www.w3.org/2000/svg";
+                                var svg = document.createElementNS(svgNS, "svg");
+                                var pathElement = document.createElementNS(svgNS, "path");
+                                pathElement.setAttribute("d", pathSTR);
+                                svg.appendChild(pathElement);
+                                document.body.appendChild(svg);
+
+                                var pathLength = pathElement.getTotalLength();
+                                var startOffset = 0;
+
+                                for (var i = 0; i < str.length; i++){
+                                        var letter = str[i];
+                                        if (letter === " ") {
+                                                var spaceAdvance = font.getAdvanceWidth 
+                                                        ? font.getAdvanceWidth(" ", fontSZ) 
+                                                        : fontSZ * 0.3;
+                                                startOffset += spaceAdvance;
+                                                continue;
+                                        }
+
+                                        var glyph = font.charToGlyph(letter);
+                                        if (!glyph) {
+                                                console.error("Glyph error:", letter);
+                                                continue;
+                                        }
+
+                                        var advanceWidth = (glyph.advanceWidth * fontSZ) / font.unitsPerEm;
+                                        if (!isFinite(advanceWidth)) {
+                                                console.error("Non-finite advanceWidth for letter:", letter);
+                                                continue;
+                                        }
+
+                                        var kerning = 0;
+                                        if (i > 0) {
+                                                var prevGlyph = font.charToGlyph(str[i - 1]);
+                                                kerning = font.getKerningValue(prevGlyph.index, glyph.index);
+                                                kerning = isNaN(kerning) ? 0 : (kerning * fontSZ) / font.unitsPerEm;
+                                        }
+
+                                        var bbox = glyph.getBoundingBox();
+                                        if (!bbox || !isFinite(bbox.xMin) || !isFinite(bbox.xMax)) {
+                                                bbox = { xMin: 0, xMax: advanceWidth };
+                                        }
+                                        var leftMargin = ((bbox.xMin) * fontSZ) / font.unitsPerEm;
+                                        leftMargin = Math.max(0, leftMargin * 0.2);
+
+                                        var letterSpacing = advanceWidth + kerning + leftMargin;
+                                        var charOffset = startOffset + leftMargin;
+                                        if (!isFinite(charOffset)) {
+                                                console.error("Non-finite charOffset for letter:", letter);
+                                                continue;
+                                        }
+                                        if (charOffset > pathLength) {
+                                                console.warn("Text exceeds path length");
+                                                break;
+                                        }
+
+                                        var point = pathElement.getPointAtLength(charOffset);
+                                        if (!point || !isFinite(point.x) || !isFinite(point.y)) {
+                                                console.error("Invalid point for letter:", letter);
+                                                continue;
+                                        }
+
+                                        var delta = 1;
+                                        var p1 = pathElement.getPointAtLength(Math.max(0, charOffset - delta));
+                                        var p2 = pathElement.getPointAtLength(Math.min(pathLength, charOffset + delta));
+                                        if (!p1 || !p2 || !isFinite(p1.x) || !isFinite(p1.y) || !isFinite(p2.x) || !isFinite(p2.y)) {
+                                                console.error("Invalid tangent for letter:", letter);
+                                                continue;
+                                        }
+                                        var tangent = { x: p2.x - p1.x, y: p2.y - p1.y };
+                                        var angleRad = Math.atan2(tangent.y, tangent.x);
+
+                                        var glyphPath = font.getPath(letter, 0, 0, fontSZ);
+                                        glyphPath.commands.forEach(function(cmd) {
+                                                if (typeof cmd.x !== "undefined") { cmd.x += point.x; }
+                                                if (typeof cmd.y !== "undefined") { cmd.y += point.y; }
+                                                if (typeof cmd.x1 !== "undefined") { cmd.x1 += point.x; }
+                                                if (typeof cmd.y1 !== "undefined") { cmd.y1 += point.y; }
+                                                if (typeof cmd.x2 !== "undefined") { cmd.x2 += point.x; }
+                                                if (typeof cmd.y2 !== "undefined") { cmd.y2 += point.y; }
+                                        });
+
+                                        var cos = Math.cos(angleRad);
+                                        var sin = Math.sin(angleRad);
+                                        var rotationMatrix = {
+                                                a: cos, b: sin, c: -sin, d: cos,
+                                                e: point.x - point.x * cos + point.y * sin,
+                                                f: point.y - point.x * sin - point.y * cos
+                                        };
+                                        transformGlyphPath(glyphPath, rotationMatrix);
+
+                                        var pt = glyphPath.toPathData();
+                                        if (!pt || pt.indexOf("NaN") !== -1) {
+                                                console.error("Invalid glyph path for letter:", letter);
+                                                continue;
+                                        }
+                                        pt = pt.replaceAll('M', ' M ')
+                                               .replaceAll('L', ' L ')
+                                               .replaceAll('Q', ' Q ')
+                                               .replaceAll('C', ' C ')
+                                               .replaceAll('Z', ' Z ');
+
+                                        finalInnerPaths += pt;
+                                        finalOuterPaths += pt;
+                                        startOffset += letterSpacing;
+                                }
+                                document.body.removeChild(svg);
+
+                                var finalPath = finalInnerPaths + finalOuterPaths;
+                                return processFinalPath(finalPath);
+                        }
+
+                        function buildNormal() {
+                                var finalOuterPaths = '', finalInnerPaths = '';
+                                var x = parseInt(startX);
+                                var y = parseInt(startY) + fontSZ / 2;
+
+                                for (var i = 0; i < str.length; i++){
+                                        var letter = str[i];
+                                        if (letter === " ") {
+                                                var spaceAdvance = font.getAdvanceWidth 
+                                                        ? font.getAdvanceWidth(" ", fontSZ) 
+                                                        : fontSZ * 0.3;
+                                                x += spaceAdvance;
+                                                continue;
+                                        }
+
+                                        var glyph = font.charToGlyph(letter);
+                                        if (!glyph) {
+                                                console.error("Glyph error:", letter);
+                                                continue;
+                                        }
+
+                                        var bbox = glyph.getBoundingBox();
+                                        var charWidth = (bbox.xMax - bbox.xMin) * fontSZ / font.unitsPerEm;
+                                        var charHeight = (bbox.yMax - bbox.yMin) * fontSZ / font.unitsPerEm;
+
+                                        var path = font.getPath(letter, x, y, fontSZ);
+                                        var pt = path.toPathData();
+                                        pt = pt.replaceAll('M', ' M ')
+                                               .replaceAll('L', ' L ')
+                                               .replaceAll('Q', ' Q ')
+                                               .replaceAll('C', ' C ')
+                                               .replaceAll('Z', ' Z ');
+                                        var paths = separatePaths(pt);
+                                        finalInnerPaths += paths.inner;
+                                        finalOuterPaths += paths.outer;
+
+                                        var advanceWidth = (glyph.advanceWidth * fontSZ) / font.unitsPerEm;
+                                        var kerning = 0;
+                                        if (i < str.length - 1) {
+                                                var nextGlyph = font.charToGlyph(str[i + 1]);
+                                                kerning = font.getKerningValue(glyph.index, nextGlyph.index);
+                                                kerning = isNaN(kerning) || kerning === undefined ? 0 : (kerning * fontSZ) / font.unitsPerEm;
+                                        }
+
+                                        var bbox2 = glyph.getBoundingBox() || { x1: 0, x2: 0, y1: 0, y2: 0 };
+                                        var unitsPerEm = font.unitsPerEm || 1000;
+                                        var charWidth2 = (bbox2.x2 - bbox2.x1) * fontSZ / unitsPerEm;
+                                        var charHeight2 = (bbox2.y2 - bbox2.y1) * fontSZ / unitsPerEm;
+                                        var aspectRatio = charHeight2 > 0 ? charWidth2 / charHeight2 : 1;
+                                        var extraMargin = charWidth2 * 0.1;
+
+                                        if (aspectRatio > 1.5) {
+                                                extraMargin -= fontSZ * 0.03;
+                                        } else if (aspectRatio < 0.5) {
+                                                extraMargin -= fontSZ * 0.03;
+                                        }
+
+                                        if (letter === letter.toUpperCase() && i > 0 && str[i - 1] === str[i - 1].toLowerCase()){
+                                                extraMargin -= fontSZ * 0.05;
+                                        } else if (letter === letter.toLowerCase() && i > 0 && str[i - 1] === str[i - 1].toUpperCase()){
+                                                extraMargin -= fontSZ * 0.02;
+                                        }
+
+                                        var letterSpacing = advanceWidth + kerning + extraMargin;
+                                        x += letterSpacing;
+                                }
+
+                                var finalPath = finalInnerPaths + finalOuterPaths;
+                                return processFinalPath(finalPath);
+                        }
+
+                        var normalResult = buildNormal();
+                        if (normalResult && typeof normalResult === 'object') {
+                                normalResult.onPATH = function(pathSTR) {
+                                        return buildOnPath(pathSTR);
+                                };
+                        } else {
+                                normalResult = {
+                                        value: normalResult,
+                                        onPATH: function(pathSTR) {
+                                                return buildOnPath(pathSTR);
+                                        }
+                                };
+                        }
+                        return normalResult;
+                };
+                var addTEXT = function(){
+                        resetZoom()
+                        toolHelpDiv.style.display = 'block'; showTHelp()
+                        wrn.innerHTML = "tool TEXT:&nbsp&nbsp;set: Font(sting);&nbsp&nbsp;FontSize(mm);&nbsp&nbsp;Coordinates StartX, StartY(mm);&nbsp&nbsp;TEXT(sting)" 
+                        displayString = "\nTEXT('digit', 30, 30, 30, 'Marco')"
+
+                        var editorContent = editor.getValue()
+                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
+                        editor.clearSelection(); editor.focus(); TAOpen()//; runSCRIPT()
+                }
+
+                //---------------------------------------------------------------------------------------------------------------------------------------------------------- pathToPoints
+                function roundNumber(num, decimals){
+                        var factor = 10 ** decimals
+                        return Math.round(num * factor) / factor
+                }
+
+                function parseSvgPath(convPath){
+                        var commands = [], match
+                        const regex = /([MLHVCSQTAZmlhvcsqtaz])((?:\s*-?\d*\.?\d+(?:[eE][-+]?\d+)?\s*){0,6})/g
+                        while ((match = regex.exec(convPath)) !== null){
+                                const command = match[1]
+                                const values = [match[2], match[3], match[4], match[5], match[6],
+                                                match[7]].filter(value => value !== undefined)
+                                commands.push({ command, values })
+                        }; return commands
+                }
+                
+                var startX, startY
+                function svgPathToPoints(path){
+                        var offsetX = 0, offsetY = 3, isClosed = false
+                        
+                        function CequivaleL(controlX1, controlY1, controlX2, controlY2, x, y, startX, startY) {
+                                var cmdL = [], curvePath = document.getElementById('path')
+                                curvePath.setAttribute('d', `M${startX},${startY} C${controlX1},${controlY1},${controlX2},${controlY2},${x},${y}`)
+                                var len = curvePath.getTotalLength()
+                                for (var i = 0; i <= numSEG; i++) {
+                                        var pt = curvePath.getPointAtLength((i / numSEG) * len)
+                                        cmdL.push(`L ${roundNumber(pt.x + offsetX, 2)} ${roundNumber(pt.y + offsetY, 2)}`)
+                                } return cmdL
+                        }
+
+                        function QequivaleL(controlX1, controlY1, x, y, startX, startY) {
+                                var cmdL = []; var quadPath = document.getElementById('path')
+                                quadPath.setAttribute('d', `M${startX},${startY} Q${controlX1},${controlY1},${x},${y}`)
+                                var len = quadPath.getTotalLength()
+                                for (var i = 0; i <= numSEG; i++) {
+                                        var pt = quadPath.getPointAtLength(i * len / numSEG)
+                                        cmdL.push(`L ${roundNumber(pt.x + offsetX, 2)} ${roundNumber(pt.y + offsetY, 2)}`)
+                                } return cmdL
+                        }
+
+                        function AequivaleL(rx, ry, xRot, largeArcFlag, sweepFlag, x, y, startX, startY) {
+                                var cmdL = [], arcPath = document.getElementById('path')
+                                arcPath.setAttribute('d', `M${startX},${startY} A${rx},${ry},${xRot},${largeArcFlag},${sweepFlag},${x},${y}`)
+                                var len = arcPath.getTotalLength()
+                                for (var i = 0; i <= numSEG; i++) {
+                                        var pt = arcPath.getPointAtLength(i * len / numSEG)
+                                        cmdL.push(`L ${roundNumber(pt.x + offsetX, 2)} ${roundNumber(pt.y + offsetY, 2)}`)
+                                } return cmdL
+                        }
+
+                        function Commands(coordinateType, value, index){
+                                if (index > 0){
+                                        var commandBefore = commands[index - 1]
+                                        var commandBeforeArray = commandBefore.split(' ')
+                                        var numericValues = commandBeforeArray.map(Number)
+
+                                        if (coordinateType === 'a'){
+                                                if (commandBeforeArray[0] === 'V' || commandBeforeArray[0] === 'H'){
+                                                        return AequivaleL.apply(null, value.concat([startX, startY]))
+                                                } else {
+                                                        startX = numericValues[numericValues.length - 3]
+                                                        startY = numericValues[numericValues.length - 2]
+                                                        return AequivaleL.apply(null, value.concat([startX, startY]))
+                                                }
+                                        } else if (coordinateType === 'c'){
+                                                if (commandBeforeArray[0] === 'V' || commandBeforeArray[0] === 'H'){
+                                                        return CequivaleL.apply(null, value.concat([startX, startY]))
+                                                } else {
+                                                        startX = numericValues[numericValues.length - 3]
+                                                        startY = numericValues[numericValues.length - 2]
+                                                        return CequivaleL.apply(null, value.concat([startX, startY]))
+                                                }
+                                        } else if (coordinateType === 'q'){
+                                                if (commandBeforeArray[0] === 'V' || commandBeforeArray[0] === 'H'){
+                                                        return QequivaleL.apply(null, value.concat([startX, startY]))
+                                                } else {
+                                                        startX = numericValues[numericValues.length - 3]
+                                                        startY = numericValues[numericValues.length - 2]
+                                                        lastControlX = value[0]
+                                                        lastControlY = value[1]
+                                                        return QequivaleL.apply(null, value.concat([startX, startY]))
+                                                }
+                                        } else if (coordinateType === 'x') {
+                                                var startCoord = numericValues[numericValues.length - 2]
+                                                startX = value; startY = startCoord
+                                                return 'L ' + (value + offsetX) + ' ' + (startCoord + offsetY)
+                                        } else if (coordinateType === 'y') {
+                                                var startCoord = numericValues[numericValues.length - 2]
+                                                startY = value; startX = startCoord
+                                                return 'L ' + (startCoord + offsetX) + ' ' + (value + offsetY)
+                                        }
+                                }
+                        }
+                        
+                        var x = 0, y = 0
+                        var commands = path.match(/[A-Z][\d\s\.\,-]*/g)
+                        var convPath = commands.map(function (cmd, index) {
+                                var typeCMD = cmd[0];
+                                var params = cmd.slice(1).trim().split(/\s*,\s*|\s+/).map(parseFloat)
+
+                                switch (typeCMD) {
+                                        case 'M':
+                                                x = params[0]; y = params[1]
+                                                isClosed = false
+                                                return 'M ' + (x + offsetX) + ' ' + (y + offsetY)
+                                        case 'L':
+                                                x = params[0]; y = params[1]
+                                                return 'L ' + (x + offsetX) + ' ' + (y + offsetY)
+                                        case 'Q':
+                                                return Commands('q', params, index)                                    
+                                        case 'C':
+                                                return Commands('c', params, index)
+                                        case 'A':
+                                                return Commands('a', params, index)
+                                        case 'V':
+                                                y = params[0];
+                                                return Commands('y', y, index)
+                                        case 'H':
+                                                x = params[0];
+                                                return Commands('x', x, index)
+                                        case 'Z':
+                                        case 'z':
+                                                isClosed = true; return 'Z'                                        
+                                        default:
+                                                return cmd
+                                }
+                        }).join(' ')
+                        return parseSvgPath(convPath)
+                }
+                      
+                function svgPathToClipperPaths(path){
+                        var x = 0, y = 0, clipperPaths = []
+                        var commands = path.match(/[A-Z][\d\s\.\,-]*/g)
+                        var currentPath = []
+                        commands.forEach(function (cmd) {
+                                var typeCMD = cmd[0]
+                                var params = cmd.slice(1).trim().split(/\s*,\s*|\s+/).map(parseFloat)
+                                switch (typeCMD) {
+                                        case 'M':
+                                                if (currentPath.length > 0){clipperPaths.push(currentPath)}
+                                                currentPath = [{X: params[0], Y: params[1]}]; break
+                                        case 'L':
+                                                currentPath.push({X: params[0], Y: params[1]}); break
+                                        case 'Z':
+                                                if(currentPath.length > 0){clipperPaths.push(currentPath)}
+                                                currentPath = []; break
+                                        default: break
+                                }
+                        })
+                        if(currentPath.length > 0){clipperPaths.push(currentPath)}
+                        return clipperPaths
+                }
+
+                //------ boolean OP
+                var match, svgpath, tabBool = false  
+                function calculateBoundingBox(paths) {
+                        var minX = Infinity, minY = Infinity
+                        var maxX = -Infinity, maxY = -Infinity
+                        for (let subPath of paths){
+                                for (let point of subPath){
+                                        if (point.X < minX) minX = point.X
+                                        if (point.Y < minY) minY = point.Y
+                                        if (point.X > maxX) maxX = point.X
+                                        if (point.Y > maxY) maxY = point.Y
+                                }
+                        }; return {minX, minY, maxX, maxY}
+                }
+
+                function SVG(path){
+                        svgpath = path.map(subPath => {
+                                let subPathStr = subPath.map(
+                                        (point, index) => `${index === 0 ? "M" : "L"} ${point.X} ${point.Y}`
+                                ).join(" ")
+                                
+                                return tabBool ? subPathStr : subPathStr + " Z"
+                        }).join(" ")
+
+                        svg = CONV(svgpath,true)
+                        if (svg){
+                                var startTime = Date.now()
+                                var path = new fabric.Path(svg, {
+                                        fill: fill,
+                                        stroke: stroke,
+                                        strokeWidth: 1,
+                                        selectable: true,
+                                        hasBorders: false,
+                                        hasControls: false,
+                                        lockMovementX: true,
+                                        lockMovementY: true,
+                                        hoverCursor: 'default'
+                                }); canvas.add(path)
+
+                                var endTime = Date.now()
+                                var renderTime = endTime - startTime
+                                console.log(`HL time rendering: ${renderTime} ms`)
+                        }; return svgpath
+                }
+
+                var clipper = new ClipperLib.Clipper()
+                function clpPath(result){
+                        var path = result.map(subPath => subPath.map(point => ({X:point.X, Y:point.Y})))
+                        path.translate = function(dx, dy){
+                                for (let subPath of this){
+                                        for (let point of subPath){
+                                                point.X += dx; point.Y += dy
+                                        }
+                                }; return this
+                        }
+                        path.rotate = function(angleDegrees){
+                                var bBox = calculateBoundingBox(this)
+                                var centerX = (bBox.minX + bBox.maxX)/2
+                                var centerY = (bBox.minY + bBox.maxY)/2                                        
+                                var angleRadians = (angleDegrees * Math.PI) / 180
+                                for (let subPath of this){
+                                        for (let point of subPath){
+                                                const x = point.X - centerX
+                                                const y = point.Y - centerY
+                                                point.X = centerX + x * Math.cos(angleRadians) - y * Math.sin(angleRadians)
+                                                point.Y = centerY + x * Math.sin(angleRadians) + y * Math.cos(angleRadians)
+                                        }
+                                }; return this
+                        }
+                        path.mirror = function (axis){
+                                var bBox = calculateBoundingBox(this)
+                                var centerX = (bBox.minX + bBox.maxX) / 2
+                                var centerY = (bBox.minY + bBox.maxY) / 2
+                                for (let subPath of this){
+                                        for (let point of subPath){
+                                                if(axis === 'x'){point.X = 2 * centerX - point.X}
+                                                else if(axis === 'y'){point.Y = 2 * centerY - point.Y}
+                                        }
+                                }; return this
+                        }
+                        path.skew = function(axis, angleDegrees) {
+                                var angleRadians = (angleDegrees * Math.PI) / 180
+                                for (let subPath of this) {
+                                        for (let point of subPath) {
+                                                if (axis === 'X') {
+                                                        point.X += point.Y * Math.tan(angleRadians)
+                                                } else if (axis === 'Y') {
+                                                        point.Y += point.X * Math.tan(angleRadians)
+                                                }
+                                        }
+                                }; return this
+                        }
+                        path.offset = function(offset, bool=true){
+                                ClipperLib.JS.ScaleUpPaths(path, 1000)
+                                var clipperOffset = new ClipperLib.ClipperOffset(2, 0.25)
+                                if(bool == true){var joinType = ClipperLib.JoinType.jtSquare}
+                                else if(bool == false){var joinType = ClipperLib.JoinType.jtRound}
+                                clipperOffset.AddPaths(path, joinType, ClipperLib.EndType.etClosedPolygon)
+                                const result = new ClipperLib.Paths(); clipperOffset.Execute(result, offset*1000)
+                                ClipperLib.JS.ScaleDownPaths(result, 1000)
+                                return result
+                        }                       
+                        path.scale = function(scaleX, scaleY){
+                                var bBox = calculateBoundingBox(this)
+                                var originX = bBox.minX
+                                var originY = bBox.minY
+                                for (let subPath of this) {
+                                        for (let point of subPath) {
+                                                point.X = originX + (point.X - originX) * scaleX
+                                                point.Y = originY + (point.Y - originY) * scaleY
+                                        }
+                                }; return this                              
+                        } 
+                        path.resize = function(width, height) {
+                                var currentBBox = calculateBoundingBox(this);
+                                var currentWidth = currentBBox.maxX - currentBBox.minX
+                                var currentHeight = currentBBox.maxY - currentBBox.minY
+                                            
+                                var scaleX = width / currentWidth
+                                var scaleY = height / currentHeight
+                                for (let subPath of this) {
+                                        for (let point of subPath) {
+                                                point.X = currentBBox.minX + (point.X - currentBBox.minX) * scaleX
+                                                point.Y = currentBBox.minY + (point.Y - currentBBox.minY) * scaleY
+                                        }
+                                }; return this
+                        }
+                        path.tab = function(gapWidth, numTabs){
+                                tabBool = true
+                                var gapWidth = gapWidth    
+                                var numTabs  = numTabs    
+                                var newPaths = []
+
+                                function interpolate(p1, p2, t){
+                                        return {
+                                                X: p1.X + (p2.X - p1.X) * t,
+                                                Y: p1.Y + (p2.Y - p1.Y) * t
+                                        }
+                                }
+
+                                function extractSegment(pts, cum, tStart, tEnd){
+                                        var seg = [], tol = 1e-6;
+
+                                        var iStart = 0
+                                        for (let i = 0; i < cum.length - 1; i++){
+                                                if (cum[i] <= tStart && cum[i+1] >= tStart){
+                                                        iStart = i; break
+                                                }
+                                        }
+                                        var startPt
+                                        if (Math.abs(tStart - cum[iStart]) < tol){
+                                                startPt = pts[iStart];
+                                        } else {
+                                                var ratio = (tStart - cum[iStart]) / (cum[iStart+1] - cum[iStart])
+                                                startPt = interpolate(pts[iStart], pts[iStart+1], ratio)
+                                        }
+                                        seg.push(startPt)
+
+                                        for (var i = iStart+1; i < cum.length; i++){
+                                                if (cum[i] > tStart + tol && cum[i] < tEnd - tol){
+                                                        seg.push(pts[i])}
+                                                else if (cum[i] >= tEnd - tol){break}
+                                        }
+
+                                        var iEnd = iStart;
+                                        for (var i = iStart; i < cum.length - 1; i++){
+                                                if (cum[i] <= tEnd && cum[i+1] >= tEnd){
+                                                        iEnd = i; break
+                                                }
+                                        }
+                                        var endPt
+                                        if (Math.abs(tEnd - cum[iEnd+1]) < tol){endPt = pts[iEnd+1]}
+                                        else {
+                                                let ratio = (tEnd - cum[iEnd]) / (cum[iEnd+1] - cum[iEnd])
+                                                endPt = interpolate(pts[iEnd], pts[iEnd+1], ratio)
+                                        }
+                                        let last = seg[seg.length - 1]
+                                        if (!(Math.abs(last.X - endPt.X) < tol && Math.abs(last.Y - endPt.Y) < tol)){
+                                                seg.push(endPt)
+                                        }; return seg
+                                }
+
+                                for (let origSubPath of this){
+                                        var closed = false;
+                                        if (origSubPath.length > 1){
+                                                var first = origSubPath[0], last  = origSubPath[origSubPath.length - 1]
+                                                if (Math.abs(first.X - last.X) < 1e-6 && Math.abs(first.Y - last.Y) < 1e-6){
+                                                        closed = true;
+                                                }
+                                        }
+                                        let pts = origSubPath.slice()
+                                        if (closed) pts.pop()
+
+                                        var cum = [0]
+                                        for (var i = 0; i < pts.length - 1; i++){
+                                                let d = Math.hypot(pts[i+1].X - pts[i].X, pts[i+1].Y - pts[i].Y)
+                                                cum.push(cum[cum.length - 1] + d)
+                                        }
+                                        if (closed){
+                                                let d = Math.hypot(pts[0].X - pts[pts.length - 1].X, pts[0].Y - pts[pts.length - 1].Y)
+                                                cum.push(cum[cum.length - 1] + d); pts.push(pts[0])
+                                        }
+                                        let totalLength = cum[cum.length - 1]
+
+                                        var gaps = []
+                                        for (var i = 0; i < numTabs; i++){
+                                                let center = (i + 0.5) * totalLength / numTabs
+                                                gaps.push({ start: center - gapWidth/2, end: center + gapWidth/2 })
+                                        }
+                                        gaps.sort((a, b) => a.start - b.start)
+
+                                        var intervals = []
+                                        intervals.push({ start: gaps[gaps.length - 1].end, end: totalLength + gaps[0].start })
+                                        for (var i = 0; i < gaps.length - 1; i++) {
+                                                intervals.push({ start: gaps[i].end, end: gaps[i+1].start })
+                                        }
+
+                                        for (let intv of intervals){
+                                                var segPoints
+                                                if (intv.end <= totalLength) {
+                                                        segPoints = extractSegment(pts, cum, intv.start, intv.end)
+                                                } else {
+                                                        let seg1 = extractSegment(pts, cum, intv.start, totalLength)
+                                                        let seg2 = extractSegment(pts, cum, 0, intv.end - totalLength)
+                                                        if (seg1.length > 0 && seg2.length > 0){
+                                                                var lastSeg1 = seg1[seg1.length - 1], firstSeg2 = seg2[0]
+                                                                if (Math.abs(lastSeg1.X - firstSeg2.X) < 1e-6 && Math.abs(lastSeg1.Y - firstSeg2.Y) < 1e-6){
+                                                                        seg2.shift()
+                                                                }
+                                                        }; segPoints = seg1.concat(seg2)
+                                                }
+                                                if (segPoints.length > 0) {newPaths.push(segPoints)}
+                                        }
+                                }
+
+                                this.length = 0
+                                for (var sp of newPaths) {sp._isTabPath = true; this.push(sp)}
+                                this._tabWidth = gapWidth; this._tabSpacing = numTabs
+                                return this;
+                        }
+                        path.gcode = function(){toggleGCconv(); remToEdt(".gcode()"); return this}
+
+                        return path                            
+                }                      
+                        
+                function performBooleanOperation(operands, operationType){
+                        var result = new ClipperLib.Paths();clipper.Clear()
+                        if (!operands || operands.length === 0) {
+                                console.error("No operands provided for the boolean operation")
+                                return clpPath(result)
+                        }
+                        var scaledOperands = operands.map(operand => {
+                                var scaledOperand = operand.slice()
+                                ClipperLib.JS.ScaleUpPaths(scaledOperand, 1000)
+                                return scaledOperand
+                        })
+                        clipper.AddPaths(scaledOperands[0], ClipperLib.PolyType.ptSubject, true)
+                        for (var i = 1; i < scaledOperands.length; i++){
+                                clipper.AddPaths(scaledOperands[i], ClipperLib.PolyType.ptClip, true)
+                        }
+                        var subj = ClipperLib.PolyFillType.pftNonZero
+                        var clip = ClipperLib.PolyFillType.pftNonZero
+                        clipper.Execute(operationType, result, subj, clip)
+                        ClipperLib.JS.ScaleDownPaths(result, 1000)
+                        if (result.length > 0){result.push(result.shift())}
+                        return clpPath(result)
+                }
+                function difference(){
+                        var operands = Array.prototype.slice.call(arguments)
+                        return performBooleanOperation(operands, ClipperLib.ClipType.ctDifference)
+                }
+                function union(){
+                        var operands = Array.prototype.slice.call(arguments)
+                        return performBooleanOperation(operands, ClipperLib.ClipType.ctUnion)
+                }
+                function intersection(){
+                        var operands = Array.prototype.slice.call(arguments)
+                        return performBooleanOperation(operands, ClipperLib.ClipType.ctIntersection)
+                }
+                function xor(){
+                        var operands = Array.prototype.slice.call(arguments)
+                        return performBooleanOperation(operands, ClipperLib.ClipType.ctXor)
+                }
+                function center(path1, path2) {
+                        var bbox1 = calculateBoundingBox(path1)
+                        var bbox2 = calculateBoundingBox(path2)
+
+                        var center1 = {X: (bbox1.minX + bbox1.maxX) / 2, Y: (bbox1.minY + bbox1.maxY) / 2}
+                        var center2 = {X: (bbox2.minX + bbox2.maxX) / 2, Y: (bbox2.minY + bbox2.maxY) / 2}
+                        var translation = {X: center2.X - center1.X, Y: center2.Y - center1.Y}
+
+                        var translatedPath = path1.translate(translation.X, translation.Y)
+                        var combined = [...translatedPath, ...path2]
+                        return clpPath(combined)
+                }
+                       
+                function use(path){
+                        if(Array.isArray(path) && path.length > 0 && path[0] instanceof ClipperLib.IntPoint){
+                                return clpPath(path)
+                        } else{
+                                try{
+                                        var clp = path.map(subPath => subPath.map(point => new ClipperLib.IntPoint(point.X, point.Y)))
+                                        return clpPath(clp)
+                                }catch{}
+                        }
+                }
+
+ 
+                //-------------------------------------------------------------------------------------------------------------------------------------------------------------- addIMAGE                      
+                function tempCANVAS(imgInstance) {
+                        var tempCanvas = document.createElement('canvas')
+                        tempCanvas.width = Math.round(imgInstance.getScaledWidth())
+                        tempCanvas.height = Math.round(imgInstance.getScaledHeight())
+                        var tempCtx = tempCanvas.getContext('2d')
+                        return {tempCanvas, tempCtx}
+                }                   
+                var cnvsIMG = document.createElement('canvas')
+                var ctxIMG= cnvsIMG.getContext('2d'), scaledWidth, scaledHeight, imgURL,  imgData       
+                function tempIMG(img){
+                        var imgWidth = img.width, imgHeight = img.height
+                        var scale = Math.min(newWidth / imgWidth, newHeight / imgHeight)
+
+                        scaledWidth = Math.round(imgWidth * scale)
+                        scaledHeight = Math.round(imgHeight * scale)
+                        cnvsIMG.width = scaledWidth + CONV(borderX, true)
+                        cnvsIMG.height = scaledHeight + CONV(borderY, true)
+                        ctxIMG.clearRect(0, 0, cnvsIMG.width, cnvsIMG.height)
+                        ctxIMG.drawImage(img, 0, 0, scaledWidth, scaledHeight)
+
+                        imgData = ctxIMG.getImageData(0, 0, scaledWidth, scaledHeight)
+                        ctxIMG.putImageData(imgData, 0, 0)
+                }
+
+                var borderX = 0, borderY = 0, imageController, cropRect = null                      
+                function IMAGE(size, gamma, x, y, rot, flip){                     
+                        if(imgInstance){canvas.remove(imgInstance)}                                             
+
+                        size = CONV(size,true)
+                        borderX = x; borderY = y
+                        
+                        var aspectRatio = img.width / img.height
+                        if(img.width > img.height){
+                                newWidth = size; newHeight = size / aspectRatio
+                        } else {
+                                newHeight = size; newWidth = size * aspectRatio
+                        }
+                       
+                        var centerX = CONV(borderX, true) + newWidth / 2
+                        var centerY = CONV(borderY, true) + newHeight / 2
+
+                        imgInstance = new fabric.Image(img, {
+                                left: centerX,
+                                top: centerY,
+                                originX: 'center',
+                                originY: 'center',
+                                angle: rot || 0, 
+                                selectable: false,
+                                hasControls: false,
+                                hasBorders: false,
+                        })
+
+                        if (rot !== null && rot !== undefined) {
+                                imgInstance.set("angle", rot)
+                        }
+                        
+                        imgInstance.filters.push(
+                                new fabric.Image.filters.Grayscale(),
+                                new fabric.Image.filters.Contrast({contrast: gamma}),
+                                new fabric.Image.filters.Brightness({brightness: gamma})
+                        )                        
+                        imgInstance.applyFilters()
+                        const scaleX = newWidth / img.width
+                        const scaleY = newHeight / img.height
+                        imgInstance.set({scaleX: scaleX, scaleY: scaleY})
+
+                        if(flip !== null){
+                                if(flip === 'x'){imgInstance.set('flipX', !imgInstance.flipX)}
+                                else if(flip === 'y'){imgInstance.set('flipY', !imgInstance.flipY)}
+                        }
+
+                        canvas.add(imgInstance)
+                        lineHrz.bringToFront(); lineVrt.bringToFront()
+                        tempIMG(img); canvas.renderAll()
+
+                        imageController = {
+                                dit: function(){
+                                        var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
+                                        tempCtx.drawImage(imgInstance._element, 0, 0, tempCanvas.width, tempCanvas.height)
+
+                                        var width = tempCanvas.width, height = tempCanvas.height
+                                        var imageData = tempCtx.getImageData(0, 0, width, height)
+                                        var data = imageData.data
+
+                                        for(let y = 0; y < height; y++){
+                                                for(let x = 0; x < width; x++){
+                                                        var index = (y * width + x) * 4
+                                                        var oldPixel = data[index] * 0.3 + data[index + 1] * 0.59 + data[index + 2] * 0.11
+                                                        var newPixel = oldPixel < 128 ? 0 : 240
+                                                        var error = oldPixel - newPixel
+                                                        data[index] = data[index + 1] = data[index + 2] = newPixel;
+                                                        if (x + 1 < width) data[((y) * width + (x + 1)) * 4] += error * 7 / 48
+                                                        if (x + 2 < width) data[((y) * width + (x + 2)) * 4] += error * 3 / 48
+                                                        if (y + 1 < height) {
+                                                                if (x > 0) data[((y + 1) * width + (x - 1)) * 4] += error * 5 / 48
+                                                                data[((y + 1) * width + (x)) * 4] += error * 7 / 48
+                                                                if (x + 1 < width) data[((y + 1) * width + (x + 1)) * 4] += error * 5 / 48
+                                                                if (x + 2 < width) data[((y + 1) * width + (x + 2)) * 4] += error * 3 / 48
+                                                        }
+                                                        if (y + 2 < height) {
+                                                                if (x > 0) data[((y + 2) * width + (x - 1)) * 4] += error * 3 / 48
+                                                                data[((y + 2) * width + (x)) * 4] += error * 5 / 48
+                                                                if (x + 1 < width) data[((y + 2) * width + (x + 1)) * 4] += error * 7 / 48
+                                                        }
+                                                }
+                                        }                                     
+
+                                        tempCtx.putImageData(imageData, 0, 0)
+                                        var updatedImg = new Image()
+                                        updatedImg.src = tempCanvas.toDataURL()
+                                        updatedImg.onload = () => {
+                                                canvas.remove(imgInstance)
+                                                imgInstance = new fabric.Image(updatedImg, {
+                                                        left: CONV(borderX, true),
+                                                        top: CONV(borderY, true),
+                                                        originX: 'left',
+                                                        originY: 'top',
+                                                        selectable: false,
+                                                        hasControls: false,
+                                                        hasBorders: false,
+                                                })
+                                                const scaleX = width / imageData.width
+                                                const scaleY = height / imageData.height
+                                                imgInstance.set({scaleX: scaleX, scaleY: scaleY})
+                                                tempIMG(updatedImg)
+                                                canvas.add(imgInstance); canvas.renderAll()
+                                                lineHrz.bringToFront(); lineVrt.bringToFront()
+
+                                                remToEdt(".addDIT()") 
+                                        }; return this
+                                },
+                                cutter: function(){
+                                        if(!imgInstance || cancBool){return}                      
+                                        if(cropRect){canvas.remove(cropRect)}
+
+                                        var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
+                                        tempCtx.drawImage(imgInstance._element, 0, 0, tempCanvas.width, tempCanvas.height)
+
+                                        var width = tempCanvas.width, height = tempCanvas.height
+                                        var imageData = tempCtx.getImageData(0, 0, width, height)                                       
+
+                                        cropRect = new fabric.Rect({
+                                                selectable: true,
+                                                fill: 'rgba(0, 0, 0, 0.3)',
+                                                width: size*0.7, height: size*0.7,     
+                                                top: size*0.15, left: size*0.15,
+                                                stroke: 'gray', strokeWidth: 1,
+                                                hasControls: true,  hasBorders: false, 
+                                        })
+                                        canvas.on('mouse:move', function() {
+                                                canvas.upperCanvasEl.style.cursor = 'none'
+                                        })                   
+                                        cropRect.controls = {
+                                                br: new fabric.Control({x:0.5, y:0.5, 
+                                                        offsetX: 0, offsetY: 0, cursorStyle:'none',
+                                                        actionHandler: fabric.controlsUtils.scalingEqually,
+                                                        mouseUpHandler: function(){
+                                                                fabric.controlsUtils.scalingEqually
+                                                                var imgBounds = imgInstance.getBoundingRect()
+                                                                var cropLeft = (cropRect.left - imgBounds.left) / imgInstance.scaleX
+                                                                var cropTop = (cropRect.top - imgBounds.top) / imgInstance.scaleY
+                                                                var cropWidth = (cropRect.width * cropRect.scaleX) / imgInstance.scaleX
+                                                                var cropHeight = (cropRect.height * cropRect.scaleY) / imgInstance.scaleY    
+                                                                var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
+                                                                tempCtx.drawImage(
+                                                                        imgInstance._element,
+                                                                        cropLeft, cropTop, cropWidth, cropHeight, 
+                                                                        0, 0, newWidth, newHeight
+                                                                )
+
+                                                                var updatedImg = new Image()
+                                                                updatedImg.src = tempCanvas.toDataURL()
+                                                                updatedImg.onload = () => {
+                                                                        img = updatedImg; currentImg = updatedImg
+                                                                        if(imgInstance){canvas.remove(imgInstance)}
+                                                                        imgInstance = new fabric.Image(currentImg, {
+                                                                                left: CONV(borderX, true),
+                                                                                top: CONV(borderY, true),
+                                                                                originX: 'left',
+                                                                                originY: 'top',
+                                                                                selectable: false,
+                                                                                hasControls: false,
+                                                                                hasBorders: false,
+                                                                        })
+                                                                        const scaleX = width / imageData.width
+                                                                        const scaleY = height / imageData.height
+                                                                        imgInstance.set({scaleX: scaleX, scaleY: scaleY})
+                                                                        tempIMG(currentImg)
+                                                                        canvas.add(imgInstance); canvas.renderAll()
+                                                                        lineHrz.bringToFront(); lineVrt.bringToFront()
+                                                                }; canvas.remove(cropRect)
+                                                        }       
+                                                })
+                                        }
+                                        canvas.add(cropRect); canvas.setActiveObject(cropRect)
+                                        canvas.renderAll(); remToEdt(".cutter()"); return this
+                                },
+                                half: function(){
+                                        var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
+                                        tempCtx.drawImage(imgInstance._element, 0, 0, tempCanvas.width, tempCanvas.height)
+
+                                        var width = tempCanvas.width, height = tempCanvas.height
+                                        var imageData = tempCtx.getImageData(0, 0, width, height)
+                                        var data = imageData.data
+
+                                        var dotSize = 3
+                                        var spacing = 4
+                                        tempCtx.clearRect(0, 0, width, height)
+
+                                        for (let y = 0; y < height; y += spacing) {
+                                                for (let x = 0; x < width; x += spacing) {
+                                                    var index = (y * width + x) * 4; // Posizione pixel
+                                                    var r = data[index]; // Rosso
+                                                    var g = data[index + 1]; // Verde
+                                                    var b = data[index + 2]; // Blu
+
+                                                    var gray = (r + g + b) / 3;
+                                                    var radius = Math.max((1 - gray / 255) * (dotSize / 2), 0.5)
+
+                                                    tempCtx.beginPath();
+                                                    tempCtx.arc(x, y, radius, 0, Math.PI * 2);
+                                                    tempCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                                                    tempCtx.fill();
+                                                }
+                                        }                                      
+
+                                        var updatedImg = new Image()
+                                        updatedImg.src = tempCanvas.toDataURL()
+                                        updatedImg.onload = () => {
+                                                img = updatedImg; currentImg = updatedImg
+                                                if(imgInstance){canvas.remove(imgInstance)}
+                                                imgInstance = new fabric.Image(updatedImg, {
+                                                        left: CONV(borderX, true),
+                                                        top: CONV(borderY, true),
+                                                        originX: 'left',
+                                                        originY: 'top',
+                                                        selectable: false,
+                                                        hasControls: false,
+                                                        hasBorders: false,
+                                                })
+                                                const scaleX = width / imageData.width
+                                                const scaleY = height / imageData.height
+                                                imgInstance.set({scaleX: scaleX, scaleY: scaleY})
+                                                tempIMG(currentImg)
+                                                canvas.add(imgInstance); canvas.renderAll()
+                                                lineHrz.bringToFront(); lineVrt.bringToFront()
+
+                                                remToEdt(".addHALF") 
+                                        }; return this
+                                },
+                                vector: function(threshold){
+                                        var width, height                      
+                                        if(cropRect){canvas.remove(cropRect)}               
+                                        if(imgInstance){canvas.remove(imgInstance)}  
+                                        var { tempCanvas, tempCtx } = tempCANVAS(imgInstance)
+                                        function preprocessImage(threshold, callback){
+                                                tempCtx.fillStyle = "white"
+                                                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
+                                                tempCtx.drawImage(imgInstance._element, 0, 0, tempCanvas.width, tempCanvas.height)
+
+                                                width = tempCanvas.width; height = tempCanvas.height
+                                                var imageData = tempCtx.getImageData(0, 0, width, height)
+                                                var data = imageData.data;
+
+                                                for (let i = 0; i < data.length; i += 4){
+                                                        var r = data[i];     // Red
+                                                        var g = data[i + 1]; // Green
+                                                        var b = data[i + 2]; // Blue
+                                                        var brightness = (r + g + b) / 3;
+                                                        var color = brightness < threshold ? 0 : 255;
+                                                        data[i] = data[i + 1] = data[i + 2] = color;
+                                                }
+
+                                                tempCtx.putImageData(imageData, 0, 0);
+                                                tempCanvas.toBlob((blob) => callback(blob), "image/png")
+                                        }
+
+                                        preprocessImage(threshold, (processedFile) => {
+                                                var processedURL = URL.createObjectURL(processedFile)
+
+                                                Potrace.loadImageFromUrl(processedURL);
+                                                Potrace.setParameter({
+                                                        turnpolicy: "minority",
+                                                        turdsize: 2,
+                                                        optcurve: true,
+                                                        alphamax: 1,
+                                                        opttolerance: 0.2,
+                                                        threshold: threshold
+                                                })
+
+                                                Potrace.process(() => {
+                                                        var svg = Potrace.getSVG(1)                   
+                                                        function scalePathData(path, converter) {
+                                                                return path.map(segment => {
+                                                                        var command = segment[0];
+                                                                        var scaledSegment = [command];
+
+                                                                        for (let i = 1; i < segment.length; i += 2){
+                                                                                let x = converter(segment[i], i === 1)
+                                                                                let y = converter(segment[i + 1], i !== 1)
+                                                                                scaledSegment.push(x, y)
+                                                                        }; return scaledSegment
+                                                                })
+                                                        }
+
+                                                        function createPath(data, borderX, borderY) {
+                                                                 fabricPath = new fabric.Path(data, {
+                                                                        left: CONV(borderX, true),
+                                                                        top: CONV(borderY, true),
+                                                                        originX: 'left',
+                                                                        originY: 'top',
+                                                                        selectable: false,
+                                                                        hasControls: false,
+                                                                        hasBorders: false,
+                                                                }); return fabricPath
+                                                        }
+
+                                                        function extractPathData(path) {
+                                                                var svgString = path.toSVG()
+                                                                var match = svgString.match(/d="([^"]+)"/)
+                                                                return match ? match[1] : null
+                                                        }
+
+                                                        fabric.loadSVGFromString(svg, function (objects, options){
+                                                                var combinedPathData_1 = "", combinedPathData_2 = ""
+                                                                objects.forEach((obj) => {
+                                                                        if (obj.type === 'path') {
+                                                                                let scaledData_1 = scalePathData(obj.path, (value) => CONV(value, false))
+                                                                                let scaledData_2 = scalePathData(obj.path, (value) => value)
+
+                                                                                combinedPathData_1 += scaledData_1.map(segment => segment.join(" ")).join(" ")
+                                                                                combinedPathData_2 += scaledData_2.map(segment => segment.join(" ")).join(" ")
+                                                                        }
+                                                                })
+
+                                                                combinedPath_1 = createPath(combinedPathData_1, borderX, borderY)
+                                                                var pathData_1 = extractPathData(combinedPath_1)
+                                                                SVG(POLYLINE(pathData_1).translate(borderX,borderY))
+                                                                combinedPath_2 = createPath(combinedPathData_1, borderX, borderY)
+                                                                var pathData_2 = extractPathData(combinedPath_2)
+
+                                                                function increm(d, dx, dy){
+                                                                        var rgx = /-?\d+(\.\d+)?/g; id = 0
+                                                                        return d.replace(rgx, match => {
+                                                                                var num = parseFloat(match)
+                                                                                if(id % 2 === 0){ num += dx}
+                                                                                else {num += dy}
+                                                                                id++; return num
+                                                                        })
+                                                                };
+                                                                pt = increm(pathData_2, borderX, borderY)
+                                                        })
+                                                })
+                                        });
+                                        canvas.renderAll(); remToEdt(".vecor()"); return this
+                                },
+                                gcode: function(){toggleGCconv(); TAClose(); remToEdt(".gcode()")}                     
+                        }; return imageController
+                }
+                   
+                function rstIMG(){
+                        if(originalImg){
+                                img = new Image()
+                                img.src = originalImg.src
+                                img.onload = function(){
+                                        addIMAGE(size=100, gamma=0, x=0, y=0, rot=0, flip='', dithering='n')
+                                        lineHrz.bringToFront(); lineVrt.bringToFront(); canvas.remove(cropRect)
+                                }
+                        }; canvas.renderAll(); remToEdt("rstIMG()")
+                }
+
+
+
+                 //------------------------------------------------------------------------------------------------------------------------------------------------------------ importFILE                                      
+                var imageLoader = document.getElementById('input')
+                imageLoader.addEventListener('change', handleImage, false)                              
+
+                var file, img, size      
+                var reader, resizedImg
+                var cropRect, imgInstance
+                var newWidth, newHeight, gamma = 0
+                var originalImg, currentImg
+                                  
+                function handleImage(event){
+                        var content = editor.getValue()
+                        var updatedContent = content.replace(/addIMAGE\([^)]*\)/g, "")
+                        editor.setValue(updatedContent, -1)
+                        
+                        file = imageLoader.value
+                        var ext = /(\.svg|\.jpg|\.jpeg|\.png|\.gcode|\.nc|\.dxf)$/i
+                        if (file !== '') {
+                                if (!ext.exec(file)) {
+                                        imageLoader.value = ''; return false
+                                } else {
+                                        ext = file.substring(file.lastIndexOf('.') + 1).toLowerCase()
+                                        if (['png', 'jpg', 'jpeg'].includes(ext)){
+                                                var reader = new FileReader();
+                                                reader.onload = function(event){
+                                                        img = new Image()
+                                                        img.onload = function(){
+                                                                originalImg = img.cloneNode()
+                                                                currentImg = img.cloneNode()
+                                                                var editorContent = editor.getValue()
+                                                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='')`)
+                                                                editor.clearSelection(); editor.focus(); TAOpen()//runSCRIPT()                                                              
+                                                        }; img.src = event.target.result
+                                                }; reader.readAsDataURL(event.target.files[0]); file = event.target.files[0]
+                                        } else if (['gcode', 'nc'].includes(ext)){
+                                                var reader = new FileReader()
+                                                reader.onload = function(e){
+                                                        var gcode = e.target.result
+                                                        var lines = gcode.split('\n');
+                                                        var hasVectorMode = lines.some(line => line.includes('; mode: vector'))
+
+                                                        if (hasVectorMode) {isImageMode = false}
+                                                        else {isImageMode = true}                                         
+                                                        
+                                                        sendGCODE(gcode)
+                                                        gcBool = true; GCSenderShow()
+                                                }; reader.readAsText(event.target.files[0]); file = event.target.files[0] 
+                                        } else if (['svg'].includes(ext)){
+                                                var reader = new FileReader()
+                                                reader.onload = (e) => {
+                                                        var parser = new DOMParser()
+                                                        var svgDoc = parser.parseFromString(e.target.result, 'image/svg+xml')
+                                                        var svgElement = svgDoc.documentElement
+
+                                                        var pathData = normalizeAndMergeSVGPaths(svgElement)
+                                                        var variableName = `p_${variableCount}`;
+                                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                                        PV[variableName] = pathData; const editorContent = editor.getValue()
+                                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
+                                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++
+                                                }; reader.readAsText(event.target.files[0]); file = event.target.files[0]
+                                        } else if (['dxf'].includes(ext)){
+                                                var reader = new FileReader()
+                                                reader.onload = (e) => {
+                                                        var helper = new dxf.Helper(reader.result)
+                                                        var dxf2svg = helper.toSVG()
+                                                        
+                                                        var variableName = `p_${variableCount}`
+                                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                                        PV[variableName] = dxf2svg; const editorContent = editor.getValue()
+                                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
+                                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++          
+                                                }; reader.readAsText(event.target.files[0]); file = event.target.files[0]                                          
+                                        }                                        
+                                }
+                        }; $("#input")[0].value='' 
+                }
+                //------ drag&drop      
+                var dropZone = document.getElementById('wrapper')
+                dropZone.addEventListener('dragover', handleDragOver)
+                dropZone.addEventListener('drop', handleDrop)
+
+                function handleDragOver(event){
+                        event.preventDefault()
+                        dropZone.classList.add('drag-over')                    
+                }
+                var roundToTwo = (num) => Math.round(num * 100) / 100
+                var normalizeAndMergeSVGPaths = (svgElement) => {
+                        var paths = svgElement.querySelectorAll('path')
+                        var combinedPathData = ''
+                        paths.forEach((path) => {
+                                var normalizedPathData = path.getPathData({ normalize: true })
+                                var roundedPathData = normalizedPathData.map(segment => {
+                                        segment.values = segment.values.map(roundToTwo)
+                                        return segment
+                                })
+                                path.setPathData(roundedPathData)
+                                combinedPathData += path.getAttribute('d') + ' '
+                        })
+                        paths.forEach((path) => path.remove())
+                        return combinedPathData.trim()
+                }
+
+                function handleDrop(event){
+                        event.preventDefault()
+                        dropZone.classList.remove('drag-over')
+                        var file = event.dataTransfer.files[0]
+                        if (!file) return
+
+                        var fileName = file.name.toLowerCase()
+                        if (fileName.endsWith('.svg')) {
+                                var reader = new FileReader()
+                                reader.onload = (e) => {
+                                        var parser = new DOMParser()
+                                        var svgDoc = parser.parseFromString(e.target.result, 'image/svg+xml')
+                                        var svgElement = svgDoc.documentElement
+
+                                        var pathData = normalizeAndMergeSVGPaths(svgElement)
+                                        var variableName = `p_${variableCount}`
+                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                        PV[variableName] = pathData; const editorContent = editor.getValue()
+                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
+                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++                                        
+                                }; reader.readAsText(file)
+                        } else if (fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+                                var reader = new FileReader()
+                                reader.onload = function(event){
+                                        img = new Image()
+                                        img.onload = function(){
+                                                originalImg = img.cloneNode()
+                                                currentImg = img.cloneNode()
+                                                var editorContent = editor.getValue()
+                                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0 flip='')`)
+                                                editor.clearSelection(); editor.focus(); TAOpen()//runSCRIPT()                  
+                                        }; img.src = event.target.result
+                                }; reader.readAsDataURL(file)
+                        } else if (fileName.endsWith('.gcode') || fileName.endsWith('.nc')) {
+                                var reader = new FileReader()
+                                reader.onload = function(e){
+                                        var gcode = e.target.result
+                                        var lines = gcode.split('\n');
+                                        var hasVectorMode = lines.some(line => line.includes('; mode: vector'))
+
+                                        if (hasVectorMode) {isImageMode = false}
+                                        else {isImageMode = true}                                         
+                                        
+                                        gcBool = true; sendGCODE(gcode); GCSenderShow()
+                                }; reader.readAsText(file)                
+                        } else if (fileName.endsWith('.dxf')) {
+                                var reader = new FileReader()
+                                reader.onload = function(e){
+                                        var helper = new dxf.Helper(e.target.result)
+                                        var dxf2svg = helper.toSVG()
+                                                        
+                                        var variableName = `p_${variableCount}`
+                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                        PV[variableName] = dxf2svg; const editorContent = editor.getValue()
+                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
+                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++  
+                                }; reader.readAsText(file)                
+                        }
+                }                      
+        </script>                 
+                            
+        <svg height="0" width="0" style="display:none"><path id="path" d=""/></svg>
+        <div id="alert" class="alert"><p class="bs" id="error" style="top:-5px; width:100%"></p></div>  
+</body>
+
+

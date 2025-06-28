@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Ace Editor Exec Button",
+  "version": "1.0",
+  "description": "Aggiunge un pulsante 'Exec' nel menu contestuale di Ace Editor",
+  "permissions": ["contextMenus", "scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"], 
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["exec.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon_16.png",
+    "48": "icons/icon_48.png"
+  }
+}
+
+
+
