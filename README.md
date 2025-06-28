@@ -50,8 +50,6 @@ A **Progressive Web App (PWA)** for controlling **CNC or laser machines** from t
 - [How to Run Locally](#how-to-run-locally)  
 - [Technologies Used](#technologies-used)  
 - [Changelog](#changelog)  
-- [License](#license)  
-- [Author](#author)  
 - [Acknowledgments](#acknowledgments)  
 - [Documentation](#documentation)  
 
@@ -218,34 +216,5 @@ This project makes use of several outstanding open-source libraries:
 ###  Documentation
 
 More detailed usage instructions and developer notes can be found in the [Wiki](https://github.com/marco-f/HobbyLASER/wiki/).
-
----
-
-###  Legal Notice
-
-This software is provided **"as is"**, without warranty of any kind. Use it **at your own risk**.
-
-By using this software, you agree to:
-
-- Operate machinery **safely** and in accordance with **local laws**
-- Ensure proper **ventilation**, **shielding**, and **emergency stops**
-- Use it **only if trained** in handling CNC/laser equipment
-
-Improper use may result in **fire**, **injury**, or **property damage**.
-
----
-
-
-### **Explanation of Each Section**:
-
-1. **Project Title and Description**: Describes what the project is about, focusing on its PWA nature and the features it offers.
-2. **Features**: Lists the key functionalities of the app, like interactive drawing, custom font support, and offline capabilities.
-3. **Technologies Used**: Details the core technologies involved in building the app, such as HTML, CSS, JavaScript, Service Workers, etc.
-4. **Live Demo**: Provides a link to the live version of the app that users can try out.
-5. **How to Run the Project Locally**: This section guides users on how to clone the repository, install dependencies, and run the app locally.
-6. **Contributing**: Outlines how others can contribute to the project by forking the repository, creating branches, and submitting pull requests.
-7. **License**: Specifies the project's open-source license (MIT License) and links to the license file.
-8. **Authors**: Credits the main developer of the project.
-9. **Acknowledgments**: Thanks contributors and references external tools or libraries that helped in the development.
 
 ---
