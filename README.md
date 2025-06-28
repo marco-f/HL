@@ -112,7 +112,7 @@ This app uses the **Chrome Web Serial API** to communicate with CNC/laser contro
 
 ###  Live Demo
 
-Try it now: [https://marco-f.github.io/HobbyLASER/](https://marco-f.github.io/HobbyLASER/)
+Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 
 ---
 
