@@ -26,6 +26,12 @@ A **Progressive Web App (PWA)** for controlling **CNC or laser machines** from t
 
 ---
 
+###  Live Demo
+
+Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
+
+---
+
 ### Screenshots
 
 <p align="center">
@@ -108,11 +114,7 @@ This app uses the **Chrome Web Serial API** to communicate with CNC/laser contro
 
 ---
 
-###  Live Demo
 
-Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
-
----
 
 ## How to Run Locally
 
