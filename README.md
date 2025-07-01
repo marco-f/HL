@@ -28,7 +28,7 @@ A **Progressive Web App (PWA)** for controlling **CNC or laser machines** from t
 
 ###  Live Demo
 
-Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
+Try it now: [https://marco-f.github.io/HobbyLASER/](https://marco-f.github.io/HobbyLASER/)
 
 ---
 
