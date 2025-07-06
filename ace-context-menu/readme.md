@@ -2,14 +2,14 @@
 
 This extension adds custom buttons to the **browser context menu (right-click)** to enhance interaction with the Progressive Web App (PWA) included in this repository.
 
-## Features
+### Features
 
 - Adds dedicated options to the browser’s context menu.
 - Actions are designed to integrate with the main PWA.
 
-## Installation
+### Installation
 
-### Manual Installation in Chrome
+#### Manual Installation in Chrome
 
 1. Open Chrome and go to `chrome://extensions/`.
 2. Enable **Developer mode** (top right corner).
@@ -19,7 +19,10 @@ This extension adds custom buttons to the **browser context menu (right-click)**
 
 > **Note**: This extension is optional and only meant to enhance the PWA experience.
 
-## Author and License
+### Author and License
 
-Author: [Your Name or Team Name]  
+**Marco-F** – Lead Developer  
+[GitHub](https://github.com/marco-f)
+----
+
 License: This extension is released under the same license as the main project. See the [LICENSE](../LICENSE) file for details.
