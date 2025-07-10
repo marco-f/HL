@@ -37,7 +37,7 @@
                 <!-- three.js -->
                 <script src="../JS/three/three.js"></script>
                 <script src="../JS/three/gcode-model.js"></script>
-                <script src="../JS/three/OrbitControls.js"></script>  
+                <script src="../JS/three/OrbitControls.js"></script>
         </head>
 
         <style>
@@ -175,7 +175,7 @@
                 }
                 .btAlert {
                         cursor: pointer; appearance: none; outline: 0;
-                        border:1px solid gray; width:150px; background:#101010;
+                        border:1px solid gray; width:177px; background:#101010;
                         text-align: center; height: 25px; color:gray;
                         font-weight: 250; font-size: 12px; border-radius:15px;
                         margin: 0; position: relative;
@@ -231,7 +231,7 @@
                 }*/
 
                 .panel {
-                        height: 50vh; aspect-ratio: 1 / 1; background: #101010;
+                        height: 60vh; aspect-ratio: 1 / 1; background: #101010;
                         border: 1px solid #3c3c3c; flex-shrink: 0; z-index:500; 
                 }              
 
@@ -250,14 +250,14 @@
                 .close-btn {
                         font-weight: bold; font-size: 18px;
                         width:30px; height:30px; background-color:#080808;
-                        position:absolute; top:0px; left:0px; z-index:500;
-                        text-align:center; line-height:26px; cursor:pointer;        
+                        position:absolute; top:10px; right:10px; z-index:500;
+                        text-align:center; line-height:26px; cursor: pointer;        
                         border:2px solid #3c3c3c; color:white; border-radius:50%
                 }
-                .close-btn:hover {background-color: #1a1a1a} 
+                .close-btn:hover {background-color: #1a1a1a}                              
         </style>
                                                               
-        <body>                                  
+        <body>   
                 <!-- html HEAD -->
                 <div id="head" style="background:#080808;
                         z-index:9; border-bottom:0px solid #3c3c3c;
@@ -267,9 +267,6 @@
                         <div class="bs" style="top:13px; width:200px; left:30px" onclick="">
                                 <img src="../IMG/HLB.png" width="200px" height="16px"/>
                         </div>
-
-                        <button class="btImg" style="cursor:pointer; font-size:10px;
-                                top:10px; right:180px" onclick="">about</button>
 
                         <button class="btImg" style="cursor:pointer; font-size:10px;
                                 top:10px; right:100px" onclick="window.location.reload(true)">refresh</button>
@@ -336,14 +333,14 @@
                                 var taClosed = true
 
                                 function updateLayout() {
-                                        var taWidth = $("#TA").width();
-                                        var editorWidth = taWidth - 30;
-                                        var windowHeight = $(window).height();
-                                        var footerHeight = $("#footer").height();
+                                        var taWidth = $("#TA").width()
+                                        var editorWidth = taWidth - 30
+                                        var windowHeight = $(window).height()
+                                        var footerHeight = $("#footer").height()
                                         var editorHeight = windowHeight - footerHeight - 90 ///////////////////////////////////////////////////////////////
 
-                                        $("#editor").width(editorWidth).height(editorHeight);
-                                        $("#n_Line").height(editorHeight);
+                                        $("#editor").width(editorWidth).height(editorHeight)
+                                        $("#n_Line").height(editorHeight)
 
                                         if (typeof editor.resize === 'function') {
                                                 editor.resize();
@@ -490,7 +487,7 @@
                                 })
 
                                 var runSCRIPT = () => {
-                                        //try {
+                                        try {
                                                 clearCNVS(); TAClose();
                                                 var userCode = editor.getValue()
                                                 var content = edtContent(userCode)
@@ -506,7 +503,7 @@
                                                         canvas.add(guidePair.intersectionCircle).bringToFront()                                       
                                                 }
                                                 cancBool = false
-                                        //} catch(error) {console.error(error)}
+                                        } catch(error) {console.error(error)}
                                 }
                         </script>
                 </div>
@@ -525,8 +522,14 @@
                         <script>
 var toolHelpDiv = document.getElementById('toolHelp')                  
 function showTHelp() {
-        $("#toolHelp").stop(true, true).css({display: "block", opacity: 0, bottom: "-40px"})
-        .animate({bottom: "100px", opacity: 1}, 500)
+        if (toolHelpDiv) {
+                var footerHeight = $("#footer").height()
+                $("#toolHelp").css("bottom", `${footerHeight + 20}px`)
+        }
+
+        $("#toolHelp").stop(true, true)
+            .css({ display: "block", opacity: 0 })
+            .animate({ opacity: 1 }, 500)
 }
 
 function hideTHelp() {
@@ -629,9 +632,13 @@ function logging() {
                 }
         }
 
-        console.log = (...args) => customLog('log', '#32CD32', ...args)
+        console.log = (...args) => customLog('log', '#00ffcc', ...args)
+        console.warn = (...args) => customLog('warn', '#ffff00', ...args)
+        console.info = (...args) => customLog('info', '#ff00ff', ...args)
         console.error = (...args) => customLog('error', '#b3d5e0', ...args)
-        console.gcode = (msg, color = 'gray') => {customLog('gc', color, msg)}
+        console.debug = (...args) => customLog('debug', '#ffffff', ...args)
+        console.response = (...args) => customLog('response', '#808080', ...args)
+        console.gcode = (msg, color = '#fff') => {customLog('gc', color, msg)}
 
         console.log('ready ...')
         setInterval(flushLogBuffer, bufferFlushInterval)
@@ -668,7 +675,7 @@ function addToConsole() {
                         <p style="position:fixed; color:gray; bottom:-7px; right:300px; width:70px; font-size:11px; cursor:pointer" onclick="TAOpen()">OpenTA</p>
 
                         <!-- Clear Log and Reset Swap buttons with onclick events -->
-                        <p style="position:fixed; color:gray; bottom:-7px; right:150px; width:70px; font-size:11px; cursor:pointer"
+                        <p style="position:fixed; color:gray; bottom:-7px; right:100px; width:150px; font-size:11px; cursor:pointer"
                         onclick="cnsLog.innerHTML=''; console.log('ready ...')">< Clear Log ></p>
 
                         <script>
@@ -709,7 +716,7 @@ function calculateFPS() {
                 </div>
 
                 <!-- GCode Section -->
-                <div id="GCC" style="z-index:350; position:absolute; background:#101010; width:780px; height:300px; 
+                <div id="GCC" style="z-index:350; position:absolute; background:#101010; width:780px; height:280px; 
                 left: 50%; top: 50%; transform: translate(-50%,-50%); border: 1px solid #3c3c3c; display:none">
                         <h3 style="text-align:center">< GCODE GENERATOR ></h3>
                         <button class="bs" style="top:20px; right:-20px; cursor:pointer" onclick="toggleGCconv()">X</button>       
@@ -752,28 +759,42 @@ function calculateFPS() {
                                 <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">fileNAME</span>
                                 <input class="txtInp" type="text" id="_11" placeholder="set name" value="a"/>
                         </div>
+
                         <div id="t_3" class="buttons-container" style="top:210px; width:100%">
                                 <div id="d_1" style="width:auto; height:auto; margin:0 auto; position:relative; display:flex; align-items:center; gap:6px">
-                                
-                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">toGCODE</span>
-                                        <button class="btTool" onclick="obj2gc()">create</button>                    
-                               </div>                     
-                        </div>                                  
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">download</span>
+                                        <button class="btRD" id="dl" onclick="setDL()">●</button>
 
-                        <p class="bs" style="width:100%; top:265px; text-align:center">* download if you need to keep the file</p>
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">toGCODE</span>
+                                        <button class="btTool" onclick="obj2gc()">create</button>
+
+                                </div>
+                        </div>
+
+                        <p class="bs" style="width:100%; top:240px; text-align:center">* download if you need to keep the file</p>
+
+                        <!--div id="PP" style="position:absolute; top:300px; left:50%; transform:translateX(-50%); display:flex; gap:20px; font-size:12px">
+                                <div style="display:flex; flex-direction:column">
+                                        <label style="color:#fff; margin-bottom:4px; margin-left:10px">pre</label>
+                                        <textarea style="padding-left:10px; width:378px; height:80px; background:#1a1a1a; color:#fff; border:1px solid #3c3c3c; outline:none; resize:none; text-decoration:none" spellcheck="false"></textarea>
+                                </div>
+                                <div style="display:flex; flex-direction:column">
+                                        <label style="color:#fff; margin-bottom:4px; margin-left:10px">post</label>
+                                        <textarea style="padding-left:10px; width:378px; height:80px; background:#1a1a1a; color:#fff; border:1px solid #3c3c3c; outline:none; resize:none; text-decoration:none" spellcheck="false"></textarea>
+                                </div>
+                        </div-->                       
                                
                         <script>                       
-var t_1 = document.getElementById('t_1')
-var t_2 = document.getElementById('t_2')
-var t_3 = document.getElementById('t_3')
+//var pp = document.getElementById('PP')
+//pp.addEventListener("contextmenu", function(e) {
+//        e.stopPropagation()
+//})
 
 var gcBool = false
 function toggleGCconv() {
         if (gcBool == false) {
-                $('#GCC').show(); gcBool = true; GCSenderHide() //; FTRClose()
-        } else if (gcBool == true) {
-                $('#GCC').hide(); gcBool = false
-        }
+                $('#GCC').show(); gcBool = true; GCSenderHide()}
+        else if (gcBool == true) {$('#GCC').hide(); gcBool = false}
 }
 
 var mode = 'image'
@@ -787,9 +808,7 @@ var setMODE = function(activeId) {
         else if (activeId === 'm_2') {
                 button1.blur(); button2.focus(); mode = 'engrave'
         }
-        else {
-                mode = 'image'
-        }
+        else {mode = 'image'}
 }
 
 var dlBool = false
@@ -866,8 +885,8 @@ function svg2gc(md){
 
                                                 if (index === 0) {
                                                         gcode += `G0 X${x} Y${y} Z${zMax} F${speedTRVL} S${minPWR}\n`
-                                                        gcode += `G4 P${pause}; Pausa per stabilizzazione;\n`;
-                                                        gcode += `M3;laser ON\n`;
+                                                        gcode += `G4 P${pause}\n`
+                                                        gcode += `M3;laser ON\n`
                                                         gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
                                                 } else {
                                                         gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
@@ -1012,7 +1031,7 @@ function svg2gc(md){
                 pre += "G0 X0 Y0 Z0 F" + speedTRVL + "\n"
                 if (air !== 0) pre = pre + "M8\n"                             
                 if (air !== 0) post = "\nM9; stop airAssist\n"
-                post += "G0 X0 Y0 Z0 F" + speedTRVL + "; homing...\n"
+                post += "G0 X0 Y0 Z0 F" + speedTRVL + "\n"
                 post += "M2; end program\n"                                
                 
                 
@@ -1251,7 +1270,7 @@ function download(gcodeText){
                 fileName += ".gcode"
         }
 
-        var blob = new Blob([gcodeText], { type: "text/plain" })
+        var blob = new Blob([gcodeText], {type: "text/plain"})
         var link = document.createElement("a")
         link.href = URL.createObjectURL(blob)
         link.download = fileName
@@ -1259,31 +1278,39 @@ function download(gcodeText){
         link.click(); document.body.removeChild(link)
 }
 var gcodeText = ""
-function sendGCODE(data){
-        if(dlBool == true){download()}
-       // document.getElementById("_11").value = ""
+function sendGCODE(data){       
+        //document.getElementById("_11").value = ""
         gcodeText = data; gcode = ""
-        gcVIEW(gcodeText); dlBool = false; //download(gcodeText)
+        if(dlBool == true){download(gcodeText)}
+        gcVIEW(gcodeText); dlBool = false
 }   
                             
                         </script>
                 </div>
 
-                <div id="leftPanel" style="background:#101010; position:absolute; width:190px; top:200px; z-index:500;
+<div id="GCSender" style="z-index:600; background:red; width:0px; height:0px; position:absolute; top:0; left:0">                
+
+                <div id="leftPanel" style="background:#101010; position:absolute; width:200px; top:200px; z-index:500;
                 left:calc(50% - (var(--viewWidth) / 2) - 100px); border:1px solid #3c3c3c; z-index:500; visibility:hidden">
 
-                        <button id="connect" class="btAlert" style="position:absolute; margin-left:20px; top:10px">connect</button>
-                        <button id="stop" class="btAlert" style="position:absolute; margin-left:20px; top:45px">Stop</button>                
-                        <button id="send" class="btAlert" style="position:absolute; margin-left:20px; top:80px">Send ...</button>
-                        <button id="pause" class="btAlert" style="position:absolute; margin-left:20px; top:115px">Pause</button>
-                        <button id="resume" class="btAlert" style="position:absolute; margin-left:20px; top:150px">Resume</button>
+                        <button id="connect" class="btAlert" style="position:absolute; left:10px; top:10px">connect</button>
+                        <button id="stop" class="btAlert" style="position:absolute; left:10px; top:45px">Stop</button>                
+                        <button id="send" class="btAlert" style="position:absolute; left:10px; top:80px">Send ...</button>
+                        <button id="pause" class="btAlert" style="position:absolute; left:10px; top:115px">Pause</button>
+                        <button id="resume" class="btAlert" style="position:absolute; left:10px; top:150px">Resume</button>
 
-                        <button id="config"class="btAlert" style="position:absolute;  margin-left:20px; bottom:10px">setGRBL</button>
+                        <button id="config"class="btAlert" style="position:absolute;  margin-left:10px; bottom:10px">setGRBL</button>
+
+                        <input class="txtInp" type="text" id="cmd" style="text-align:center;
+                        position:absolute; left:10px; top:200px; width:177px" placeholder="send command 'ctrl + enter'"/>                        
+                        
+                        </div>        
                 </div>             
 
                 <div id="centerPanel" class="panel" style="position:absolute; top:200px; left:0; overflow:hidden; visibility:hidden">
                         <div id="3dView"></div>
                         <script>
+
 var centerPanel = document.getElementById('centerPanel')
 var centPHeight = centerPanel.offsetHeight
 
@@ -1295,9 +1322,9 @@ window.addEventListener('DOMContentLoaded', function () {
         leftPanel.style.height = centPHeight + "px"
         rightPanel.style.height = centPHeight + "px"
 
-        var leftWidth = 190
+        var leftWidth = 200
         var centerWidth = centPHeight
-        var rightWidth = 30
+        var rightWidth = 230
 
         var totalWidth = leftWidth + centerWidth + rightWidth
         var startX = (window.innerWidth - totalWidth) / 2
@@ -1406,7 +1433,7 @@ function createObjFromGC(gcode) {
                         x: newLine.x,
                         y: newLine.y,
                         z: zReal + 0.2 //
-                }
+                }    
         }
         function moveWithoutDrawing(args) {
                 if ('s' in args) lastPower = args.s
@@ -1416,7 +1443,7 @@ function createObjFromGC(gcode) {
                         x: args.x ?? lastLine.x,
                         y: args.y ?? lastLine.y,
                         z: zReal
-                }
+                }    
         }
 
         var parser = new GCodeParser({
@@ -1460,8 +1487,8 @@ function createObjFromGC(gcode) {
 
 
 var view = document.getElementById("3dView")
-var tW = window.innerHeight * 0.5
-var tH = window.innerHeight * 0.5
+var tW = window.innerHeight * 0.6
+var tH = window.innerHeight * 0.6
 
 var renderer = new THREE.WebGLRenderer({antialias: true})
 renderer.setSize(tW, tH)
@@ -1543,6 +1570,7 @@ function addOkListener(cb) {
         okListeners.push(cb)
 }
 
+var size = 0
 var statusListeners = []
 var lineNumber = 0
 var OK_TIMEOUT = 1000
@@ -1587,9 +1615,13 @@ async function sendWithRetry(rawLine) {
         });
 }
 
+var okCount = 1
+function dumpOk () {
+        console.response(`[←] ok ×${okCount}`); okCount = 0
+}
 async function readSerialData() {
         var decoder = new TextDecoderStream()
-        var inputDone = port.readable.pipeTo(decoder.writable)
+        port.readable.pipeTo(decoder.writable)
         reader = decoder.readable.getReader()
 
         var buffer = ''
@@ -1600,66 +1632,95 @@ async function readSerialData() {
                         buffer += value
                         var lines = buffer.split(/\r?\n/)
                         buffer = lines.pop()
+
                         for (var raw of lines) {
-                                var line = raw.trim().toLowerCase()
+                                var line = raw.trim()
                                 if (!line) continue
 
-                                if (line === 'ok') {
-                                        okListeners.forEach(cb => cb()); continue
+                                if (line === 'ok') {        
+                                        if (okCount === 1) setTimeout(dumpOk, 1000)
+                                        okListeners.forEach(cb => cb())
+                                        okCount++; continue;
                                 }
 
+                                if (line.startsWith('echo:')) {
+                                        console.warn(`[←] echo: ${line.slice(5).trim()}`); continue
+                                }
+
+                                if (line.startsWith('[MSG:')) {
+                                        var msg = line.match(/\[MSG:(.*)\]/)
+                                        if (msg && msg[1]) {
+                                                console.info(`[←] message: ${msg[1].trim()}`)
+                                        } else {
+                                                console.info(`[←] message: ${line}`)
+                                        }; continue
+                                }
+
+                                if (line === '>>>') {
+                                        console.info(`[←] GRBL prompt: >>>`); continue
+                                }
+
+                                if (line.startsWith("['$'")) {
+                                        console.info(`[←] help prompt: ${line}`); continue                                
+                                }
+                                
                                 if (line.startsWith('error:')) {
                                         var code = line.split(':')[1].trim()
-                                        console.warn(`GRBL error ${code}`)
-                                        if (code === '24') {
-                                                console.log("bypassing error 24")
+                                        console.warn(`[←] GRBL error ${code}`)
+                                        if (code == '24') {
+                                                console.log('Bypassing error 24')
                                         } else {
-                                                console.log("retrying via soft reset")
-                                                await softReset()
-                                        }; continue
+                                                console.log('Retrying via soft reset')
+                                                await writer.write(encoder.encode('$X\n'))
+                                                await softReset(); //await homing()  
+                                        }
+                                        continue
                                 }
 
                                 if (line.startsWith('alarm:')) {
-                                        var match = line.match(/\d+/);
-                                        if (match && match[0]) {
-                                                var code = parseInt(match[0], 10)
-                                                console.error(`GRBL alarm ${code}`)
-                                                if ([2, 4, 5, 7, 10].includes(code)) {
-                                                        console.log("auto-reset alarm")
-                                                        await softReset()
-                                                } else if ([1, 3, 6].includes(code)) {
-                                                        console.log("reset + homing alarm")
-                                                        await softReset(); await homing()
-                                                } else {
-                                                        console.error("unknown alarm, manual check required");
-                                                }
+                                        var m    = line.match(/\d+/)
+                                        var code = m ? parseInt(m[0], 10) : null
+                                        console.error(`[←] GRBL alarm ${code}`)
+                                        if ([2, 4, 5, 7, 10].includes(code)) {
+                                                await softReset()
+                                        } else if ([1, 3, 6].includes(code)) {
+                                                await softReset()
+                                                await homing()
                                         } else {
-                                                console.warn("Could not parse alarm code from:", line);
-                                        }; continue
+                                                console.error('Unknown alarm, manual intervention required')
+                                        }
+                                        continue
                                 }
 
                                 if (line.startsWith('<') && line.endsWith('>')) {
-                                        statusListeners.forEach(cb => cb(line)); continue
+                                        statusListeners.forEach(cb => cb(line))
+                                        continue
                                 }
 
                                 if (/^grbl\s+[\d.]+/i.test(line)) {
-                                        var version = line.match(/grbl\s+([\d.]+)/i)[1]
-                                        console.info('→ GRBL version detected:', version)
-                                        continue
-                                }; console.debug('GRBL:', line);
+                                        var v = line.match(/grbl\s+([\d.]+)/i)[1]
+                                        console.response(`→ GRBL version detected: ${v}`)
+                                        sendToGRBL('$X'); sendConfigToGRBL(); continue
+                                }
+                                console.debug('[←] GRBL:', line)
                         }
                 }
         } catch (e) {
                 console.error('Error serial:', e)
-                isConnected = false; scheduleReconnect()
+                isConnected = false
+                scheduleReconnect()
         } finally {
-                try {reader.releaseLock()} catch {}
+                try { reader.releaseLock() }
+                catch {}
                 if (isManualDisconnect) {
-                        try {await port.close()} catch {}
+                        try { await port.close() }
+                        catch {}
                 }
         }
 }
 
+var STATUS_PERIOD = 200
+var lastStatusReq = 0
 async function connectSerial() {
         if (isConnected) return;
         try {
@@ -1667,12 +1728,13 @@ async function connectSerial() {
                         const ports = await navigator.serial.getPorts();
                         port = ports[0] || await navigator.serial.requestPort()
                 }
-                await port.open({ baudRate: 115200 })
+                await port.open({baudRate: 115200})
                 writer = port.writable.getWriter()
                 isConnected = true
                 isManualDisconnect = false
                 console.log('Connected')
-                readSerialData()
+
+                readSerialData()       
         } catch (e) {
                 console.error('Connect fail:', e)
         }
@@ -1703,6 +1765,19 @@ function scheduleReconnect() {
 function addStatusListener(cb) {
         statusListeners.push(cb)
 }
+addStatusListener(function(statusLine) {
+        var el = document.getElementById('grbl')
+        if (!el) return
+        var parts = statusLine.replace(/[<>]/g, '').split('|')
+        var formatted = parts.map(part => {
+                if (part.includes(':')) {
+                    const [key, value] = part.split(':')
+                    return `${key.trim()}:  ${value.trim()}`
+                }
+                return part.trim()
+        }).join('\n')
+        el.textContent = formatted
+})
 
 function removeOkListener() {
         if (onOkCallback) {
@@ -1713,21 +1788,21 @@ function removeOkListener() {
 }
 
 // --- pipeline buffered + drawing ---
-var parser = makeStreamParser(scene);
+var parser = makeStreamParser(scene)
 
 function makeStreamParser(scene) {
         return new GCodeParser({
                 G0: args => {
-                        if ('s' in args) lastPower = args.s;
-                        var zReal = ('z' in args) ? args.z : lastLine.z;
+                        if ('s' in args) lastPower = args.s
+                        var zReal = ('z' in args) ? args.z : lastLine.z
                         lastLine = {
                                 x: args.x ?? lastLine.x,
                                 y: args.y ?? lastLine.y,
                                 z: zReal
-                        };
+                        }
                 },
                 G1: args => {
-                        if ('s' in args) lastPower = args.s;
+                        if ('s' in args) lastPower = args.s
                         var powerRatio = isImageMode
                                 ? 1 - (lastPower / 255)
                                 : (lastPower / 255);
@@ -1746,31 +1821,31 @@ function makeStreamParser(scene) {
                                 z: lastLine.z + zOffset - center.z
                         };
 
-                        var geom = new THREE.BufferGeometry();
+                        var geom = new THREE.BufferGeometry()
                         var pos = new Float32Array([
                                 oldPt.x, oldPt.y, oldPt.z,
                                 newPt.x, newPt.y, newPt.z
                         ]);
-                        geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                        geom.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
 
-                        var c = new THREE.Color().setRGB(powerRatio, powerRatio, powerRatio);
+                        var c = new THREE.Color().setRGB(powerRatio, powerRatio, powerRatio)
                         var cols = new Float32Array([
                                 c.r, c.g, c.b,
                                 c.r, c.g, c.b
                         ]);
-                        geom.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+                        geom.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3))
 
-                        var mat = new THREE.LineBasicMaterial({ vertexColors: true });
-                        var lineSeg = new THREE.LineSegments(geom, mat);
+                        var mat = new THREE.LineBasicMaterial({ vertexColors: true })
+                        var lineSeg = new THREE.LineSegments(geom, mat)
                         scene.add(lineSeg);
 
                         lastLine = {
                                 x: args.x ?? lastLine.x,
                                 y: args.y ?? lastLine.y,
                                 z: zReal
-                        };
+                        }                       
                 }
-        });
+        })
 }
 
 async function streamGCodeBuffered() {
@@ -1796,120 +1871,145 @@ async function streamGCodeBuffered() {
         var  pendingLines = []
         var  pendingSizes = []
 
+        var pendingTimers = []
         function onOk() {
-                var confirmed = pendingLines.shift()
-                var size = pendingSizes.shift();
+                if (pendingSizes.length === 0) return
+
+                var size = pendingSizes.shift()
                 bufferUsed -= size
+                var confirmed = pendingLines.shift()
 
-                if (confirmed) {
-                        try {parser.parseLine(confirmed)}
-                        catch (err) {console.warn('error:', err, 'on line:', confirmed)}
-                }
-
-                setTimeout(pump, 0)
+                clearTimeout(pendingTimers.shift())
+                try {
+                        if (confirmed) parser.parseLine(confirmed)
+                } catch (e) {
+                        console.warn('parse error on line:', confirmed, e)
+                }; setTimeout(pump, 0)
         }; addOkListener(onOk)
 
+        var rCount = 0, rLine  = null
+        function dumpRetryWarn () {
+                if (rCount > 0) {
+                        console.warn(`[retry] idx ${rLine}, resend ×${rCount}`)
+                        rCount = 0; rLine  = null
+                }
+        }
         async function resendLastLineForced() {
                 const lastSent = gcodeText.split('\n')[currentIndex - 2]?.trim()
                 if (!lastSent || lastSent.startsWith(';')) return
                 await writer.write(encoder.encode(lastSent + '\n'))
-        }               
+        }
 
-        pump = async function () {
-                if (!isSending || isPaused || stopRequested) return
+        pump = async function() { 
+                if (!isSending || isPaused || stopRequested) {
+                        console.log('[pump] exit (sending/paused/stop)')
+                        return
+                }
 
                 while (currentIndex < lines.length) {
-                        var  raw = lines[currentIndex].trim()
+                        var raw = lines[currentIndex].trim()
 
                         if (!raw || raw.startsWith(';')) {
-                                currentIndex++; sentGCodeLines++
-                                updateProgressBar(); continue
+                                currentIndex++
+                                sentGCodeLines++
+                                updateProgressBar()
+                                continue
                         }
 
-                        var  enc = encoder.encode(raw + '\n')
-                        if (bufferUsed + enc.length > BUFFER_LIMIT)
+                        var enc = encoder.encode(raw + '\n')
+                        if (bufferUsed + enc.length > BUFFER_LIMIT) {
+                                //console.warn('[pump] entering, idx= '+ currentIndex + ' buffer= '+ bufferUsed)
                                 break
-
-                        var success = false
-                        for (var attempt = 1; attempt <= 3; attempt++) {
-                                try {
-                                        await writer.write(enc)
-                                        console.gcode(`→ ${raw}`, attempt === 1 ? 'gray' : 'white')
-
-                                        bufferUsed += enc.length
-                                        pendingLines.push(raw)
-                                        pendingSizes.push(enc.length)
-                                        currentIndex++
-                                        sentGCodeLines++
-                                        updateProgressBar()
-
-                                        success = true
-                                        break
-                                } catch (err) {
-                                        console.warn(`error (attempt ${attempt}):`, err)
-                                        await new Promise(r => setTimeout(r, 200))
-                                }
                         }
 
-                        if (!success) {
-                                console.warn(`skipping line: ${raw}`)
-                                currentIndex++; sentGCodeLines++
-                                updateProgressBar(); continue
+                        var now = performance.now()
+                        if (now - lastStatusReq > STATUS_PERIOD) {
+                                await writer.write(encoder.encode('?\n'))
+                                lastStatusReq = now
+                        }
+
+                        try {
+                                await writer.write(enc)
+                                console.gcode(`[→] sent [${currentIndex}] ${raw}`)
+                                bufferUsed      += enc.length
+                                pendingLines.push(raw)
+                                pendingSizes.push(enc.length)
+
+                                var retryTimer = setTimeout(async () => {
+                                        var thisLine = currentIndex - 1
+                                        if (rLine === thisLine) {rCount++}
+                                        else {
+                                                rLine  = thisLine; rCount = 1
+                                                setTimeout(dumpRetryWarn, 1000)
+                                        }; await resendLastLineForced()
+                                }, OK_TIMEOUT + 300)
+                                pendingTimers.push(retryTimer)
+
+                                currentIndex++
+                                sentGCodeLines++
+                                updateProgressBar()
+                        } catch (err) {
+                                console.warn(`[pump] write error on line ${currentIndex}:`, err)
+                                await new Promise(r => setTimeout(r, 200))
+                                continue
                         }
                 }
-                if (currentIndex >= lines.length) {
-                        if (pendingLines.length === 1) {
-                                setTimeout(async () => {
-                                    if (pendingLines.length === 1) {
-                                        var  last = pendingLines[0];
-                                        await writer.write(encoder.encode(last + '\n'));
-                                    }
-                                }, 500)
-                        } else if (pendingLines.length === 0) {
-                                isSending = false; removeOkListener()
-                                console.log("Streaming completed")
-                        }
-                }   
+
+                if (currentIndex >= lines.length && pendingLines.length === 0) {
+                        writer.write(encoder.encode('?\n'))
+                        isSending = false
+                        removeOkListener(onOk)
+                        console.log('=== Streaming completed ===')
+                }
         }; pump()
 }
 
 // --- UI event bindings ---
-document.getElementById('connect').addEventListener('click', connectSerial);
-document.getElementById('stop').addEventListener('click', disconnectSerial);
+document.getElementById('connect').addEventListener('click', connectSerial)
+document.getElementById('stop').addEventListener('click', disconnectSerial)
 document.getElementById('send').addEventListener('click', () => {
         if (port && !isSending) streamGCodeBuffered();
 });
-// Pause / Resume / homing
+// Pause / Resume / homing  softReset
 document.getElementById('pause').onclick = () => {
         if (isSending) {
-                isPaused = true;
-                console.log("⏸ Paused");
+                isPaused = true
+                writer.write(new TextEncoder().encode("!\n")); console.log("Paused")
         }
 };
 document.getElementById('resume').onclick = () => {
         if (isPaused) {
-                isPaused = false;
-                console.log("▶️ Resumed");
-                pump();
+                isPaused = false
+                writer.write(new TextEncoder().encode("~\n")); pump();  console.log("Resumed")
         }
 };
 async function homing() {
-        console.log("homing…");
-        await writer.write(new TextEncoder().encode("$H\n"));
+        console.log("homing…")
+        await writer.write(new TextEncoder().encode("$H\n"))
 }
-// Utility
 async function softReset() {
-        await writer.write(new Uint8Array([0x18]));
-        await new Promise(r => setTimeout(r, 500));
+        await writer.write(new Uint8Array([0x18]))
+        await new Promise(r => setTimeout(r, 500))
 }
 // --- Progress bar update ---
-var progressBar = document.getElementById('progress-bar');
+var progressBar = document.getElementById('progress-bar')
 function updateProgressBar() {
         if (totalGCodeLines > 0) {
-                var pct = sentGCodeLines / totalGCodeLines * 100;
-                progressBar.style.width = pct + '%';
+                var pct = sentGCodeLines / totalGCodeLines * 100
+                progressBar.style.width = pct + '%'
         }
 }
+async function sendSingleCommand() {
+        var cmd = document.getElementById('cmd').value.trim()
+        if (cmd !== "") {
+                await sendToGRBL(cmd);
+                console.log(`Command sent: ${cmd}`)
+                document.getElementById('cmd').value = ""
+        }
+}
+document.getElementById('cmd').addEventListener('keydown', function (e) {
+        if (e.ctrlKey && e.key === "Enter") {sendSingleCommand()}
+})
 
                         </script>
                 </div>
@@ -1931,16 +2031,18 @@ function updateProgressBar() {
 
 
                         <script>                                
-var configVisible = false;
+var configVisible = false
 document.getElementById('config').addEventListener('click', function () {
         if (isConnected == true) {
-                configVisible = !configVisible;
+                configVisible = !configVisible
                 if (configVisible) {
-                        loadConfigData();
-                        $("#configArea").show();
+                        loadConfigData()
+                        $("#configArea").show()
+                        $("#pre, #post, label[for='pre'], label[for='post']").show()
                 } else {
-                        $("#configArea").hide();
-                        sendConfigToGRBL();
+                        $("#configArea").hide()
+                        $("#pre, #post, label[for='pre'], label[for='post']").hide()
+                        sendConfigToGRBL()
                 }
         } else {
                 console.error("ConnectController");
@@ -1948,7 +2050,7 @@ document.getElementById('config').addEventListener('click', function () {
 });
 
 function loadConfigData() {
-        $('#configTable tbody').empty();
+        $('#configTable tbody').empty()
 
         var configData = [
                 { setting: "$0", value: "10", description: "Step pulse time, microseconds" },
@@ -1964,7 +2066,7 @@ function loadConfigData() {
                 { setting: "$13", value: "0", description: "Report in inches, boolean" },
                 { setting: "$20", value: "0", description: "Soft limits enable, boolean" },
                 { setting: "$21", value: "0", description: "Hard limits enable, boolean" },
-                { setting: "$22", value: "0", description: "Homing cycle enable, boolean" },
+                { setting: "$22", value: "1", description: "Homing cycle enable, boolean" },
                 { setting: "$23", value: "0", description: "Homing direction invert, mask" },
                 { setting: "$24", value: "25.000", description: "Homing locate feed rate, mm/min" },
                 { setting: "$25", value: "500.000", description: "Homing search seek rate, mm/min" },
@@ -2050,91 +2152,91 @@ async function sendConfigToGRBL() {
                         </script>
                 </div>
 
-                <div id="rightPanel" style="background:transparent; position:absolute; width:30px;
-                top:200px; z-index:500; border:0px solid #3c3c3c; visibility:hidden">
+                <div id="rightPanel" style="background:#101010; position:absolute; width:233px; top:200px; z-index:500;
+                border:1px solid #3c3c3c; visibility:hidden">
 
-                        <button id="close" class="close-btn" onclick='GCSenderHide()'>x</button>
+                        <button id="close" class="close-btn" onclick="GCSenderHide()">x</button>
+
+                        <label for="pre" style="position:absolute; bottom:245px; left:10px; display:none; font-size:12px; color:gray">pre</label><br>
+                        <textarea id="pre" spellcheck="false" style="padding:5px;
+                        position:absolute; bottom:140px; left:10px; width:205px; height:100px; resize:none;color:#fff; font-size:12px; 
+                        display:none; background:transparent; border:1px solid #3c3c3c; outline:none" placeholder="custom pre"></textarea>
+
+                        <label for="post" style="position:absolute; bottom:115px; left:10px; display:none; font-size:12px; color:gray;">post</label><br>
+                        <textarea id="pre" spellcheck="false" style="padding:5px;
+                        position:absolute; bottom:10px; left:10px; width:205px; height:100px; resize:none;color:#fff; font-size:12px; 
+                        display:none; background:transparent; border:1px solid #3c3c3c; outline:none" placeholder="custom post"></textarea>
+
+                        <div id="grbl" style="position:absolute; bottom:5px; left:10px; right:5px;
+                        color:gray; font-size:12px; line-height:1.4; white-space:pre-wrap;"></div>
+ 
                 </div>
+</div>
                 
-
                         <script>
-var speedTRVL = 1000;
-var XSize = 10, YSize = 10, ZSize = 10;
-document.addEventListener('keydown', async (event) => {
-        if (!port) return;
-        var command = ''
 
-        switch (event.key) {
-                case 'ArrowUp':
-                        YSize += 10
-                        command = `G0 Y${YSize} F${speedTRVL}`
-                        await sendToGRBL("G92 X0 Y0 Z0"); break
-                case 'ArrowDown':
-                        YSize -= 10
-                        command = `G0 Y${YSize} F${speedTRVL}`
-                        await sendToGRBL("G92 X0 Y0 Z0"); break
-                case 'ArrowLeft':
-                        XSize -= 10
-                        command = `G0 X${XSize} F${speedTRVL}`
-                        await sendToGRBL("G92 X0 Y0 Z0"); break
-                case 'ArrowRight':
-                        XSize += 10
-                        command = `G0 X${XSize} F${speedTRVL}`
-                        await sendToGRBL("G92 X0 Y0 Z0"); break
-                case 'PageUp':
-                        XSize += 10
-                        command = `G0 Z${ZSize} F${speedTRVL}`
-                        await sendToGRBL("G92 X0 Y0 Z0"); break
-                case 'PageDown':
-                        XSize -= 10
-                        command = `G0 Z${ZSize} F${speedTRVL}`
-                        await sendToGRBL("G92 X0 Y0 Z0"); break
-                default: return
+async function sendJog({ x = 0, y = 0, z = 0, f = 1000 }) {
+        const dx = Math.abs(x)
+        const dy = Math.abs(y)
+        const dz = Math.abs(z)
+        const distance = Math.max(dx, dy, dz)
+        const durationMs = (distance / (f / 60)) * 1000
+
+        const jogLine = `$J=G91 G21 X${x} Y${y} Z${z} F${f}\n`
+        await writer.write(encoder.encode(jogLine))
+        console.log(`[JOG] ${jogLine.trim()}`)
+
+        await new Promise(r => setTimeout(r, durationMs + 100))
+
+        await writer.write(encoder.encode("G90\n"))
+        await writer.write(encoder.encode("?\n"))
+}
+document.addEventListener("keydown", async function (e) {
+        if (!e.ctrlKey || !isConnected || isSending || isPaused) return
+        e.preventDefault()
+
+        let step = e.shiftKey ? 10 : 1
+        let feed = 1000
+
+        if (e.key === "ArrowUp")        await sendJog({y: step, f: feed })
+        if (e.key === "ArrowDown")      await sendJog({y: -step, f: feed})
+        if (e.key === "ArrowLeft")      await sendJog({x: -step, f: feed})
+        if (e.key === "ArrowRight")     await sendJog({x: step, f: feed })
+        if (e.key === "PageUp")         await sendJog({z: step, f: 500  })
+        if (e.key === "PageDown")       await sendJog({z: -step, f: 500 })
+})
+document.addEventListener("keydown", async function (e) {
+        if (!isConnected || !e.shiftKey) return
+
+        let overrideChar = null
+
+        switch (e.key.toLowerCase()) {
+                case "f": overrideChar = "+"; break // feed +
+                case "g": overrideChar = "-"; break // feed -
+                case "r": overrideChar = "="; break // feed reset
+
+                case "s": overrideChar = "^"; break // spindle +
+                case "d": overrideChar = "v"; break // spindle -
+                case "x": overrideChar = "~"; break // spindle reset
+
+                case "z": overrideChar = ">"; break // rapid +
+                case "a": overrideChar = "<"; break // rapid -
+                case "q": overrideChar = "|"; break // rapid reset
         }
 
-        if (command) {
-                await sendToGRBL(command);
-                console.log(`Command sent: ${command}`)
+        if (overrideChar) {
+                await writer.write(encoder.encode(overrideChar))
+                console.log(`[OVERRIDE] ${overrideChar}`)
+                e.preventDefault()
         }
 })
-async function sendToGRBL(command) {
-        return new Promise(async (resolve, reject) => {
-                if (!writer) {
-                        reject('Serial port writer not available')
-                        return
-                }
-                function onOk() {
-                        okListeners = okListeners.filter(cb => cb !== onOk)
-                        resolve()
-                }
-                okListeners.push(onOk)
 
-                try {
-                        const data = new TextEncoder().encode(command + '\n')
-                        await writer.write(data)
 
-                        const timeoutId = setTimeout(() => {
-                                okListeners = okListeners.filter(cb => cb !== onOk)
-                                reject('Timeout: No OK response from device')
-                        }, OK_TIMEOUT)
-
-                        function onOk() {
-                                clearTimeout(timeoutId)
-                                okListeners = okListeners.filter(cb => cb !== onOk)
-                                resolve()
-                        }
-                        okListeners.push(onOk)
-                } catch (e) {
-                        okListeners = okListeners.filter(cb => cb !== onOk)
-                        reject(e)
-                }
-        })
-}
 
 document.addEventListener('keydown', function(event) {
         if (event.ctrlKey && event.key === 'Delete') {
                 clearCNVS()
-                if (imgInstance) { canvas.remove(imgInstance); }
+                if (imgInstance) {canvas.remove(imgInstance)}
                 cancBool = true; objNumber = 0
         }
         else if (event.ctrlKey && event.key === 'i') {
@@ -2180,15 +2282,20 @@ document.addEventListener('keydown', function(event) {
                 event.preventDefault()
                 addTEXT('roboto_b', 100, 100, 100, 'test')
         }
+        else if (event.altKey && event.key === 'f') {
+                event.preventDefault()
+                addRECTinteractive()
+        }    
+        else if (event.altKey && event.key === 'g') {
+                event.preventDefault()
+                addELLIPSEinteractive()
+        }       
 })
-
-
-                               
- setWorkArea()                     
+                   
                         </script>
                 </div>                       
 
-                <!-- div id="fd" style="z-index:10000;position:absolute; width:100%; left: 50%; top: 50%; color: #fff; transform: translate(-50%, -50%);">
+                <div id="fd" style="z-index:10000;position:absolute; width:100%; left: 50%; top: 50%; color: #fff; transform: translate(-50%, -50%);">
                         <div id="customAlert" class="alert-box">
                                 <div class="alert-img">
                                         <img style="position:absolute; top:20px; left:10px;" src="../IMG/c_1.png" width="100px" height="auto"/>
@@ -2219,7 +2326,7 @@ document.addEventListener('keydown', function(event) {
                                                         $("#splash").load("../HTML/anim.html", function() {
                                                                 setTimeout(() => {
                                                                         $("#splash").addClass("fade");
-                                                                        setTimeout(() => { $("#splash").remove(); }, 2000)
+                                                                        setTimeout(() => {$("#splash").remove()}, 2000)
                                                                 }, 3000)
                                                         })
                                                         setTimeout(() => {setWorkArea()}, 5000)
@@ -2228,7 +2335,7 @@ document.addEventListener('keydown', function(event) {
                                 </script>   
                         </div>
                 </div>
-                <div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)"></div -->
+                <div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)"></div>
         </body>             
 </html>  
 
