@@ -157,7 +157,8 @@
                         var output = '', i = 0
 
                         while (i < lines.length) {
-                                var line = lines[i].trim()
+                                var rawLine = lines[i].trim()
+                                var line = rawLine.replace(/;$/, '')
                                 if (line === '') {i++; continue}
 
                                 if (line.startsWith('function')) {
@@ -245,7 +246,7 @@
                 var ctx = canvas.getContext('2d')
 
                 var cW = window.innerWidth
-                var cH = (window.innerHeight * 2) -200
+                var cH = (window.innerHeight * 2) -80
                 canvas.setDimensions({width:cW, height:cH})     
 
                 function drawGRID() {
@@ -405,7 +406,7 @@
                         else {return Math.round(value / GRID) * GRID}
                 }
 
-                var GRID = 18.897637795, dWidth=200, dHeight=100, numSEG=30
+                var GRID = 18.8976377952, dWidth=100, dHeight=100, numSEG=30
                 var intersectionCircleWA, isDraggingWA = false
 
 
@@ -512,7 +513,7 @@
                 var vLineWA, oLineWA, imgWA
                 var cancBool = false, tempGuideLines
                 function clearCNVS(){  
-                        canvas.clear(); drawGRID()
+                        canvas.clear(); drawGRID(); hideTHelp()
                         canvas.add(lineHrz); canvas.add(lineVrt)
                         
                         if (vLineWA) canvas.add(vLineWA)
@@ -566,7 +567,6 @@
                                 lastPath = CONV(lastPath,false)
                                 lastPath = lastPath.replace(/(-?\d+)\.\d+/g, '$1')
                                 if(lastPath){                                                                    
-
                                         var variableName = `p_${variableCount}`;
                                         var displayString = `\nPOLYLINE(PV['${variableName}'])`
                                         PV[variableName] = lastPath; const editorContent = editor.getValue()
@@ -752,6 +752,221 @@
                                 sequenceTimer = setTimeout(() => keySequence = [], 1000)
                         }
                 }
+
+function addELLIPSEinteractive() {
+        resetZoom()
+        toolHelpDiv.style.display = 'block'
+        showTHelp()
+        wrn.innerHTML = "tool ELLIPSE:&nbsp;&nbsp;clicca per il centro, trascina per definire Rx/Ry (ESC per annullare)"
+
+        let centerX, centerY, ellipsePreview
+        let drawing = false
+
+        var  snapY = (y) => snapToGrid(y - 11) + 11
+        var  snap = (v) => snapToGrid(v)
+
+        var  startDrawing = (e) => {
+                var  pointer = canvas.getPointer(e.e)
+                centerX = snap(pointer.x)
+                centerY = snapY(pointer.y)
+
+                ellipsePreview = new fabric.Ellipse({
+                        left: centerX,
+                        top: centerY,
+                        originX: 'center',
+                        originY: 'center',
+                        rx: 0,
+                        ry: 0,
+                        fill: 'rgba(255, 255, 0, 0.2)',
+                        stroke: '#ffff00',
+                        strokeWidth: 1,
+                        selectable: false,
+                        excludeFromExport: true
+                })
+
+                canvas.add(ellipsePreview)
+                drawing = true
+        }
+
+        var  duringDrawing = (e) => {
+                if (!drawing || !ellipsePreview) return
+                var  pointer = canvas.getPointer(e.e)
+                var  rx = Math.abs(snap(pointer.x) - centerX)
+                var  ry = Math.abs(snapY(pointer.y) - centerY)
+
+                ellipsePreview.set({ rx, ry })
+                canvas.renderAll()
+        }
+
+        var  stopDrawing = () => {
+                if (!drawing) return
+                drawing = false
+
+                var  rx = ellipsePreview.rx
+                var  ry = ellipsePreview.ry
+                var  code = `\nELLIPSE(${CONV(centerX).toFixed()}, ${(+CONV(centerY).toFixed()) - 3}, ${CONV(rx).toFixed()}, ${CONV(ry).toFixed()})`
+
+                canvas.remove(ellipsePreview)
+                canvas.renderAll()
+
+                var  editorContent = editor.getValue()
+                editor.setValue(editorContent ? `${editorContent}${code}` : code)
+                editor.clearSelection(); editor.focus(); TAOpen()
+
+                removeListeners()
+        }
+
+        var  cancelDrawing = (e) => {
+                if (e.key === 'Escape') {
+                        if (ellipsePreview) {
+                                canvas.remove(ellipsePreview)
+                                canvas.renderAll()
+                        }
+                        drawing = false
+                        removeListeners()
+                }
+        }
+
+        var  removeListeners = () => {
+                canvas.off('mouse:down', startDrawing)
+                canvas.off('mouse:move', duringDrawing)
+                canvas.off('mouse:up', stopDrawing)
+                window.removeEventListener('keydown', cancelDrawing)
+                toolHelpDiv.style.display = 'none'
+        }
+
+        canvas.on('mouse:down', startDrawing)
+        canvas.on('mouse:move', duringDrawing)
+        canvas.on('mouse:up', stopDrawing)
+        window.addEventListener('keydown', cancelDrawing)
+}
+
+function ELLIPSE(centerX, centerY, radiusX, radiusY) {
+        var  segments = 120
+        var  angleStep = (2 * Math.PI) / segments
+        var  path = []
+
+        for (let i = 0; i < segments; i++) {
+                var  angle = i * angleStep
+                var  x = centerX + radiusX * Math.cos(angle)
+                var  y = centerY + radiusY * Math.sin(angle) + 3
+                path.push({X: x, Y: y})
+        }
+
+        path.push(path[0]) 
+        return use([path])
+}
+
+function addRECTinteractive() {
+        resetZoom()
+        toolHelpDiv.style.display = 'block'
+        showTHelp()
+        wrn.innerHTML = "tool RECT:&nbsp;&nbsp;click-drag-rilascia per disegnare un rettangolo (ESC per annullare)"
+
+        let startX, startY, rectPreview
+        let drawing = false
+
+        var  snapToGrid = (value) => {
+                return Math.round(value / GRID) * GRID
+        }
+
+        var  startDrawing = (e) => {
+                var  pointer = canvas.getPointer(e.e)
+                startX = snapToGrid(pointer.x)
+                startY = snapToGrid(pointer.y - 11) + 11
+
+                rectPreview = new fabric.Rect({
+                        left: startX,
+                        top: startY,
+                        width: 0,
+                        height: 0,
+                        fill: 'rgba(255, 0, 255, 0.2)',
+                        stroke: '#ff00ff',
+                        strokeWidth: 1,
+                        selectable: false,
+                        excludeFromExport: true
+                })
+
+                canvas.add(rectPreview)
+                drawing = true
+        }
+
+        var  duringDrawing = (e) => {
+                if (!drawing || !rectPreview) return
+                var  pointer = canvas.getPointer(e.e)
+                var  endX = snapToGrid(pointer.x)
+                var  endY = snapToGrid(pointer.y - 11) + 11
+
+                var  width = endX - startX
+                var  height = endY - startY
+
+                rectPreview.set({
+                        width: Math.abs(width),
+                        height: Math.abs(height),
+                        left: width < 0 ? endX : startX,
+                        top: height < 0 ? endY : startY
+                })
+                canvas.renderAll()
+        }
+
+        var  stopDrawing = (e) => {
+                if (!drawing) return
+                drawing = false
+
+                var  rect = rectPreview
+                var  x = CONV(rect.left)
+                var  y = CONV(rect.top)
+                var  w = CONV(rect.width)
+                var  h = CONV(rect.height)
+
+                canvas.remove(rectPreview)
+                canvas.renderAll()
+
+                var  code = `\nRECT(${x.toFixed()}, ${y.toFixed()}, ${w.toFixed()}, ${h.toFixed()})`
+                var  editorContent = editor.getValue()
+                editor.setValue(editorContent ? `${editorContent}${code}` : code)
+                editor.clearSelection(); editor.focus(); TAOpen()
+
+                removeListeners()
+        }
+
+        var  cancelDrawing = (e) => {
+                if (e.key === 'Escape') {
+                        if (rectPreview) {
+                                canvas.remove(rectPreview)
+                                canvas.renderAll()
+                        }
+                        drawing = false
+                        removeListeners()
+                }
+        }
+
+        var  removeListeners = () => {
+                canvas.off('mouse:down', startDrawing)
+                canvas.off('mouse:move', duringDrawing)
+                canvas.off('mouse:up', stopDrawing)
+                window.removeEventListener('keydown', cancelDrawing)
+                toolHelpDiv.style.display = 'none'
+        }
+
+        canvas.on('mouse:down', startDrawing)
+        canvas.on('mouse:move', duringDrawing)
+        canvas.on('mouse:up', stopDrawing)
+        window.addEventListener('keydown', cancelDrawing)
+}
+
+function RECT(x, y, w, h) {
+        var paths = [[
+                {X: x, Y: y},
+                {X: x + w, Y: y},
+                {X: x + w, Y: y + h},
+                {X: x, Y: y + h},
+                {X: x, Y: y}
+        ]]
+        return use(paths)
+}
+                    
+                     
 
                      
                 function POLYGON(seg, centerX, centerY, radius){
@@ -1079,7 +1294,7 @@
                         resetZoom()
                         toolHelpDiv.style.display = 'block'; showTHelp()
                         wrn.innerHTML = "tool TEXT:&nbsp&nbsp;set: Font(sting);&nbsp&nbsp;FontSize(mm);&nbsp&nbsp;Coordinates StartX, StartY(mm);&nbsp&nbsp;TEXT(sting)" 
-                        displayString = "\nTEXT('digit', 30, 30, 30, 'Marco')"
+                        displayString = "\nTEXT('cnc_1', 30, 30, 30, 'HobbyLASER')"
 
                         var editorContent = editor.getValue()
                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
@@ -1546,6 +1761,8 @@
                                 }catch{}
                         }
                 }
+
+
 
  
                 //-------------------------------------------------------------------------------------------------------------------------------------------------------------- addIMAGE                      
