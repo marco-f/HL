@@ -201,6 +201,16 @@ Huge thanks to the open-source community, browser engineers, and CNC enthusiasts
 
 ---
 
+### Work in progress
+
+This project is still evolving.
+While fully functional, some features may still change or improve over time.
+The documentation is currently disorganized and inadequate, but updates are ongoing.
+
+Thank you for your patience and support!
+
+---
+
 ### Credits
 
 This project makes use of several outstanding open-source libraries:
@@ -217,6 +227,8 @@ This project makes use of several outstanding open-source libraries:
 
 ###  Documentation
 
-More detailed usage instructions and developer notes can be found in the [Wiki](https://github.com/marco-f/HL/wiki/).
+Documentation is currently incomplete and under active reorganization, but it's being improved and updated regularly.
+
+See the Wiki for guides, examples, and technical notes.
 
 ---
