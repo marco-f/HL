@@ -229,6 +229,6 @@ This project makes use of several outstanding open-source libraries:
 
 Documentation is currently incomplete and under active reorganization, but it's being improved and updated regularly.
 
-See the Wiki for guides, examples, and technical notes.
+More detailed usage instructions and developer notes can be found in the [Wiki](https://github.com/marco-f/HobbyLASER/wiki/).
 
 ---
