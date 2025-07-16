@@ -10,7 +10,7 @@
                 <meta http-equiv="pragma" content="no-cache">
                 <meta charset="UTF-8">
 
-                <title>HobbyLASER</title>           
+                <title>HobbyLaser!</title>           
 
                 <!-- favicon -->
                 <link rel="icon" type="image/png" href="../IMG/lsr.svg">
@@ -254,7 +254,19 @@
                         text-align:center; line-height:26px; cursor: pointer;        
                         border:2px solid #3c3c3c; color:white; border-radius:50%
                 }
-                .close-btn:hover {background-color: #1a1a1a}                              
+                .close-btn:hover {background-color: #1a1a1a}
+
+                .equal-height {height: auto}
+                .dropdown {position:fixed; display:block; border:0; width:100%}
+                .dropdown-content{display:block; position:absolute; background:#050505; 
+                        top:10px; border-bottom:1px solid #888; border-right:1px solid #888; z-index:600}
+                .dropdown-content a {color:white; display:block; margin-left:15px;
+                        text-decoration:none; padding:10px; font-size:10px; max-width:100%}
+                .dropdown-content label {color:white; display:block;
+                        text-decoration:none; padding:10px 16px; font-size:10px}                        
+                .dropdown:hover .dropdown-content{display:block}                 
+                .dropdown-content a:hover {background:#202020; font-weight:bold; font-size:10px}
+                .dropdown-content label:hover {background:#202020; font-weight:bold; font-size:10px}                                  
         </style>
                                                               
         <body>   
@@ -270,12 +282,54 @@
 
                         <button class="btImg" style="cursor:pointer; font-size:10px;
                                 top:10px; right:100px" onclick="window.location.reload(true)">refresh</button>
-
+                        <!-- UserGUIDE -->
+                        <button class="btImg" style="cursor: pointer; font-size:10px; top:10px; right:20px"
+                        onclick="window.open('https://github.com/marco-f/HL/wiki/Home', '_blank')">UG</button>
+                                               
                         <input style="display:none" type="file" id="input"/>
 
                         <div id="progress-container">
                                 <div id="progress-bar"></div>
                         </div>
+
+
+                                               
+                        <div class="bs" style="top:10px; width:25px; left:300px" onclick="menu.style.display='block'; equalizeHeight()">
+                                <img src="../IMG/jg_dn.svg" width="25px" height="25px" style="cursor:pointer"/>
+                        </div>
+                                     
+                        <div id="menu" class="dropdown" style="cursor:pointer; top:50px; left:4px; width:100%">
+
+                                <div class="dropdown-content" style="width:100%; left:15px">
+                                        <a href="#" onclick="menu.style.display = 'none'; $('#input').click()">import</a>
+                                        <input style="display: none" type="file" id="input"/>   
+                                        <a href="#" onclick="menu.style.display = 'none'; addPOLYLINE()">addPOLYLINE</a>
+                                        <a href="#" onclick="menu.style.display = 'none'; addPOLYGON()">addPOLYGON</a>
+                                        <a href="#" onclick="menu.style.display = 'none'; addTEXT()">addTEXT</a>
+                                </div>
+
+                                <script>
+                                        var menu = document.getElementById('menu')
+                                        menu.style.display = 'none'   
+                                                               
+                                        function equalizeHeight(){
+                                                var dropdowns = document.querySelectorAll('.dropdown-content')
+                                                var maxHeight = 0
+
+                                                dropdowns.forEach(dropdown => {
+                                                        dropdown.classList.add('equal-height')
+                                                        dropdown.style.height = 'auto'
+                                                 })
+                                                dropdowns.forEach(dropdown => {
+                                                        var height = dropdown.offsetHeight
+                                                        if (height > maxHeight) {maxHeight = height}
+                                                })
+                                                dropdowns.forEach(dropdown => {
+                                                        dropdown.style.height = `${maxHeight}px`
+                                                })
+                                        }; window.addEventListener('load', equalizeHeight)
+                                </script>                                               
+                        </div>                           
                 </div>
                                   
                 <div id="toolHelp" style="z-index:500; position:absolute; left:200px;right:200px; height:30px; 
@@ -297,12 +351,7 @@
                 <div id="horizontalLabel" class="label"></div>
                 <div id="verticalLabel" class="label"></div>
 
-                <!-- UserGUIDE -->
-                <button id="OCug" class="bs" style="z-index:290; cursor:pointer;
-                        width:150px; top:10px; left:300px" title="user guide"
-                        onclick="window.open('https://github.com/marco-f/HL/wiki/Home', '_blank')">
-                        <img id="sx" style="display:block" src="../IMG/sx.svg" width="24px" height="10px"/>
-                </button>
+
 
                 <div id="OV" style="z-index:400; border:0px solid #3c3c3c; display:none;
                         position:fixed; width:101%; height:100%; left:0; top:40px; background:transparent">
@@ -487,8 +536,8 @@
                                 })
 
                                 var runSCRIPT = () => {
-                                        try {
-                                                clearCNVS(); TAClose();
+                                        //try {
+                                                clearCNVS(); TAClose(); hideTHelp()
                                                 var userCode = editor.getValue()
                                                 var content = edtContent(userCode)
                                                 if (cancBool == true){
@@ -503,7 +552,7 @@
                                                         canvas.add(guidePair.intersectionCircle).bringToFront()                                       
                                                 }
                                                 cancBool = false
-                                        } catch(error) {console.error(error)}
+                                        //} catch(error) {console.error(error)}
                                 }
                         </script>
                 </div>
@@ -1708,7 +1757,11 @@ async function readSerialData() {
         } catch (e) {
                 console.error('Error serial:', e)
                 isConnected = false
-                scheduleReconnect()
+                try {
+                        await port.close()
+                } catch (err) {
+                        console.warn('Error closing port:', err)
+                }; scheduleReconnect()
         } finally {
                 try { reader.releaseLock() }
                 catch {}
@@ -1722,7 +1775,12 @@ async function readSerialData() {
 var STATUS_PERIOD = 200
 var lastStatusReq = 0
 async function connectSerial() {
-        if (isConnected) return;
+        if (isConnected) return
+        if (port && port.readable) {
+                console.warn("Port already open, skipping reconnect.")
+                return
+        }
+        
         try {
                 if (!port) {
                         const ports = await navigator.serial.getPorts();
@@ -2174,7 +2232,7 @@ async function sendConfigToGRBL() {
 </div>
                 
                         <script>
-async function sendJog({ x = 0, y = 0, z = 0, f = 1000 }) {
+/*async function sendJog({ x = 0, y = 0, z = 0, f = 1000 }) {
         const dx = Math.abs(x)
         const dy = Math.abs(y)
         const dz = Math.abs(z)
@@ -2228,7 +2286,7 @@ document.addEventListener("keydown", async function (e) {
                 console.log(`[OVERRIDE] ${overrideChar}`)
                 e.preventDefault()
         }
-})
+})*/
 
 
 async function sendToGRBL(command) {
@@ -2323,11 +2381,14 @@ document.addEventListener('keydown', function(event) {
                 addELLIPSEinteractive()
         }       
 })
-            
+
+
+                               
+setWorkArea()                     
                         </script>
                 </div>                       
 
-                <div id="fd" style="z-index:10000;position:absolute; width:100%; left: 50%; top: 50%; color: #fff; transform: translate(-50%, -50%);">
+                <!--div id="fd" style="z-index:10000;position:absolute; width:100%; left: 50%; top: 50%; color: #fff; transform: translate(-50%, -50%);">
                         <div id="customAlert" class="alert-box">
                                 <div class="alert-img">
                                         <img style="position:absolute; top:20px; left:10px;" src="../IMG/c_1.png" width="100px" height="auto"/>
@@ -2358,7 +2419,7 @@ document.addEventListener('keydown', function(event) {
                                                         $("#splash").load("../HTML/anim.html", function() {
                                                                 setTimeout(() => {
                                                                         $("#splash").addClass("fade");
-                                                                        setTimeout(() => {$("#splash").remove()}, 2000)
+                                                                        setTimeout(() => { $("#splash").remove(); }, 2000)
                                                                 }, 3000)
                                                         })
                                                         setTimeout(() => {setWorkArea()}, 5000)
@@ -2367,7 +2428,7 @@ document.addEventListener('keydown', function(event) {
                                 </script>   
                         </div>
                 </div>
-                <div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)"></div>
+                <div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)"></div-->
         </body>             
 </html>  
 
