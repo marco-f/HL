@@ -513,7 +513,7 @@
                 var vLineWA, oLineWA, imgWA
                 var cancBool = false, tempGuideLines
                 function clearCNVS(){  
-                        canvas.clear(); drawGRID(); hideTHelp()
+                        canvas.clear(); drawGRID()
                         canvas.add(lineHrz); canvas.add(lineVrt)
                         
                         if (vLineWA) canvas.add(vLineWA)
@@ -573,7 +573,7 @@
                                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
                                         editor.clearSelection(); editor.focus(); TAOpen(); variableCount++                                        
                                 }
-                        } else {console.log("No to convert")}; TAOpen()//; runSCRIPT()
+                        } else {console.log("No to convert")}; TAOpen(); runSCRIPT()
                 }
                 var addPOLYLINE = function(){
                         resetZoom()                        
@@ -777,8 +777,8 @@ function addELLIPSEinteractive() {
                         originY: 'center',
                         rx: 0,
                         ry: 0,
-                        fill: 'rgba(255, 255, 0, 0.2)',
-                        stroke: '#ffff00',
+                        fill: fill,
+                        stroke: stroke,
                         strokeWidth: 1,
                         selectable: false,
                         excludeFromExport: true
@@ -880,8 +880,8 @@ function addRECTinteractive() {
                         top: startY,
                         width: 0,
                         height: 0,
-                        fill: 'rgba(255, 0, 255, 0.2)',
-                        stroke: '#ff00ff',
+                        fill: fill,
+                        stroke: stroke,
                         strokeWidth: 1,
                         selectable: false,
                         excludeFromExport: true
@@ -956,19 +956,16 @@ function addRECTinteractive() {
 }
 
 function RECT(x, y, w, h) {
-        var paths = [[
-                {X: x, Y: y},
-                {X: x + w, Y: y},
-                {X: x + w, Y: y + h},
-                {X: x, Y: y + h},
-                {X: x, Y: y}
-        ]]
-        return use(paths)
+    var path = [
+        {X: x, Y: y},
+        {X: x + w, Y: y},
+        {X: x + w, Y: y + h},
+        {X: x, Y: y + h}
+    ]
+    path.push(path[0]) 
+    return use([path])
 }
-                    
-                     
-
-                     
+          
                 function POLYGON(seg, centerX, centerY, radius){
                         var pt='', ang = 2*Math.PI/seg                                                
                         var plgX = centerX, plgY = centerY, rds = radius
@@ -1751,18 +1748,28 @@ function RECT(x, y, w, h) {
                         return clpPath(combined)
                 }
                        
-                function use(path){
-                        if(Array.isArray(path) && path.length > 0 && path[0] instanceof ClipperLib.IntPoint){
+                function use(path) {
+                        if (Array.isArray(path) && path.length > 0 && path[0] instanceof ClipperLib.IntPoint) {
                                 return clpPath(path)
-                        } else{
-                                try{
-                                        var clp = path.map(subPath => subPath.map(point => new ClipperLib.IntPoint(point.X, point.Y)))
-                                        return clpPath(clp)
-                                }catch{}
+                        } else {
+                                try {
+                                        for (var subPath of path) {
+                                                if (subPath.length > 1) {
+                                                    var first = subPath[0]
+                                                    var last = subPath[subPath.length - 1]
+                                                    if (first.X !== last.X || first.Y !== last.Y) {
+                                                        subPath.push({X: first.X, Y: first.Y})
+                                                    }
+                                                }
+                                        }
+                                        var clp = path.map(subPath =>
+                                                subPath.map(point => new ClipperLib.IntPoint(point.X, point.Y))
+                                        ); return clpPath(clp)
+                                } catch (e) {
+                                        console.error("Errore in use():", e)
+                                }
                         }
                 }
-
-
 
  
                 //-------------------------------------------------------------------------------------------------------------------------------------------------------------- addIMAGE                      
@@ -2306,5 +2313,39 @@ function RECT(x, y, w, h) {
         <svg height="0" width="0" style="display:none"><path id="path" d=""/></svg>
         <div id="alert" class="alert"><p class="bs" id="error" style="top:-5px; width:100%"></p></div>  
 </body>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
