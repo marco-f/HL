@@ -53,7 +53,8 @@ Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 - [Features](#features)  
 - [Web Serial API](#web-serial-api)  
 - [Live Demo](#live-demo)  
-- [How to Run Locally](#how-to-run-locally)  
+- [How to Run Locally](#how-to-run-locally)
+- [Contributing](#contributing)  
 - [Technologies Used](#technologies-used)  
 - [Changelog](#changelog)  
 - [Acknowledgments](#acknowledgments)  
@@ -149,7 +150,23 @@ This app uses the **Chrome Web Serial API** to communicate with CNC/laser contro
 
 ---
 
-### Changelog
+## Contributing
+
+We welcome contributions from the community!
+
+1. Fork the repository  
+2. Create a new branch: `git checkout -b feature-name`  
+3. Commit your changes: `git commit -am 'Add feature'`  
+4. Push your branch: `git push origin feature-name`  
+5. Open a Pull Request
+
+See the full [Contributing Guide](CONTRIBUTING.md)  
+
+Thanks for helping make HobbyLaser better!
+
+---
+
+## Changelog
 
 **v1.0.0**
 
