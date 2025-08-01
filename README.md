@@ -114,11 +114,11 @@ This app uses the **Chrome Web Serial API** to communicate with CNC/laser contro
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/marco-f/PWA-HobbyLASER.git
+   git clone https://github.com/marco-f/HLgit
    ```
 2. Navigate to the project folder:
    ```bash
-   cd PWA-HobbyLASER
+   cd HL
    ```
 3. Run a local web server (e.g., with http-server):
    ```bash
