@@ -6,38 +6,141 @@
                 <meta http-equiv="expires" content="-1">
                 <meta http-equiv="expires" content="Tue, 01 Jan 1980 11:00:00 GMT">
                 <meta http-equiv="pragma" content="no-cache">
+                <title>HobbyLaser!</title>
+
                 
+
+                <link rel="manifest" href="/manifest.json"/>
+                <link rel="icon" href="/icons/icon-192.png" type="image/png"/>
+
+                <link rel="icon" type="image/svg+xml" href="IMG/lsr.svg">  
+
+                <meta name="theme-color" content="#ffffff"/>
+                <meta name="mobile-web-app-capable" content="yes"/>
+                <meta name="apple-mobile-web-app-capable" content="yes"/>  
+
                 <style>
+                        html, body {
+                                width: 100%; height: 100%; margin: 0; padding: 0;
+                                overflow: hidden; font-family: "Roboto", sans-serif;
+                                background: radial-gradient(circle at center, #202020 0%, #000000 70%);
+                                color: white; text-align: center;
+                        }
+                        .hidden-cursor {cursor: none}         
+                        #pattern-overlay {
+                                width: 100%; height: 100%;
+                                pointer-events: none; z-index: 1;
+                                position: absolute; top: 0; left: 0;
+                                background-image:
+                                        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                                        linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                                        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                                        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                                        linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0));
+                                background-size: 60px 60px, 60px 60px, 5px 5px, 5px 5px, cover;
+                        }
+                        .alert-box {
+                                z-index: 1000; display: flex;width:60%;
+                                position: fixed; top: 40%; left: 50%; top:50%;
+                                transform: translate(-50%, -50%);
+                                background: transparent; padding: 20px;
+                                border: 0px solid #444; border-radius: 8px;
+                                align-items: center; 
+                                text-align: center;
+                                transition: opacity 2s ease-in-out;
+                        }
+                        .alert-content {
+                                font-size: 14px; font-weight: bold;
+                                width: 100%;
+                        }
+                        .alert-img {
+                                position: relative;
+                                background: transparent;
+                                height: 120px; width: 100px;
+                        }
+                        .disclaimer-text {
+                                font-size: 12px;
+                                width: 80%;
+                                margin: 0 auto;
+                                text-align: center;
+                        }
+                        .btAlert {
+                                cursor: pointer; appearance: none; outline: 0;
+                                border:1px solid gray; width:150px; background:#202020;
+                                text-align: center; height: 27px; color: white;
+                                font-weight: 250; font-size: 12px; border-radius:15px;
+                                margin: 0; position: relative;
+                        }                        
+                        .btAlert::before {
+                                content: ""; position: absolute; left: 0;
+                                top: 0; width: 100%; height: 100%;
+                                border-radius: 30px; border: 1px solid white;
+                                box-sizing: border-box; clip-path: inset(0 100% 0 0);
+                                transition: clip-path 0.3s ease-in;
+                        }
+                        .btAlert:hover::before {clip-path: inset(0 0 0 0)}
+                        .btAlert:hover {background: #050505}                     
+
+
                         .message {
-                                align-items:center; text-align:center;
-                                flex-direction:column; justify-content:center;
-                                background:#000; color:#fff; display:none; display:flex;    
-                                position:fixed; top:0; left:0; width: 100vw; height: 100vh;
+                                max-width:800px;                        
+                                display: none; background: #000;
+                                color: #fff; text-align: center;
+                                padding: 2rem; margin:5rem auto;
                         }
                 </style>
+</head>
+<body>
 
-                <script>
-                        setTimeout(() => {
-                                var userAgent = navigator.userAgent
-                                var isMobile = /Android|iPhone|iPad/i.test(userAgent)
-                                var isChrome = /Chrome/.test(userAgent)
-                                var msg = document.getElementById('msg')
-                                if (isMobile || !isChrome) {
-                                        msg.style.display = 'block'
-                                } else {
-                                        window.location.href = "HTML/main.html"
-                                }
-                        }, 0)
-                </script>                
-        </head>
-        <body>
-                <div id="msg" class="message" style="display:none">
+        <div id="pattern-overlay"></div>
+        <div id="fd" style="position:absolute; width:100%; left: 50%; top: 50%; color: #fff; transform: translate(-50%, -50%);">
+                <div id="customAlert" class="alert-box">
+                        <div class="alert-img">
+                                <img style="position:absolute; top:20px; left:10px;" src="IMG/c_1.png" width="100px" height="auto"/>
+                        </div>
+                        <div class="alert-content">
+                                <p>DISCLAIMER</p>
+                                <p style="color:#ff0000">A CNC OR A LASER ARE NOT TOYS!</p>
+                                <p>
+                                        <a href="https://www.lasersafetyfacts.com/laserclasses.html" target="_blank" style="color:gray">Read more</a>
+                                </p>
+                                <p class="disclaimer-text" style=" font-weight:normal">
+                                        Using a CNC or laser without proper training and protection can cause serious injury and blindness. We do not accept any liability for damages resulting from the use of this software.
+                                </p>
+                                <p style="color:#ff0000;">ALWAYS WEAR SAFETY GLASSES!</p>
+
+                                <br>
+                                <button class="btAlert" id="alertButton">OK</button>
+                        </div>
+                        <div class="alert-img">
+                                <img style="position:absolute; top:20px; right:10px;" src="IMG/c_2.png" width="100px" height="auto"/>
+                        </div>
+                </div>
+
+                <div id="msg" class="message">
                         <h1>Notice</h1>
                         <p>This application is only supported on <strong>Google Chrome</strong> desktop version.</p>
                         <p>Please use Chrome on a computer for the best experience.</p>
-                </div>
-        </body>
-</html>
+                </div>                                        
 
+                <script>                                    
+                        document.getElementById('alertButton').addEventListener('click', function() {
+                                let alertBox = document.getElementById('customAlert');
+                                setTimeout(() => {
+                                        var userAgent = navigator.userAgent
+                                        var isMobile = /Android|iPhone|iPad/i.test(userAgent)
+                                        var isChrome = /Chrome/.test(userAgent)
+                                        var msg = document.getElementById('msg')
+                                        if(isMobile){
+                                                msg.style.display = 'block'
+                                        } else {    
+                                                window.location.href = "HTML/main.html"
+                                        }
+                                }, 0) 
+                        })          
+                </script>
+        </div>
+</body>
+</html>
 
 
