@@ -20,11 +20,11 @@ A **Progressive Web App (PWA)** for controlling **CNC or laser machines** from t
     <img src="IMG/anim.svg" alt="logo" style="width: 600px; height: auto;">
 </p>
 
-<h3 align="center">Disclaimer</h2>
-<h4 align="center" color="red">**A CNC OR A LASER ARE NOT TOYS!** </h3> 
-<h5 align="center"> Using a CNC or laser without proper training and protection can cause serious injury and blindness. We do not accept any liability for damages resulting from the use of this software.</h4> 
-<h5 align="center"> 🔗 [Read more about laser safety](https://www.lasersafetyfacts.com/laserclasses.html) </h4>  
-<h5 align="center"> **ALWAYS WEAR SAFETY GLASSES!** </h4> 
+<h2 align="center">Disclaimer</h2>
+<h3 align="center" color="red">**A CNC OR A LASER ARE NOT TOYS!** </h3> 
+<h4 align="center"> Using a CNC or laser without proper training and protection can cause serious injury and blindness. We do not accept any liability for damages resulting from the use of this software.</h4> 
+<h4 align="center"> 🔗 [Read more about laser safety](https://www.lasersafetyfacts.com/laserclasses.html) </h4>  
+<h4 align="center"> **ALWAYS WEAR SAFETY GLASSES!** </h4> 
 
 ---
 
@@ -46,7 +46,6 @@ Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 
 - [Features](#features)  
 - [Web Serial API](#web-serial-api)  
-- [Live Demo](#live-demo)  
 - [How to Run Locally](#how-to-run-locally)
 - [Contributing](#contributing)  
 - [Technologies Used](#technologies-used)  
