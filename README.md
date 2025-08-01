@@ -37,15 +37,7 @@ Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 ### Screenshots
 
 <p align="center">
-  <img src="IMG/SS_1.png" alt="Screenshot 1" width="100%"/>
-</p>
-
-<p align="center">
-  <img src="IMG/SS_2.png" alt="Screenshot 2" width="100%"/>
-</p>
-
-<p align="center">
-  <img src="IMG/SS_3.png" alt="Screenshot 3" width="100%"/>
+  <img src="IMG/ss.png" alt="Screenshot 1" width="100%"/>
 </p>
 
 ---
