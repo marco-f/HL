@@ -37,15 +37,7 @@ Provalo ora: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 ### Screenshot
 
 <p align="center">
-  <img src="IMG/SS_1.png" alt="Screenshot 1" width="100%"/>
-</p>
-
-<p align="center">
-  <img src="IMG/SS_2.png" alt="Screenshot 2" width="100%"/>
-</p>
-
-<p align="center">
-  <img src="IMG/SS_3.png" alt="Screenshot 3" width="100%"/>
+  <img src="IMG/ss.png" alt="Screenshot 1" width="100%"/>
 </p>
 
 ---
@@ -54,7 +46,6 @@ Provalo ora: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 
 * [Funzionalità](#funzionalità)
 * [Web Serial API](#web-serial-api)
-* [Demo Live](#demo-live)
 * [Come eseguirlo in locale](#come-eseguirlo-in-locale)
 * [Contribuire](#contribuire)
 * [Tecnologie Utilizzate](#tecnologie-utilizzate)
