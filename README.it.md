@@ -116,12 +116,12 @@ Questa app utilizza la **Chrome Web Serial API** per comunicare con controller C
 1. Clona il repository:
 
    ```bash
-   git clone https://github.com/marco-f/PWA-HobbyLASER.git
+   git clone https://github.com/marco-f/HL.git
    ```
 2. Vai nella cartella del progetto:
 
    ```bash
-   cd PWA-HobbyLASER
+   cd HL
    ```
 3. Avvia un server web locale (es. con http-server):
 
