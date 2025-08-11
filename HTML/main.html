@@ -72,7 +72,7 @@
                         color:#fff; cursor:pointer; font-size:10px;
                         border: none; background:none; outline:none
                 }
-                .btImg:hover {color:#f0f}                   
+                .btImg:hover {color:#2f81f7}                   
 
                 #_2D {
                         overflow-x:hidden;
@@ -112,7 +112,7 @@
                 }
                 #progress-bar {
                         width: 0%; height: 100%;
-                        background-color: #ff00ff;
+                        background-color: #2f81f7;
                 }
 
                 .fade_2 {opacity: 0; transition: opacity 2s ease-in-out}
@@ -191,7 +191,7 @@
                 .btAlert:hover {background: #050505; color:#fff}
                 .btAlert:focus {
                         background: #0a0a0a;
-                        color: #f0f;
+                        color: #2f81f7;
                         box-shadow: 0 0 0 2px #ffffff44;
                 }
                 .btAlert:focus::before {
@@ -266,7 +266,10 @@
                         text-decoration:none; padding:10px 16px; font-size:10px}                        
                 .dropdown:hover .dropdown-content{display:block}                 
                 .dropdown-content a:hover {background:#202020; font-weight:bold; font-size:10px}
-                .dropdown-content label:hover {background:#202020; font-weight:bold; font-size:10px}                                  
+                .dropdown-content label:hover {background:#202020; font-weight:bold; font-size:10px}
+
+
+                                           
         </style>
                                                               
         <body>   
@@ -368,7 +371,16 @@
                         <!-- Div container for the Ace editor -->
                         <div id="editor" class="language-javascript" style="position: absolute; color: white; width: calc(50% - 50px); height: calc(100% - 150px)"></div>
 
+                        <div id="textTooltip" style="
+                                position:absolute; background:#101010; border:1px solid #3c3c3c;
+                                left:50px; color: gray; padding: 6px; font-size: 12px; display: none; cursor:default
+                        "></div>
+
+
+                                              
+
                         <script>
+                                var tooltip = document.getElementById("textTooltip")               
                                 var cE = document.getElementById('editor');
                                 cE.addEventListener("contextmenu", function(e) {
                                         e.stopPropagation()
@@ -535,9 +547,64 @@
                                         }
                                 })
 
+
+var fontList = [
+        "stncl", "arial", "times", "gilroy", "wildwest", "westicon",
+        "roboto_b", "roboto_l", "ruler", "ems", "cnc_1", "cnc_2", "cnc_3", "digit"
+]
+const tooltipsMap = {
+        TEXT: "TEXT(font-type', font-size, start-X, startY, spacing, string)",
+        POLYGON: "POLYGON(segments, centerX, centerY, radius)",
+        POLYLINE: "POLYLINE(' SVG Path ') //e.g. POLYLINE('M0 0 L10 10 ... Z"
+}
+editor.on('input', function () {
+        var pos = editor.getCursorPosition();
+        var line = editor.session.getLine(pos.row);
+        var beforeCursor = line.substring(0, pos.column);
+
+        if (beforeCursor.trim() === "" || beforeCursor.endsWith(")")) {
+                tooltip.style.display = "none"; return
+        }
+
+        var lastChar = beforeCursor.slice(-1)
+        if (/[a-zA-Z0-9_]/.test(lastChar)) {}
+        else if (['(', ','].includes(lastChar)) {
+                var validContext = /\b(TEXT|POLYGON|POLYLINE)\s*$/i.test(beforeCursor.slice(0, -1))
+                if (!validContext) {tooltip.style.display = "none"; return}
+        }
+        else {tooltip.style.display = "none"; return}
+
+        var match = beforeCursor.match(/(\w+)$/)
+        var lastWord = match ? match[1] : ""
+        var found = false
+        for (var cmd in tooltipsMap) {
+                if (cmd.startsWith(lastWord.toUpperCase())) {
+                        var coords = editor.renderer.textToScreenCoordinates(pos.row, pos.column)
+                        var docUrl = `https://github.com/marco-f/HL/wiki/3_Getting_Started#drawing-tools`
+                        tooltip.innerHTML = `
+                                ${tooltipsMap[cmd]}
+                                <a href="${docUrl}" target="_blank" style="margin-left: 8px; text-decoration: none">🔗</a>`
+                        tooltip.style.left = (coords.pageX / 10) + "px"
+                        tooltip.style.top = (coords.pageY - 40) + "px"
+                        tooltip.style.display = "block"
+                        found = true; break
+                }
+        }
+})
+editor.container.addEventListener("click", function () {
+        tooltip.style.display = "none"
+})
+document.addEventListener("click", function (e) {
+        if (!editor.container.contains(e.target)) {
+                tooltip.style.display = "none"
+        }
+}, true)
+
+                                               
+
                                 var runSCRIPT = () => {
                                         //try {
-                                                clearCNVS(); TAClose(); hideTHelp()
+                                                clearCNVS(); hideTHelp();// TAClose()
                                                 var userCode = editor.getValue()
                                                 var content = edtContent(userCode)
                                                 if (cancBool == true){
@@ -597,10 +664,6 @@ function ftr() {
                 var windowHeight = $(window).height()
                 var desiredH = windowHeight - footerHeight + 20
                 $("#_2D").height(desiredH);
-
-                if (toolHelpDiv) {
-                        $("#toolHelp").css("bottom", `${footerHeight + 20}px`);
-                } 
         }
 
         FTRClose = function () {
@@ -681,9 +744,9 @@ function logging() {
                 }
         }
 
-        console.log = (...args) => customLog('log', '#00ffcc', ...args)
-        console.warn = (...args) => customLog('warn', '#ffff00', ...args)
-        console.info = (...args) => customLog('info', '#ff00ff', ...args)
+        console.log = (...args) => customLog('log', '#73abfb', ...args)
+        console.warn = (...args) => customLog('warn', '#c2c24c', ...args)
+        console.info = (...args) => customLog('info', '#a7cafc', ...args)
         console.error = (...args) => customLog('error', '#b3d5e0', ...args)
         console.debug = (...args) => customLog('debug', '#ffffff', ...args)
         console.response = (...args) => customLog('response', '#808080', ...args)
@@ -713,7 +776,7 @@ function addToConsole() {
 
                 <!-- Bottom fixed control bar -->
                 <div id="srv" style="z-index:650; position:fixed; bottom:0px; width:100%; height:
-                25px; left:0px; font-size:11px; background:#080808; border-top:1px solid #ff00ff">
+                25px; left:0px; font-size:11px; background:#080808; border-top:1px solid #2f81f7">
 
                         <!-- Position indicators -->
                         <p id="mPos" style="position:fixed; color:gray; bottom:-7px; left: 20px; font-size:11px">pos (x:, y:)</p>
@@ -1187,7 +1250,7 @@ function img2gc(){
                 gcode += "G0 X0 Y0" + travelSpeedCmd + "; Torna all'origine\n"
                 gcode += "M4; laser ON\n"
                 
-                if (air !== 0) gcode += "M8; start airAssist\n\n"                    
+                if (air !== 0) gcode += "M8; start airAssist\n\n"
 
                 /*var mirroredData = new Uint8ClampedArray(data.length);
                 for (var y = 0; y < height; y++) {
@@ -2210,20 +2273,16 @@ async function sendConfigToGRBL() {
                         </script>
                 </div>
 
+
+                                  
+                                  
+
                 <div id="rightPanel" style="background:#101010; position:absolute; width:233px; top:200px; z-index:500;
                 border:1px solid #3c3c3c; visibility:hidden">
 
                         <button id="close" class="close-btn" onclick="GCSenderHide()">x</button>
 
-                        <label for="pre" style="position:absolute; bottom:245px; left:10px; display:none; font-size:12px; color:gray">pre</label><br>
-                        <textarea id="pre" spellcheck="false" style="padding:5px;
-                        position:absolute; bottom:140px; left:10px; width:205px; height:100px; resize:none;color:#fff; font-size:12px; 
-                        display:none; background:transparent; border:1px solid #3c3c3c; outline:none" placeholder="custom pre"></textarea>
 
-                        <label for="post" style="position:absolute; bottom:115px; left:10px; display:none; font-size:12px; color:gray;">post</label><br>
-                        <textarea id="pre" spellcheck="false" style="padding:5px;
-                        position:absolute; bottom:10px; left:10px; width:205px; height:100px; resize:none;color:#fff; font-size:12px; 
-                        display:none; background:transparent; border:1px solid #3c3c3c; outline:none" placeholder="custom post"></textarea>
 
                         <div id="grbl" style="position:absolute; bottom:5px; left:10px; right:5px;
                         color:gray; font-size:12px; line-height:1.4; white-space:pre-wrap;"></div>
@@ -2232,7 +2291,7 @@ async function sendConfigToGRBL() {
 </div>
                 
                         <script>
-/*async function sendJog({ x = 0, y = 0, z = 0, f = 1000 }) {
+async function sendJog({ x = 0, y = 0, z = 0, f = 1000 }) {
         const dx = Math.abs(x)
         const dy = Math.abs(y)
         const dz = Math.abs(z)
@@ -2286,8 +2345,7 @@ document.addEventListener("keydown", async function (e) {
                 console.log(`[OVERRIDE] ${overrideChar}`)
                 e.preventDefault()
         }
-})*/
-
+})
 
 async function sendToGRBL(command) {
         return new Promise(async (resolve, reject) => {
@@ -2382,12 +2440,15 @@ document.addEventListener('keydown', function(event) {
         }       
 })
 
-                 
+
+setWorkArea(); TAOpen()                               
+                   
                         </script>
                 </div>                       
 
-                <div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)">
+                <!--div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)">
                         <script>                                    
+
                                 setTimeout(() => {
                                         $("#splash").load("../HTML/anim.html", function() {
                                                 setTimeout(() => {
@@ -2395,15 +2456,16 @@ document.addEventListener('keydown', function(event) {
                                                         setTimeout(() => { $("#splash").remove(); }, 2000)
                                                 }, 3000)
                                         })
-                                        setTimeout(() => {setWorkArea()}, 5000)
+                                        setTimeout(() => {setWorkArea(); TAOpen()}, 5000)
                                 }, 0)
 
                         </script>   
                         
-                </div>
+                </div-->
+                
         </body>             
-</html>   
+</html>  
 
 <!--
-
+                        
 -->
