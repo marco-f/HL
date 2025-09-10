@@ -1,19 +1,19 @@
-# HobbyLaser (PWA)
+#  HobbyLaser (PWA)
 
-> [![UK Flag](https://flagcdn.com/w20/gb.png) English](README.md) | ![IT Flag](https://flagcdn.com/w20/it.png) Italiano
+> ![UK Flag](https://flagcdn.com/w20/gb.png) English | [![IT Flag](https://flagcdn.com/w20/it.png) Italiano](README.it.md)
 
 
-![Ottimizzato per Chrome Dark Mode](https://img.shields.io/badge/optimized%20for-Chrome%20Dark%20Mode-black?logo=googlechrome\&logoColor=white\&style=flat-square)
-![PWA Ready](https://img.shields.io/badge/PWA-ready-green?logo=googlechrome\&logoColor=white\&style=flat-square)
-![Supporto Offline](https://img.shields.io/badge/offline-support-blue?style=flat-square)
-[![Demo Online](https://img.shields.io/badge/demo-online-brightgreen?style=flat-square\&logo=github)](https://marco-f.github.io/HobbyLASER/)
-![Versione](https://img.shields.io/badge/version-1.0.0-informational?style=flat-square)
+![Optimized for Chrome Dark Mode](https://img.shields.io/badge/optimized%20for-Chrome%20Dark%20Mode-black?logo=googlechrome&logoColor=white&style=flat-square)
+![PWA Ready](https://img.shields.io/badge/PWA-ready-green?logo=googlechrome&logoColor=white&style=flat-square)
+![Offline Support](https://img.shields.io/badge/offline-support-blue?style=flat-square)
+[![Live Demo](https://img.shields.io/badge/demo-online-brightgreen?style=flat-square&logo=github)](https://marco-f.github.io/HobbyLASER/)
+![Version](https://img.shields.io/badge/version-1.0.0-informational?style=flat-square)
 
 ---
 
-Una **Progressive Web App (PWA)** per controllare **macchine CNC o laser** direttamente dal browser tramite **Web Serial API**. Permette di disegnare, elaborare immagini, generare G-code e comunicare con i controller – tutto da Google Chrome, con pieno supporto offline.
+A **Progressive Web App (PWA)** for controlling **CNC or laser machines** from the browser using the **Web Serial API**. It allows users to draw, process images, generate G-code, and communicate with controllers – directly in Google Chrome, with full offline support.
 
-> ⚠ **Ottimizzato per Google Chrome in Modalità Scura**
+> ⚠ **Optimized for Google Chrome in Dark Mode**
 
 ---
 
@@ -22,20 +22,20 @@ Una **Progressive Web App (PWA)** per controllare **macchine CNC o laser** diret
 </p>
 
 <h2 align="center">Disclaimer</h2>
-<h3 align="center" color="red">**UNA CNC O UN LASER NON SONO GIOCATTOLI!** </h3>
-<h4 align="center"> Usare una CNC o un laser senza la dovuta formazione e protezione può causare gravi lesioni e cecità. Non ci assumiamo alcuna responsabilità per danni derivanti dall’uso di questo software.</h4>
-<h4 align="center"> 🔗 [Approfondisci sulla sicurezza laser](https://www.lasersafetyfacts.com/laserclasses.html) </h4>  
-<h4 align="center"> **INDOSSA SEMPRE GLI OCCHIALI DI PROTEZIONE!** </h4>
+<h3 align="center" color="red">**A CNC OR A LASER ARE NOT TOYS!** </h3> 
+<h4 align="center"> Using a CNC or laser without proper training and protection can cause serious injury and blindness. We do not accept any liability for damages resulting from the use of this software.</h4> 
+<h4 align="center"> 🔗 [Read more about laser safety](https://www.lasersafetyfacts.com/laserclasses.html) </h4>  
+<h4 align="center"> **ALWAYS WEAR SAFETY GLASSES!** </h4> 
 
 ---
 
-### Demo Online
+###  Live Demo
 
-Provalo subito: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
+Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 
 ---
 
-### Screenshot
+### Screenshots
 
 <p align="center">
   <img src="IMG/ss.png" alt="Screenshot 1" width="100%"/>
@@ -43,126 +43,120 @@ Provalo subito: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 
 ---
 
-## Indice
+## Table of Contents
 
-* [Funzionalità](#funzionalità)
-* [SVG, G-code e Immagini](#svg-g-code-e-immagini)
-* [Web Serial API](#web-serial-api)
-* [Come Eseguire in Locale](#come-eseguire-in-locale)
-* [Contributi](#contributi)
-* [Tecnologie Utilizzate](#tecnologie-utilizzate)
-* [Changelog](#changelog)
-* [Riconoscimenti](#riconoscimenti)
-* [Documentazione](#documentazione)
-
----
-
-### Funzionalità
-
-* **Disegno Interattivo** – Crea design vettoriali direttamente nel browser. Supporta polilinee, primitive, operazioni booleane e trasformazioni.
-* **Import/Export** – Supporto per file SVG e DXF.
-* **Percorsi di Testo Avanzati** – Generazione di percorsi di testo con gestione corretta dei fori delle lettere e microgiunzioni.
-* **Manipolazione Immagini** – Ridimensionamento, rotazione, traslazione, regolazione gamma, dithering, halftone, ritaglio e conversione in vettoriale.
-* **Generazione G-code Personalizzabile** – Imposta potenza, velocità, passate, air assist e altri parametri.
-* **Anteprima e Simulazione 3D** – Visualizzazione in tempo reale dei percorsi di taglio.
-* **Gestione File e Cache** – Salvataggio dei file G-code in locale tramite IndexedDB.
-* **Controllo GRBL** – Connessione, invio comandi, stop, pausa, resume, lettura stato, gestione errori e stima tempi.
-* **Offline & PWA** – Funziona senza connessione e installabile come app nativa.
-* **Modalità Scura** – Interfaccia ottimizzata per ambienti a bassa luminosità.
+- [Features](#features)  
+- [Web Serial API](#web-serial-api)  
+- [How to Run Locally](#how-to-run-locally)
+- [Contributing](#contributing)  
+- [Technologies Used](#technologies-used)  
+- [Changelog](#changelog)  
+- [Acknowledgments](#acknowledgments)  
+- [Documentation](#documentation)  
 
 ---
 
-### SVG, G-code e Immagini
+###  Features
 
-1. **SVG & Vettori**
-
-   * Creazione e modifica di polilinee, rettangoli, cerchi e altre primitive.
-   * Operazioni booleane (unione, differenza, intersezione).
-   * Trasformazioni geometriche: scala, rotazione, traslazione, specchiatura.
-
-2. **Testo**
-
-   * Conversione del testo in percorsi vettoriali.
-   * Gestione dei fori interni nelle lettere (es. “o”, “a”, “e”) e microgiunzioni.
-
-3. **Immagini**
-
-   * Trasformazioni: ridimensionamento, rotazione, traslazione.
-   * Elaborazioni: dithering, halftone, ritaglio, conversione in vettoriale.
-
-4. **G-code**
-
-   * Parametri personalizzabili: potenza, velocità, passate, air assist.
-   * Anteprima e simulazione in tempo reale.
-   * Salvataggio file in cache locale (IndexedDB).
-
-5. **Controllo GRBL**
-
-   * Connessione e invio comandi via Web Serial API.
-   * Stop, pausa, resume.
-   * Monitoraggio stato macchina, gestione errori e stima tempi.
+-️ **Interactive Drawing** – Create vector designs directly in the browser.
+-️ **Raster Image Support** – Load and process PNG/JPG for engraving.
+-️ **Custom Fonts** – Import your own fonts for creative control.
+-  **Offline Support** – Works without internet via Service Workers.
+-  **G-code Generation** – Convert designs into G-code and send it to a microcontroller.
+-  **Save Progress Locally** – Work is automatically saved in the browser.
+-  **Installable as PWA** – Install on desktop for a native-like experience.
+-  **Dark Mode Ready** – Optimized for low-light environments.
 
 ---
 
-### Web Serial API
+### Supported Hardware
 
-Questa app utilizza la **Web Serial API di Chrome** per comunicare con i controller CNC/laser via connessione seriale.
+This application is designed to work with hobby-grade laser cutters and CNC machines that use a **GRBL-compatible controller**.
 
-* Accesso alle porte seriali dal browser
-* Configurazione baud rate, data bits, parity, stop bits
-* Lettura/scrittura asincrona con Streams API
-* Rilevamento eventi di connessione/disconnessione
-* Richiede **permesso esplicito dell’utente**
-* Funziona solo su **browser basati su Chromium**
+### Firmware Compatibility
+-  **GRBL v1.1f or later** (recommended)
+-  GRBL-based boards (Arduino Uno + CNC Shield, Woodpecker, EleksMaker, etc.)
+
+> ℹ GRBL is an open-source firmware that runs on Arduino-based controllers and interprets G-code for motion control. Learn more: [GRBL GitHub](https://github.com/gnea/grbl)
+
+### Communication
+- Communicates over USB via the **Web Serial API**
+- Requires **Google Chrome** or other Chromium-based browsers with Web Serial support
+- No additional drivers or software needed
+
+### Not Supported (Yet)
+-  Marlin firmware (used on many 3D printers)
+-  Smoothieboard, Duet, or other non-GRBL controllers
+-  Proprietary laser systems (e.g., Glowforge, xTool, etc.)
 
 ---
 
-## Come Eseguire in Locale
+> **Note:** Always ensure that your firmware is configured to accept commands from the browser using a standard USB connection. Baud rate defaults to **115200** unless otherwise specified.
 
-1. Clona il repository:
+---
 
+###  Web Serial API
+
+This app uses the **Chrome Web Serial API** to communicate with CNC/laser controllers via serial connection.
+
+###  Highlights:
+- Access to serial ports from the browser
+- Configure baud rate, data bits, parity, stop bits
+- Asynchronous read/write via Streams API
+- Detects connect/disconnect events
+- Requires **user permission** for security
+- Works in **Chromium-based browsers only**
+
+---
+
+
+
+## How to Run Locally
+
+1. Clone the repository:
    ```bash
    git clone https://github.com/marco-f/HLgit
    ```
-2. Vai nella cartella del progetto:
-
+2. Navigate to the project folder:
    ```bash
    cd HL
    ```
-3. Avvia un server locale (es. con http-server):
-
+3. Run a local web server (e.g., with http-server):
    ```bash
    npm install -g http-server
    http-server
    ```
-4. Apri il browser:
-
+4. Open your browser:
    ```
    http://localhost:8080
    ```
-5. (Opzionale) Installa l’app come PWA dal prompt del browser.
+5. (Optional) Install the app as a PWA via the browser install prompt.
 
 ---
 
-## Tecnologie Utilizzate
+## Technologies Used
 
-* **HTML/CSS/JS** – Struttura, layout e logica
-* **Service Workers** – Abilitano il funzionamento offline
-* **Web Manifest** – Metadati per installazione PWA
-* **Streams API** – Comunicazione seriale asincrona
-* **SVG & Canvas API** – Disegno ed elaborazione immagini
+- **HTML/CSS/JS** – Core structure, layout, and logic
+- **Service Workers** – Enable offline functionality
+- **Web Manifest** – Metadata for PWA installation
+- **Streams API** – For async serial communication
+- **SVG & Canvas APIs** – Drawing and image rendering
 
 ---
 
-## Contributi
+## Contributing
 
-1. Fai un fork del repository
-2. Crea un nuovo branch: `git checkout -b feature-nome`
-3. Fai commit delle modifiche: `git commit -am 'Aggiunta feature'`
-4. Fai push del branch: `git push origin feature-nome`
-5. Apri una Pull Request
+We welcome contributions from the community!
 
-Consulta la [Guida ai Contributi](CONTRIBUTING.md)
+1. Fork the repository  
+2. Create a new branch: `git checkout -b feature-name`  
+3. Commit your changes: `git commit -am 'Add feature'`  
+4. Push your branch: `git push origin feature-name`  
+5. Open a Pull Request
+
+See the full [Contributing Guide](CONTRIBUTING.md)  
+
+Thanks for helping make HobbyLaser better!
 
 ---
 
@@ -170,52 +164,85 @@ Consulta la [Guida ai Contributi](CONTRIBUTING.md)
 
 **v1.0.0**
 
-* Prima release stabile con supporto a:
-
-  * Connessione seriale via Web Serial API
-  * Supporto offline tramite Service Workers
-  * Generazione G-code da disegni e immagini raster
-
----
-
-### Sicurezza e Privacy
-
-* Nessun dato personale viene raccolto.
-* Tutte le operazioni avvengono localmente nel browser.
-* La connessione seriale richiede consenso esplicito dell’utente.
+- First stable release with support for:
+  - Serial connection via Web Serial API  
+  - Offline support with Service Workers  
+  - G-code generation from drawings and raster images
 
 ---
 
-### Licenza
+### Security and Privacy
 
-Questo progetto è rilasciato sotto licenza [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) – vedi file `LICENSE`.
+- This app does **not collect any personal data**.  
+- All operations are performed **locally in your browser**.  
+- Serial connection is initiated **only with explicit user consent**, as required by the Web Serial API.
 
 ---
 
-### Autore
+### Contributing
 
-**Marco-F** – Sviluppatore principale
+Contributions are welcome! Here's how:
+
+1. Fork the repo
+2. Create your branch: `git checkout -b feature-name`
+3. Commit your changes: `git commit -am 'Add feature'`
+4. Push to your fork: `git push origin feature-name`
+5. Open a Pull Request
+
+Please follow the project's coding style and document your code if needed.
+
+---
+
+### License
+
+This project is licensed under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) – see the `LICENSE` file for details.
+
+---
+
+###  Author
+
+**Marco-F** – Lead Developer  
 [GitHub](https://github.com/marco-f)
 
 ---
 
-### Riconoscimenti
+###  Acknowledgments
 
-Grazie alla community open-source, agli ingegneri dei browser e agli appassionati di CNC.
-
----
-
-### Crediti
-
-* [clipper.js](https://github.com/junmer/clipper-lib) – Clipping e offset poligoni
-* [opentype.js](https://github.com/opentypejs/opentype.js) – Parsing e rendering font
-* [fabric.js](http://fabricjs.com/) – Libreria canvas
-* [three.js](https://threejs.org/) – Motore di rendering 3D
-* [Ace Editor](https://ace.c9.io/) – Editor di codice con evidenziazione sintassi
-* [potrace.js](https://github.com/kilobtye/potrace) – Tracciamento bitmap
+Huge thanks to the open-source community, browser engineers, and CNC enthusiasts whose tools, APIs, and shared knowledge made this project possible.
 
 ---
 
-### Documentazione
+### Work in progress
 
-Attualmente incompleta e in fase di riorganizzazione. Consulta la [Wiki](https://github.com/marco-f/HobbyLASER/wiki/).
+This project is still evolving.
+While fully functional, some features may still change or improve over time.
+The documentation is currently disorganized and inadequate, but updates are ongoing.
+
+Thank you for your patience and support!
+
+---
+
+### Credits
+
+This project makes use of several outstanding open-source libraries:
+
+- [**clipper.js**](https://github.com/junmer/clipper-lib) – Polygon clipping and offsetting, used for vector boolean operations  
+- [**opentype.js**](https://github.com/opentypejs/opentype.js) – Font parsing and rendering, used for custom text-to-path conversion  
+- [**fabric.js**](http://fabricjs.com/) – Powerful canvas library for drawing, manipulation, and interaction  
+- [**three.js**](https://threejs.org/) – 3D rendering engine, used for optional previews and depth-based operations  
+- [**Ace Editor**](https://ace.c9.io/) – Embedded code editor with syntax highlighting, used for G-code editing and inspection  
+- [**potrace.js**](https://github.com/kilobtye/potrace) – Bitmap tracing library, used to convert raster images to scalable vector paths  
+
+---
+
+
+###  Documentation
+
+Documentation is currently incomplete and under active reorganization, but it's being improved and updated regularly.
+
+More detailed usage instructions and developer notes can be found in the [Wiki](https://github.com/marco-f/HobbyLASER/wiki/).
+
+---
+
+
+
