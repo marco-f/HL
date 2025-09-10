@@ -1,6 +1,7 @@
 # HobbyLaser (PWA)
 
-[🇬🇧 English](README.md) | [🇮🇹 Italiano](README.it.md)
+> ![UK Flag](https://flagcdn.com/w20/gb.png) English | [![IT Flag](https://flagcdn.com/w20/it.png) Italiano](README.it.md)
+
 
 
 ![Optimized for Chrome Dark Mode](https://img.shields.io/badge/optimized%20for-Chrome%20Dark%20Mode-black?logo=googlechrome\&logoColor=white\&style=flat-square)
