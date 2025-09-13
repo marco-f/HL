@@ -1,4 +1,4 @@
-<!-- /HTML/desktop.html 1 -->
+<!-- /HTML/main.html -->
 <!DOCTYPE html>
 <html xml:lang="en" lang="en">
         <head>
@@ -694,21 +694,23 @@ simpleGear(15, 20, 4).gcode()
                 </div>
 
                 <!-- GCode Section -->
-                <div id="GCC" style="z-index:350; position:absolute; background:#101010; width:780px; height:280px; 
+                <div id="GCC" style="z-index:350; position:absolute; background:#101010; width:780px; height:330px; 
                 left: 50%; top: 50%; transform: translate(-50%,-50%); border: 1px solid #3c3c3c; display:none">
                         <h3 style="text-align:center">< GCODE GENERATOR ></h3>
                         <button class="bs" style="top:20px; right:-20px; cursor:pointer" onclick="toggleGCconv()">X</button>       
                                
-                        <div class="buttons-container" style="top:70px">
-                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px; color:#fff">MODE </span>
-                                <button class="btRD" id="m_1" onclick="setMODE('m_1')">●</button> cutter
-                                <button class="btRD" id="m_2" onclick="setMODE('m_2')">●</button> engrave                  
-                                <button class="btRD" id="m_3" onclick="setMODE('m_3')">●</button> image
-                                <br>
-                                <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">INFILL </span>
-                                <button class="btRD" id="m_4" onclick="setFILL('m_4')">●</button> hex
-                                <button class="btRD" id="m_5" onclick="setFILL('m_5')">●</button> grid                  
-                                <button class="btRD" id="m_6" onclick="setFILL('m_6')">●</button> wave
+                        <div class="buttons-container" style="top:70px; width:100%">
+                                <div style="width:auto; height:auto; margin:0 auto; position:relative; display:flex; align-items:center; gap:6px">
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px; text-align:center">MODE</span>
+                                        <button class="btRD" id="m_1" onclick="setMODE('m_1')">●</button> cutter
+                                        <button class="btRD" id="m_2" onclick="setMODE('m_2')">●</button> engrave                  
+                                        <button class="btRD" id="m_3" onclick="setMODE('m_3')">●</button> image
+                                        <br>
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px; text-align:center">&nbsp;&nbsp;INFILL</span>
+                                        <button class="btRD" id="m_4" onclick="setFILL('m_4')">●</button> hex
+                                        <button class="btRD" id="m_5" onclick="setFILL('m_5')">●</button> grid                  
+                                        <button class="btRD" id="m_6" onclick="setFILL('m_6')">●</button> wave
+                                </div>
                         </div>
                                           
                         <div id="t_1" class="buttons-container" style="top:120px">
@@ -744,15 +746,22 @@ simpleGear(15, 20, 4).gcode()
                                 <button class="btTool" onclick="obj2gc()">create</button>
                         </div>
 
-                        <div id="t_3" class="buttons-container" style="top:210px; width:100%">
+                        <div id="t_3" class="buttons-container" style="top:220px; width:100%">
                                 <div id="d_1" style="width:auto; height:auto; margin:0 auto; position:relative; display:flex; align-items:center; gap:6px">
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px; text-align:left">acc./dec.</span>
+                                        
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">X (mm/s²)</span>
+                                        <input class="txtInp" type="text" id="_11" placeholder="inc. Z" maxlength="4" value="500"/>
 
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">Y (mm/s²)</span>
+                                        <input class="txtInp" type="text" id="_12" placeholder="inc. Z" maxlength="4" value="500"/>                                
 
-
+                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">Z (mm/s²)</span>
+                                        <input class="txtInp" type="text" id="_13" placeholder="inc. Z" maxlength="4" value="500"/> 
                                 </div>
                         </div>
 
-                        <p class="bs" style="width:100%; top:240px; text-align:center">* default row filling (no fill delected)</p>                 
+                        <p class="bs" style="width:100%; top:290px; text-align:center">* default row filling (no fill selected)</p>                 
                                
                         <script>                       
                                 var gcBool = false
@@ -1084,13 +1093,13 @@ simpleGear(15, 20, 4).gcode()
                                                                 fill = infillLines([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY])
                                                         }
                                                         else if(inFill== 'hex'){
-                                                                fill = hexPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 2)
+                                                                fill = hexPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 2); inFill= ''
                                                         }
                                                         else if(inFill== 'grid'){
-                                                                fill = gridPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 2)
+                                                                fill = gridPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 2); inFill= ''
                                                         }
                                                         else if(inFill== 'wave'){
-                                                                fill = wavePattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 1, 2, 10)
+                                                                fill = wavePattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 1, 2, 10); inFill= ''
                                                         }
                                                         var intersectedPaths = intersectInfill(fill)
                                                         engrave(intersectedPaths); contour()
@@ -1205,7 +1214,7 @@ simpleGear(15, 20, 4).gcode()
                                 function roundCoord(coord){return Math.round(coord * 10) / 10}
                                 function convertToMM(value, dpi = 96){var mmPerInch = 25.4; return (value / dpi) * mmPerInch}
 
-                                function estimateJobTime(gcodeText, speedTRVL = 1000, speedLSR = 1000, accel = 300) {
+                                function estimateJobTime(gcodeText, speedTRVL = 1000, speedLSR = 1000, accel = accX) {
                                         let lines = gcodeText.split(/\r?\n/)
                                         let timeSec = 0
                                         let last = {x: 0, y: 0, z: 0}
@@ -1311,17 +1320,17 @@ simpleGear(15, 20, 4).gcode()
                                                         buttonContainer.classList.add("button-container")
 
                                                         let downloadBtn = document.createElement("button")
-                                                        downloadBtn.textContent = "Scarica"
+                                                        downloadBtn.textContent = "download"
                                                         downloadBtn.classList.add("btTool")
                                                         downloadBtn.onclick = function() {downloadFile(file)}
 
                                                         let deleteBtn = document.createElement("button")
-                                                        deleteBtn.textContent = "Elimina"
+                                                        deleteBtn.textContent = "delete"
                                                         deleteBtn.classList.add("btTool")
                                                         deleteBtn.onclick = function() {deleteFile(file.id)}
 
                                                         let dBtn = document.createElement("button")
-                                                        dBtn.textContent = "set"
+                                                        dBtn.textContent = "choose"
                                                         dBtn.classList.add("btTool")
                                                         dBtn.onclick = function() { 
                                                                 let reader = new FileReader()
@@ -1613,7 +1622,10 @@ simpleGear(15, 20, 4).gcode()
                                         </tbody>
                                 </table>
 
-                                <script>                                
+                                <script>
+                                        var accX = document.getElementById('_11').value
+                                        var accY = document.getElementById('_11').value
+                                        var accZ = document.getElementById('_11').value
                                         var configVisible = false
                                         document.getElementById('config').addEventListener('click', function () {
                                                 if (isConnected == true) {
@@ -1664,9 +1676,9 @@ simpleGear(15, 20, 4).gcode()
                                                         { setting: "$110", value: "500.000", description: "X-axis maximum rate, mm/min" },
                                                         { setting: "$111", value: "500.000", description: "Y-axis maximum rate, mm/min" },
                                                         { setting: "$112", value: "500.000", description: "Z-axis maximum rate, mm/min" },
-                                                        { setting: "$120", value: "300.000", description: "X-axis acceleration, mm/sec^2" },
-                                                        { setting: "$121", value: "300.000", description: "Y-axis acceleration, mm/sec^2" },
-                                                        { setting: "$122", value: "300.000", description: "Z-axis acceleration, mm/sec^2" },
+                                                        { setting: "$120", value: accX, description: "X-axis acceleration, mm/sec^2" },
+                                                        { setting: "$121", value: accY, description: "Y-axis acceleration, mm/sec^2" },
+                                                        { setting: "$122", value: accZ, description: "Z-axis acceleration, mm/sec^2" },
                                                         { setting: "$130", value: dWidth, description: "X-axis maximum travel, millimeters" },
                                                         { setting: "$131", value: dHeight, description: "Y-axis maximum travel, millimeters" },
                                                         { setting: "$132", value: "200.000", description: "Z-axis maximum travel, millimeters" }
@@ -1743,8 +1755,7 @@ simpleGear(15, 20, 4).gcode()
                                 <div id="time" style="position:absolute; bottom:5px; left:10px; right:5px;
                                 color:gray; font-size:12px; line-height:1.4; white-space:pre-wrap;">estimtedTime:</div>
 
-                                <div style="position:absolute; top:60px; left:20px; font-size:12px">
-                                <img src="../IMG/folder.svg" width="16px"/>&nbsp;&nbsp;cache storage</div>
+                                <div style="position:absolute; top:60px; left:20px; font-size:12px">[CACHE STORAGE]</div>
 
                                 <div id="crud-wrapper" style="">              
                                         <div id="crud"> <ul id="fileList"></ul></div>
@@ -2096,24 +2107,23 @@ simpleGear(15, 20, 4).gcode()
                                                                 }
                                                                 if(line.startsWith('echo:')) console.warn('[GRBL echo]', line)
                                                                 else if(line.startsWith('[MSG:')) console.info('[GRBL MSG]', line)
-                                                                else if(line.startsWith('error:')) console.warn('[GRBL error]', line)
+                                                                else if(line.startsWith('error:')) console.error('[GRBL error]', line)
                                                                 else if(line.startsWith('alarm:')) console.error('[GRBL alarm]', line)
                                                                 else if(line.startsWith('<') && line.endsWith('>')) {
-                                                                        statusListeners.forEach(cb => {try{ cb(line) } catch(e){} })
-                                    var el = document.getElementById('grbl')
-                                    if (!el) return
-                                    var parts = line.replace(/[<>]/g, '').split('|')   // <Idle|MPos:...|FS:...>
+                                                                        statusListeners.forEach(cb => {try{ cb(line)} catch(e){}})
+                                                                        var el = document.getElementById('grbl')
+                                                                        if (!el) return
+                                                                        var parts = line.replace(/[<>]/g, '').split('|')   // <Idle|MPos:...|FS:...>
 
-                                    var formatted = parts.map(part => {
-                                        if (part.includes(':')) {
-                                            const [key, value] = part.split(':')
-                                            return `${key.trim()}:  ${value.trim()}`
-                                        }
-                                        return part.trim()
-                                    }).join('\n')
-
-                                    el.textContent = formatted
-                                                                }
+                                                                        var formatted = parts.map(part => {
+                                                                                if (part.includes(':')) {
+                                                                                        const [key, value] = part.split(':')
+                                                                                        return `${key.trim()}:  ${value.trim()}`
+                                                                                }
+                                                                                return part.trim()
+                                                                        }).join('\n')
+                                                                        el.textContent = formatted
+                                                                }   
                                                         }
                                                 }
                                         } catch(e){
@@ -2259,121 +2269,101 @@ simpleGear(15, 20, 4).gcode()
                         </script>                                 
                 </div>
 
+                <script>                                
+                        document.addEventListener('keydown', function(event) {
+                                if (event.ctrlKey && event.key === 'Delete') {
+                                        clearCNVS()
+                                        if (imgInstance) {canvas.remove(imgInstance)}
+                                        cancBool = true; objNumber = 0
+                                }
+                                else if (event.ctrlKey && event.key === 'i') {
+                                        event.preventDefault()
+                                        document.getElementById('input').click()
+                                }
+                                else if (event.ctrlKey && event.key === '+') {
+                                        event.preventDefault()
+                                        updateZoom(zoomLevel - zoomFactor)
+                                }
+                                else if (event.ctrlKey && event.key === '-') {
+                                        event.preventDefault()
+                                        updateZoom(zoomLevel + zoomFactor)
+                                }
+                                else if (event.ctrlKey && event.key === 'r') {
+                                        event.preventDefault()
+                                        resetZoom()
+                                }
+                                else if (event.ctrlKey && event.key === 'm') {
+                                        event.preventDefault()
+                                        resetCAMERA()
+                                }
+                                else if (event.ctrlKey && event.key === 'g') {
+                                        event.preventDefault();
+                                        for (var i = 0; i < interactiveGuides.length; i++) {
+                                                var guide = interactiveGuides[i];
+                                                canvas.remove(guide.horizontalLine)
+                                                canvas.remove(guide.verticalLine)
+                                                canvas.remove(guide.intersectionCircle)
+                                        }
+                                        interactiveGuides = [];
+                                        canvas.renderAll();
+                                }
+                                else if (event.altKey && event.key === 'a') {
+                                        event.preventDefault()
+                                        addPOLYLINE()
+                                }
+                                else if (event.altKey && event.key === 's') {
+                                        event.preventDefault()
+                                        addPOLYGON(20, 100, 100, 30)
+                                }
+                                else if (event.altKey && event.key === 'd') {
+                                        event.preventDefault()
+                                        addTEXT('roboto_b', 100, 100, 100, 'test')
+                                }
+                                else if (event.altKey && event.key === 'f') {
+                                        event.preventDefault()
+                                        addRECTinteractive()
+                                }    
+                                else if (event.altKey && event.key === 'g') {
+                                        event.preventDefault()
+                                        addELLIPSEinteractive()
+                                }       
+                        })
 
 
+                        var wakeLock = null
+                        async function requestWakeLock() {
+                                try {
+                                        wakeLock = await navigator.wakeLock.request("screen")
+                                        console.log("Wake Lock attivato")
+                                        wakeLock.addEventListener("release", () => {
+                                                console.log("Wake Lock rilasciato")
+                                        })
+                                } catch (err) {
+                                       console.error(`${err.name}, ${err.message}`)
+                                }
+                        }; requestWakeLock()
 
+                        function isRunningAsPWA() {
+                                return (
+                                        window.matchMedia('(display-mode: standalone)').matches || 
+                                        window.navigator.standalone === true                     
+                                )
+                        }
+                        window.addEventListener("DOMContentLoaded", () => {
+                                if (!isRunningAsPWA()) {
+                                        document.getElementById("pwa-warning").style.display = "block"
+                                }
+                        })                                                 
+                </script>                                 
 
-
-
-                         <script>                                
-
-
-document.addEventListener('keydown', function(event) {
-        if (event.ctrlKey && event.key === 'Delete') {
-                clearCNVS()
-                if (imgInstance) {canvas.remove(imgInstance)}
-                cancBool = true; objNumber = 0
-        }
-        else if (event.ctrlKey && event.key === 'i') {
-                event.preventDefault()
-                document.getElementById('input').click()
-        }
-        else if (event.ctrlKey && event.key === '+') {
-                event.preventDefault()
-                updateZoom(zoomLevel - zoomFactor)
-        }
-        else if (event.ctrlKey && event.key === '-') {
-                event.preventDefault()
-                updateZoom(zoomLevel + zoomFactor)
-        }
-        else if (event.ctrlKey && event.key === 'r') {
-                event.preventDefault()
-                resetZoom()
-        }
-        else if (event.ctrlKey && event.key === 'm') {
-                event.preventDefault()
-                resetCAMERA()
-        }
-        else if (event.ctrlKey && event.key === 'g') {
-                event.preventDefault();
-                for (var i = 0; i < interactiveGuides.length; i++) {
-                        var guide = interactiveGuides[i];
-                        canvas.remove(guide.horizontalLine)
-                        canvas.remove(guide.verticalLine)
-                        canvas.remove(guide.intersectionCircle)
-                }
-                interactiveGuides = [];
-                canvas.renderAll();
-        }
-        else if (event.altKey && event.key === 'a') {
-                event.preventDefault()
-                addPOLYLINE()
-        }
-        else if (event.altKey && event.key === 's') {
-                event.preventDefault()
-                addPOLYGON(20, 100, 100, 30)
-        }
-        else if (event.altKey && event.key === 'd') {
-                event.preventDefault()
-                addTEXT('roboto_b', 100, 100, 100, 'test')
-        }
-        else if (event.altKey && event.key === 'f') {
-                event.preventDefault()
-                addRECTinteractive()
-        }    
-        else if (event.altKey && event.key === 'g') {
-                event.preventDefault()
-                addELLIPSEinteractive()
-        }       
-})
-
-
-var wakeLock = null
-async function requestWakeLock() {
-        try {
-                wakeLock = await navigator.wakeLock.request("screen")
-                console.log("Wake Lock attivato")
-                wakeLock.addEventListener("release", () => {
-                        console.log("Wake Lock rilasciato")
-                })
-        } catch (err) {
-               console.error(`${err.name}, ${err.message}`)
-        }
-}; requestWakeLock()
-
-function isRunningAsPWA() {
-        return (
-                window.matchMedia('(display-mode: standalone)').matches || 
-                window.navigator.standalone === true                     
-        )
-}
-window.addEventListener("DOMContentLoaded", () => {
-        if (!isRunningAsPWA()) {
-                document.getElementById("pwa-warning").style.display = "block"
-        }
-})
-
-
-setWorkArea(); TAOpen()                               
-                   
-                        </script>                                 
-
-
-<div id="pwa-warning" style="
-        display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
-        background:#000; border:1px solid #3c3c3c; padding:15px 20px; font-size:12px; z-index:9999;
-">
-  ⚠️ for stable background execution, install the PWA from your browser.
-</div>
-
-
-
-
-
-
+                <div id="pwa-warning" style="
+                        display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+                        background:#000; border:1px solid #3c3c3c; padding:15px 20px; font-size:12px; z-index:9999;
+                ">
+                  ⚠️ for stable background execution, install the PWA from your browser.
+                </div>
                                   
-
-                <!--div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)">
+                <div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)">
                         <script>                                    
 
                                 setTimeout(() => {
@@ -2388,12 +2378,11 @@ setWorkArea(); TAOpen()
 
                         </script>   
                         
-                </div-->
-                
+                </div>                
         </body>             
 </html>  
 
 <!--
-   var rot = $("#_11").val()                         
+                        
 -->
 
