@@ -77,12 +77,12 @@ Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 
    * Create and edit polylines, rectangles, circles, and other primitives.
    * Boolean operations (union, difference, intersection).
-   * Geometric transformations: scale, rotate, translate, mirror.
+   * Geometric transformations: scale, rotate, translate, mirror, offset.
 
 2. **Text**
 
    * Convert text to vector paths.
-   * Manage internal letter holes (e.g., "o", "a", "e") and micro-junctions.
+   * Manage internal letter holes (e.g., "o", "a", "e").
 
 3. **Images**
 
@@ -91,8 +91,9 @@ Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 
 4. **G-code**
 
-   * Custom parameters: power, speed, passes, air assist.
-   * Real-time preview and simulation.
+   * Custom parameters: power, speed, passes, air assist ...
+   * Creation of micro joints, pattern fillings.
+   * Real-time 3D preview and simulation.
    * File saving in local cache (IndexedDB).
 
 5. **GRBL Control**
