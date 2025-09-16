@@ -707,9 +707,9 @@ simpleGear(15, 20, 4).gcode()
                                         <button class="btRD" id="m_3" onclick="setMODE('m_3')">●</button> image
                                         <br>
                                         <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px; text-align:center">&nbsp;&nbsp;INFILL</span>
-                                        <button class="btRD" id="m_4" onclick="setFILL('m_4')">●</button> hex
+                                        <button class="btRD" id="m_4" onclick="setFILL('m_4')">●</button> hexagon
                                         <button class="btRD" id="m_5" onclick="setFILL('m_5')">●</button> grid                  
-                                        <button class="btRD" id="m_6" onclick="setFILL('m_6')">●</button> wave
+                                        <button class="btRD" id="m_6" onclick="setFILL('m_6')">●</button> triangle
                                 </div>
                         </div>
                                           
@@ -800,7 +800,7 @@ simpleGear(15, 20, 4).gcode()
                                                         inFill = 'grid'
                                         } else if (activeId === 'm_6'){
                                                         button4.blur(); button5.blur(); button6.focus()
-                                                        inFill = 'wave'
+                                                        inFill = 'tri'
                                         }        
                                 }                                
 
@@ -939,6 +939,51 @@ simpleGear(15, 20, 4).gcode()
                                                 var paths = use(Points_2.slice())
                                                 var bounds = calculateBoundingBox(paths)
 
+                                                // --- distanza tra due punti ---
+                                                function distance(p1, p2) {
+                                                        return Math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+                                                }
+
+                                                // --- ottimizzazione segmenti (Nearest Neighbor) ---
+                                                function optimizeSegments(segments) {
+                                                        let remaining = segments.slice()
+                                                        let optimized = []
+                                                        let current = [0, 0]
+
+                                                        while (remaining.length > 0) {
+                                                                let nearestIndex = 0
+                                                                let nearestDist = Infinity
+                                                                let invert = false
+
+                                                                for (let i = 0; i < remaining.length; i++) {
+                                                                        let seg = remaining[i]
+                                                                        let distStart = distance(current, seg[0])
+                                                                        let distEnd = distance(current, seg[1])
+
+                                                                        if (distStart < nearestDist) {
+                                                                                nearestDist = distStart
+                                                                                nearestIndex = i
+                                                                                invert = false
+                                                                        }
+                                                                        if (distEnd < nearestDist) {
+                                                                                nearestDist = distEnd
+                                                                                nearestIndex = i
+                                                                                invert = true
+                                                                        }
+                                                                }
+
+                                                                let chosen = remaining[nearestIndex]
+                                                                if (invert) chosen = [chosen[1], chosen[0]]
+
+                                                                optimized.push(chosen)
+                                                                current = chosen[1]
+                                                                remaining.splice(nearestIndex, 1)
+                                                        }
+
+                                                        return optimized
+                                                }
+
+                                                // --- genera contorni classici (paths normali) ---
                                                 function contour() {
                                                         for (var pass = 0; pass < passes; pass++) {
                                                                 var zStep = zeta * pass
@@ -963,6 +1008,7 @@ simpleGear(15, 20, 4).gcode()
                                                         }
                                                 }
 
+                                                // --- pattern di riempimento ---
                                                 function infillLines(rect, angle = 0) {
                                                         var lines = []
                                                         var rad = angle * Math.PI / 180
@@ -1005,8 +1051,8 @@ simpleGear(15, 20, 4).gcode()
                                                 }
 
                                                 function hexPattern(rect, size) {
-                                                        var w = size * 2, h = Math.sqrt(3) * size 
-                                                        var dx = 3/2 * size, dy = h, lines = []                 
+                                                        var w = size * 2, h = Math.sqrt(3) * size
+                                                        var dx = 3/2 * size, dy = h, lines = []
                                                         var [minX, minY, maxX, maxY] = rect
 
                                                         for (var y = minY; y <= maxY + h; y += dy) {
@@ -1028,8 +1074,10 @@ simpleGear(15, 20, 4).gcode()
                                                                                 lines.push([p1, p2])
                                                                         }
                                                                 }
-                                                        }; return lines
+                                                        }
+                                                        return lines
                                                 }
+
                                                 function gridPattern(rect, spacing) {
                                                         var lines = []
                                                         var [minX, minY, maxX, maxY] = rect
@@ -1043,66 +1091,93 @@ simpleGear(15, 20, 4).gcode()
                                                                 var p1 = [x, minY]
                                                                 var p2 = [x, maxY]
                                                                 lines.push([p1, p2])
-                                                        }; return lines
+                                                        }
+                                                        return lines
                                                 }
-                                                function wavePattern(rect, spacing, amplitude, wavelength) {
+
+                                                function triPattern(rect, size) {
                                                         var lines = []
                                                         var [minX, minY, maxX, maxY] = rect
-                                                        var k = (2 * Math.PI) / wavelength // numero d’onda
+                                                        var h = (Math.sqrt(3) / 2) * size
 
-                                                        for (var baseY = minY; baseY <= maxY; baseY += spacing) {
-                                                                var wavePoints = []
-                                                                for (var x = minX; x <= maxX; x += spacing / 4) { // passo più fine per curve morbide
-                                                                        var y = baseY + amplitude * Math.sin(k * x)
-                                                                        wavePoints.push([x, y])
+                                                        for (var y = minY; y <= maxY + h; y += h) {
+                                                                for (var x = minX; x <= maxX + size; x += size) {
+                                                                        var offsetY = ((Math.floor((x - minX) / size)) % 2) * (h / 2)
+                                                                        var cx = x, cy = y + offsetY
+                                                                        var t1 = [
+                                                                                [cx, cy],
+                                                                                [cx + size / 2, cy + h],
+                                                                                [cx - size / 2, cy + h]
+                                                                        ]
+                                                                        lines.push([t1[0], t1[1]])
+                                                                        lines.push([t1[1], t1[2]])
+                                                                        lines.push([t1[2], t1[0]])
+
+                                                                        var t2 = [
+                                                                                [cx, cy + h],
+                                                                                [cx + size / 2, cy],
+                                                                                [cx - size / 2, cy]
+                                                                        ]
+                                                                        lines.push([t2[0], t2[1]])
+                                                                        lines.push([t2[1], t2[2]])
+                                                                        lines.push([t2[2], t2[0]])
                                                                 }
-                                                                for (var i = 0; i < wavePoints.length - 1; i++) {
-                                                                        lines.push([wavePoints[i], wavePoints[i + 1]])
-                                                                }
-                                                        }; return lines
+                                                        }
+                                                        return lines
                                                 }
 
-                                               
-                                                function engrave(intersectedPaths) {
-                                                        var isForward = true
+                                                // --- scrittura GCODE dai segmenti ottimizzati ---
+                                                function engraveSegments(segments) {
+                                                        let optimized = optimizeSegments(segments)
                                                         for (var pass = 0; pass < passes; pass++) {
                                                                 let zStep = zeta * pass
-                                                                intersectedPaths.forEach(originalPath => {
-                                                                        var path = isForward ? originalPath.slice() : originalPath.slice().reverse()
-                                                                        path.forEach((point, index) => {
-                                                                                const x = point.X.toFixed(2)
-                                                                                const y = (dHeight + 6 - point.Y).toFixed(2)
-                                                                                if (index === 0) {
-                                                                                        gcode += `M5; laser OFF\n`
-                                                                                        gcode += `G0 X${x} Y${y} Z${zMax} F${speedTRVL} S${minPWR}\n`
-                                                                                } else {
-                                                                                        gcode += `M3;laser ON\n`
-                                                                                        gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
-                                                                                }
-                                                                        })
-                                                                        isForward = !isForward
+                                                                optimized.forEach(seg => {
+                                                                        let [x1, y1] = seg[0]
+                                                                        let [x2, y2] = seg[1]
+                                                                        x1 = x1.toFixed(2)
+                                                                        y1 = (dHeight + 6 - y1).toFixed(2)
+                                                                        x2 = x2.toFixed(2)
+                                                                        y2 = (dHeight + 6 - y2).toFixed(2)
+
+                                                                        gcode += `M5; laser OFF\n`
+                                                                        gcode += `G0 X${x1} Y${y1} Z${zMax} F${speedTRVL} S${minPWR}\n`
+                                                                        gcode += `M3; laser ON\n`
+                                                                        gcode += `G1 X${x2} Y${y2} Z${zStep} F${speedLSR} S${maxPWR}\n`
+                                                                        gcode += `M5; laser OFF\n`
                                                                 })
                                                         }
                                                 }
 
+                                                // --- logica principale ---
                                                 if (md == 0) {
                                                         contour()
                                                         gcode = pre + gcode + post
                                                 } else {
-                                                        if(inFill== ''){
+                                                        if (inFill == '') {
                                                                 fill = infillLines([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY])
+                                                        } else if (inFill == 'hex') {
+                                                                fill = hexPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 2)
+                                                                inFill = ''
+                                                        } else if (inFill == 'grid') {
+                                                                fill = gridPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 3)
+                                                                inFill = ''
+                                                        } else if (inFill == 'tri') {
+                                                                fill = triPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 5)
+                                                                inFill = ''
                                                         }
-                                                        else if(inFill== 'hex'){
-                                                                fill = hexPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 2); inFill= ''
-                                                        }
-                                                        else if(inFill== 'grid'){
-                                                                fill = gridPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 2); inFill= ''
-                                                        }
-                                                        else if(inFill== 'wave'){
-                                                                fill = wavePattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 1, 2, 10); inFill= ''
-                                                        }
+
                                                         var intersectedPaths = intersectInfill(fill)
-                                                        engrave(intersectedPaths); contour()
+
+                                                        // 🔥 converto percorsi in segmenti veri
+                                                        var segments = []
+                                                        intersectedPaths.forEach(path => {
+                                                                for (let i = 0; i < path.length - 1; i++) {
+                                                                        segments.push([[path[i].X, path[i].Y], [path[i+1].X, path[i+1].Y]])
+                                                                }
+                                                        })
+
+                                                        engraveSegments(segments)
+                                                        contour()
                                                         gcode = pre + gcode + post
                                                 }
 
@@ -1112,6 +1187,8 @@ simpleGear(15, 20, 4).gcode()
                                                 console.error(error.message)
                                         }
                                 }
+
+
 
                                 function img2gc() {
                                         try {
@@ -1214,21 +1291,23 @@ simpleGear(15, 20, 4).gcode()
                                 function roundCoord(coord){return Math.round(coord * 10) / 10}
                                 function convertToMM(value, dpi = 96){var mmPerInch = 25.4; return (value / dpi) * mmPerInch}
 
-                                function estimateJobTime(gcodeText, speedTRVL = 1000, speedLSR = 1000, accel = accX) {
+                                function estimateJobTime(gcodeText, speedTRVL = 1000, speedLSR = 1000, accel = 500, overheadPerCmd = 0.003, corrFactor = 1.15) {
                                         let lines = gcodeText.split(/\r?\n/)
                                         let timeSec = 0
                                         let last = {x: 0, y: 0, z: 0}
-                                        const mmPerMinToMmPerSec = 1/60
+                                        const mmPerMinToMmPerSec = 1 / 60
 
                                         for (let raw of lines) {
                                                 let line = raw.split(';')[0].trim()
                                                 if (!line) continue
+                                                timeSec += overheadPerCmd
 
                                                 if (line.startsWith('G4')) {
-                                                        // Pausa
                                                         let match = line.match(/P([\d.]+)/)
-                                                        if (match) timeSec += parseFloat(match[1])
-                                                        continue
+                                                        if (match) timeSec += parseFloat(match[1]) / 1000; continue
+                                                }
+                                                if (line.startsWith('M3') || line.startsWith('M4') || line.startsWith('M5')) {
+                                                        timeSec += 0.01; continue
                                                 }
 
                                                 if (line.startsWith('G0') || line.startsWith('G1')) {
@@ -1245,27 +1324,36 @@ simpleGear(15, 20, 4).gcode()
                                                                 Math.pow((z - last.z), 2)
                                                         )
 
-                                                        // Scegli velocità in base al tipo di movimento
                                                         let feed = line.startsWith('G0') ? speedTRVL : speedLSR
-                                                        let speed = feed * mmPerMinToMmPerSec // mm/s
+                                                        if (args.F) feed = args.F
+                                                        let speed = feed * mmPerMinToMmPerSec
 
-                                                        // tempo base di percorrenza
-                                                        let moveTime = dist / speed
-
-                                                        // correzione accelerazione
-                                                        let accelTime = speed / accel
-                                                        if (dist < speed*speed/accel) {
-                                                                moveTime = 2 * Math.sqrt(dist/accel)
+                                                        let accelDist = (speed * speed) / (2 * accel)
+                                                        let moveTime
+                                                        if (dist < 2 * accelDist) {
+                                                                moveTime = 2 * Math.sqrt(dist / accel)
                                                         } else {
-                                                                moveTime += accelTime
+                                                                let accelTime = speed / accel
+                                                                let cruiseDist = dist - 2 * accelDist
+                                                                let cruiseTime = cruiseDist / speed
+                                                                moveTime = 2 * accelTime + cruiseTime
+                                                        }
+
+                                                        if (dist < 1) moveTime *= 2
+
+                                                        let dynOverhead = overheadPerCmd * (1 + (1 / Math.max(dist, 0.05)))
+                                                        timeSec += dynOverhead
+
+                                                        if (/S\d+/.test(line)) {
+                                                                moveTime *= 1.2
                                                         }
 
                                                         timeSec += moveTime
                                                         last = {x, y, z}
                                                 }
                                         }
-
-                                        return timeSec
+; sendConfigToGRBL()
+                                        return timeSec * corrFactor
                                 }
 
                                 var db, request = indexedDB.open("GCODE_DB", 1)
@@ -1623,9 +1711,10 @@ simpleGear(15, 20, 4).gcode()
                                 </table>
 
                                 <script>
-                                        var accX = document.getElementById('_11').value
-                                        var accY = document.getElementById('_11').value
-                                        var accZ = document.getElementById('_11').value
+                                        var accX = ''
+                                        var accY = ''
+                                        var accZ = ''
+                                
                                         var configVisible = false
                                         document.getElementById('config').addEventListener('click', function () {
                                                 if (isConnected == true) {
@@ -1645,6 +1734,10 @@ simpleGear(15, 20, 4).gcode()
                                         });
 
                                         function loadConfigData() {
+                                                accX = document.getElementById('_11').value
+                                                accY = document.getElementById('_11').value
+                                                accZ = document.getElementById('_11').value
+                                                
                                                 $('#configTable tbody').empty()
 
                                                 var configData = [
@@ -1712,8 +1805,7 @@ simpleGear(15, 20, 4).gcode()
                                         async function sendConfigToGRBL() {
                                                 if (isSendingConfig) return;
                                                 if (!writer) {
-                                                        console.error("ConnectController");
-                                                        return;
+                                                        console.error("ConnectController"); return;
                                                 }
 
                                                 isSendingConfig = true;
