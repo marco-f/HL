@@ -3,8 +3,6 @@
 <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <link rel="stylesheet" href="https://necolas.github.io/normalize.css/8.0.1/normalize.css">
 </head>
 
 <style>
@@ -581,9 +579,6 @@
                                 bV = false
                                 state = JSON.parse(JSON.stringify(stateInitialize))
                                 stateInitialize.gridSnapSize = GRID; initialize()
-                                toolHelpDiv.style.display = 'block'; showTHelp()
-                                wrn.innerHTML = "tool POLYLINE:&nbsp&nbsp;leftBtn → add segment;&nbsp&nbsp;click-drag-drop → add curve;&nbsp&nbsp;rightBtn → closePath;\
-                                &nbsp&nbsp;shiftKey + 'u' → undo;&nbsp&nbsp;shiftKey + 'r' → redo;&nbsp&nbsp;shiftKey + 'Del'→ clear;&nbsp&nbsp;shiftKey + 'esc'→ leave"
 
                                 //------ add listen events
                                 window.addEventListener('mousemove', handleMouseMove)
@@ -752,219 +747,6 @@
                                 sequenceTimer = setTimeout(() => keySequence = [], 1000)
                         }
                 }
-
-function addELLIPSEinteractive() {
-        resetZoom()
-        toolHelpDiv.style.display = 'block'
-        showTHelp()
-        wrn.innerHTML = "tool ELLIPSE:&nbsp;&nbsp;clicca per il centro, trascina per definire Rx/Ry (ESC per annullare)"
-
-        let centerX, centerY, ellipsePreview
-        let drawing = false
-
-        var  snapY = (y) => snapToGrid(y - 11) + 11
-        var  snap = (v) => snapToGrid(v)
-
-        var  startDrawing = (e) => {
-                var  pointer = canvas.getPointer(e.e)
-                centerX = snap(pointer.x)
-                centerY = snapY(pointer.y)
-
-                ellipsePreview = new fabric.Ellipse({
-                        left: centerX,
-                        top: centerY,
-                        originX: 'center',
-                        originY: 'center',
-                        rx: 0,
-                        ry: 0,
-                        fill: fill,
-                        stroke: stroke,
-                        strokeWidth: 1,
-                        selectable: false,
-                        excludeFromExport: true
-                })
-
-                canvas.add(ellipsePreview)
-                drawing = true
-        }
-
-        var  duringDrawing = (e) => {
-                if (!drawing || !ellipsePreview) return
-                var  pointer = canvas.getPointer(e.e)
-                var  rx = Math.abs(snap(pointer.x) - centerX)
-                var  ry = Math.abs(snapY(pointer.y) - centerY)
-
-                ellipsePreview.set({ rx, ry })
-                canvas.renderAll()
-        }
-
-        var  stopDrawing = () => {
-                if (!drawing) return
-                drawing = false
-
-                var  rx = ellipsePreview.rx
-                var  ry = ellipsePreview.ry
-                var  code = `\nELLIPSE(${CONV(centerX).toFixed()}, ${(+CONV(centerY).toFixed()) - 3}, ${CONV(rx).toFixed()}, ${CONV(ry).toFixed()})`
-
-                canvas.remove(ellipsePreview)
-                canvas.renderAll()
-
-                var  editorContent = editor.getValue()
-                editor.setValue(editorContent ? `${editorContent}${code}` : code)
-                editor.clearSelection(); editor.focus(); TAOpen()
-
-                removeListeners()
-        }
-
-        var  cancelDrawing = (e) => {
-                if (e.key === 'Escape') {
-                        if (ellipsePreview) {
-                                canvas.remove(ellipsePreview)
-                                canvas.renderAll()
-                        }
-                        drawing = false
-                        removeListeners()
-                }
-        }
-
-        var  removeListeners = () => {
-                canvas.off('mouse:down', startDrawing)
-                canvas.off('mouse:move', duringDrawing)
-                canvas.off('mouse:up', stopDrawing)
-                window.removeEventListener('keydown', cancelDrawing)
-                toolHelpDiv.style.display = 'none'
-        }
-
-        canvas.on('mouse:down', startDrawing)
-        canvas.on('mouse:move', duringDrawing)
-        canvas.on('mouse:up', stopDrawing)
-        window.addEventListener('keydown', cancelDrawing)
-}
-
-function ELLIPSE(centerX, centerY, radiusX, radiusY) {
-        var  segments = 120
-        var  angleStep = (2 * Math.PI) / segments
-        var  path = []
-
-        for (let i = 0; i < segments; i++) {
-                var  angle = i * angleStep
-                var  x = centerX + radiusX * Math.cos(angle)
-                var  y = centerY + radiusY * Math.sin(angle) + 3
-                path.push({X: x, Y: y})
-        }
-
-        path.push(path[0]) 
-        return use([path])
-}
-
-function addRECTinteractive() {
-        resetZoom()
-        toolHelpDiv.style.display = 'block'
-        showTHelp()
-        wrn.innerHTML = "tool RECT:&nbsp;&nbsp;click-drag-rilascia per disegnare un rettangolo (ESC per annullare)"
-
-        let startX, startY, rectPreview
-        let drawing = false
-
-        var  snapToGrid = (value) => {
-                return Math.round(value / GRID) * GRID
-        }
-
-        var  startDrawing = (e) => {
-                var  pointer = canvas.getPointer(e.e)
-                startX = snapToGrid(pointer.x)
-                startY = snapToGrid(pointer.y - 11) + 11
-
-                rectPreview = new fabric.Rect({
-                        left: startX,
-                        top: startY,
-                        width: 0,
-                        height: 0,
-                        fill: fill,
-                        stroke: stroke,
-                        strokeWidth: 1,
-                        selectable: false,
-                        excludeFromExport: true
-                })
-
-                canvas.add(rectPreview)
-                drawing = true
-        }
-
-        var  duringDrawing = (e) => {
-                if (!drawing || !rectPreview) return
-                var  pointer = canvas.getPointer(e.e)
-                var  endX = snapToGrid(pointer.x)
-                var  endY = snapToGrid(pointer.y - 11) + 11
-
-                var  width = endX - startX
-                var  height = endY - startY
-
-                rectPreview.set({
-                        width: Math.abs(width),
-                        height: Math.abs(height),
-                        left: width < 0 ? endX : startX,
-                        top: height < 0 ? endY : startY
-                })
-                canvas.renderAll()
-        }
-
-        var  stopDrawing = (e) => {
-                if (!drawing) return
-                drawing = false
-
-                var  rect = rectPreview
-                var  x = CONV(rect.left)
-                var  y = CONV(rect.top)
-                var  w = CONV(rect.width)
-                var  h = CONV(rect.height)
-
-                canvas.remove(rectPreview)
-                canvas.renderAll()
-
-                var  code = `\nRECT(${x.toFixed()}, ${y.toFixed()}, ${w.toFixed()}, ${h.toFixed()})`
-                var  editorContent = editor.getValue()
-                editor.setValue(editorContent ? `${editorContent}${code}` : code)
-                editor.clearSelection(); editor.focus(); TAOpen()
-
-                removeListeners()
-        }
-
-        var  cancelDrawing = (e) => {
-                if (e.key === 'Escape') {
-                        if (rectPreview) {
-                                canvas.remove(rectPreview)
-                                canvas.renderAll()
-                        }
-                        drawing = false
-                        removeListeners()
-                }
-        }
-
-        var  removeListeners = () => {
-                canvas.off('mouse:down', startDrawing)
-                canvas.off('mouse:move', duringDrawing)
-                canvas.off('mouse:up', stopDrawing)
-                window.removeEventListener('keydown', cancelDrawing)
-                toolHelpDiv.style.display = 'none'
-        }
-
-        canvas.on('mouse:down', startDrawing)
-        canvas.on('mouse:move', duringDrawing)
-        canvas.on('mouse:up', stopDrawing)
-        window.addEventListener('keydown', cancelDrawing)
-}
-
-function RECT(x, y, w, h) {
-    var path = [
-        {X: x, Y: y},
-        {X: x + w, Y: y},
-        {X: x + w, Y: y + h},
-        {X: x, Y: y + h}
-    ]
-    path.push(path[0]) 
-    return use([path])
-}
           
                 function POLYGON(seg, centerX, centerY, radius){
                         var pt='', ang = 2*Math.PI/seg                                                
@@ -1000,9 +782,7 @@ function RECT(x, y, w, h) {
                 var addPOLYGON = function(){
                         resetZoom()
                         displayString = "\nPOLYGON(seg=20, centerX=10, centerY=10, r=5)"
-                        toolHelpDiv.style.display = 'block'; showTHelp()
-                        wrn.innerHTML = "tool POLYGON:&nbsp&nbsp;set: Segments(num);&nbsp&nbsp;Coordinates CenterX, CenterY(mm);&nbsp&nbsp;radius(mm)" 
-
+                
                         var editorContent = editor.getValue()
                         editor.setValue(editorContent ? `${editorContent}${displayString}` : `${displayString}`)
                         editor.clearSelection(); editor.focus(); TAOpen()//; runSCRIPT()
@@ -1288,9 +1068,7 @@ function RECT(x, y, w, h) {
                         return normalResult;
                 };
                 var addTEXT = function(){
-                        resetZoom()
-                        toolHelpDiv.style.display = 'block'; showTHelp()
-                        wrn.innerHTML = "tool TEXT:&nbsp&nbsp;set: Font(sting);&nbsp&nbsp;FontSize(mm);&nbsp&nbsp;Coordinates StartX, StartY(mm);&nbsp&nbsp;TEXT(sting)" 
+                        resetZoom() 
                         displayString = "\nTEXT('cnc_1', 30, 30, 30, 'HobbyLASER')"
 
                         var editorContent = editor.getValue()
@@ -1495,7 +1273,7 @@ function RECT(x, y, w, h) {
                                 var renderTime = endTime - startTime
                                 console.log(`HL time rendering: ${renderTime} ms`)
                         }; return svgpath
-                }
+                }                   
 
                 var clipper = new ClipperLib.Clipper()
                 function clpPath(result){
@@ -2184,14 +1962,18 @@ function RECT(x, y, w, h) {
                                                 var reader = new FileReader()
                                                 reader.onload = function(e){
                                                         var gcode = e.target.result
-                                                        var lines = gcode.split('\n');
-                                                        var hasVectorMode = lines.some(line => line.includes('; mode: vector'))
+                                                        var lines = gcode.split('\n')
 
-                                                        if (hasVectorMode) {isImageMode = false}
-                                                        else {isImageMode = true}                                         
-                                                        
-                                                        sendGCODE(gcode)
-                                                        gcBool = true; GCSenderShow()
+                                                        var hasVectorMode = lines.some(line => line.trim() === '; mode:vector')
+                                                        var baseName = (file.name).replace(/\.(gcode|nc)$/i, '')
+                                                        if (hasVectorMode) {
+                                                                isImageMode = false
+                                                                gcBool = true; saveGCODE(gcode, baseName, 'vector'); GCSenderShow()                                                
+                                                        }
+                                                        else {
+                                                                isImageMode = true
+                                                                gcBool = true; saveGCODE(gcode, baseName, 'vector'); GCSenderShow() 
+                                                        } 
                                                 }; reader.readAsText(event.target.files[0]); file = event.target.files[0] 
                                         } else if (['svg'].includes(ext)){
                                                 var reader = new FileReader()
@@ -2287,12 +2069,16 @@ function RECT(x, y, w, h) {
                                 reader.onload = function(e){
                                         var gcode = e.target.result
                                         var lines = gcode.split('\n');
-                                        var hasVectorMode = lines.some(line => line.includes('; mode: vector'))
-
-                                        if (hasVectorMode) {isImageMode = false}
-                                        else {isImageMode = true}                                         
-                                        
-                                        gcBool = true; sendGCODE(gcode); GCSenderShow()
+                                        var hasVectorMode = lines.some(line => line.trim() === '; mode:vector')
+                                        var baseName = fileName.replace(/\.(gcode|nc)$/i, '');
+                                        if (hasVectorMode) {
+                                                isImageMode = false
+                                                gcBool = true; saveGCODE(gcode, baseName, 'vector'); GCSenderShow()                                                
+                                        }
+                                        else {
+                                                isImageMode = true
+                                                gcBool = true; saveGCODE(gcode, baseName, 'vector'); GCSenderShow() 
+                                        }                                         
                                 }; reader.readAsText(file)                
                         } else if (fileName.endsWith('.dxf')) {
                                 var reader = new FileReader()
