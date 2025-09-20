@@ -407,7 +407,8 @@
                                         end_line()
                                 })
 
-                                editor.setValue(`function simpleGear(numberOfTeeth, radius, heightOfTooth){
+                                editor.setValue(`//uncomment and after ctrl + enter
+function simpleGear(numberOfTeeth, radius, heightOfTooth){
         var paths = [[]];    
         var centerX = 30; 
         var centerY = 30;
@@ -432,7 +433,7 @@
         }
         paths[0].push(paths[0][0]); return use(paths);
 }
-simpleGear(15, 20, 4).gcode()
+//simpleGear(15, 20, 4).gcode() 
 `)
                                 editor.clearSelection()
                                 editor.moveCursorTo(0, 0);
@@ -856,7 +857,7 @@ simpleGear(15, 20, 4).gcode()
                                         editor.setValue(updatedContent, -1); editor.focus()
                                 }
 
-                                function prepareGCodeSettings() {
+                                function prepareGCodeSettings(type) {
                                         var minPWR = parseInt($("#_02").val())
                                         var maxPWR = parseInt($("#_03").val())
                                         var speedTRVL = parseInt($("#_04").val())
@@ -911,6 +912,8 @@ simpleGear(15, 20, 4).gcode()
                                               ('0' + now.getSeconds()).slice(-2)
 
                                         pre += "; Created using HobbyLaser " + now + "\n\n"
+
+                                        pre += "; mode:" + type + "\n"
                                         pre += "; Laser Speed: " + speedTRVL + " mm/min\n"
                                         pre += "; Travel Speed: " + speedLSR + " mm/min\n"
                                         pre += "; Power: [" + minPWR + ", " + maxPWR + "]\n"
@@ -928,9 +931,9 @@ simpleGear(15, 20, 4).gcode()
 
                                 function svg2gc(md) {
                                         try {
-                                                var fill
-                                                var settings = prepareGCodeSettings()
-                                                var {minPWR, maxPWR, speedTRVL, speedLSR, passes, rowPerMM, zeta, zMax, air, flName, gcode, pre, post} = settings
+                                                var fill, type = 'vector'
+                                                var settings = prepareGCodeSettings(type)
+                                                var {minPWR, maxPWR, speedTRVL, speedLSR, passes, rowPerMM, zeta, zMax, air, flName, gcode, pre, post, type} = settings
 
                                                 var Points = svgpath.replace(/,/g, ' ')
                                                 var Points_1 = svgPathToPoints(Points)
@@ -1192,8 +1195,9 @@ simpleGear(15, 20, 4).gcode()
 
                                 function img2gc() {
                                         try {
-                                                const settings = prepareGCodeSettings()
-                                                var {minPWR, maxPWR, speedTRVL, speedLSR, passes, rowPerMM, zeta, zMax, air, flName, gcode, pre, post} = settings
+                                                var type = 'raster'
+                                                var settings = prepareGCodeSettings(type)
+                                                var {minPWR, maxPWR, speedTRVL, speedLSR, passes, rowPerMM, zeta, zMax, air, flName, gcode, pre, post, type} = settings
 
                                                 var imageData = ctxIMG.getImageData(0, 0, scaledWidth, scaledHeight)
                                                 var width = imageData.width, height = imageData.height, data = imageData.data
