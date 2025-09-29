@@ -1,4 +1,4 @@
-<!-- /HTML/main.html -->
+ <!-- /HTML/main.html -->
 <!DOCTYPE html>
 <html xml:lang="en" lang="en">
         <head>
@@ -433,7 +433,8 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
         }
         paths[0].push(paths[0][0]); return use(paths);
 }
-//simpleGear(15, 20, 4).gcode() 
+//simpleGear(15, 20, 4).gcode()
+POLYLINE("M10 10 L40 10 L40 40 L10 40 L10 10 Z").tab(2,4).nc
 `)
                                 editor.clearSelection()
                                 editor.moveCursorTo(0, 0);
@@ -931,7 +932,7 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
 
                                 function svg2gc(md) {
                                         try {
-                                                var fill, type = 'vector'
+                                                var fill, pause = 100, type = 'vector'
                                                 var settings = prepareGCodeSettings(type)
                                                 var {minPWR, maxPWR, speedTRVL, speedLSR, passes, rowPerMM, zeta, zMax, air, flName, gcode, pre, post, type} = settings
 
@@ -982,33 +983,61 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                                                 current = chosen[1]
                                                                 remaining.splice(nearestIndex, 1)
                                                         }
-
                                                         return optimized
                                                 }
 
-                                                // --- genera contorni classici (paths normali) ---
-                                                function contour() {
-                                                        for (var pass = 0; pass < passes; pass++) {
-                                                                var zStep = zeta * pass
-                                                                paths.forEach(originalPath => {
-                                                                        var path = originalPath.slice()
-                                                                        if (path.length > 0) {
-                                                                                path.forEach((point, index) => {
-                                                                                        const x = point.X.toFixed(2)
-                                                                                        const y = (dHeight + 6 - point.Y).toFixed(2)
-                                                                                        if (index === 0) {
-                                                                                                gcode += `G0 X${x} Y${y} Z${zMax} F${speedTRVL} S${minPWR}\n`
-                                                                                                gcode += `G4 P${pause}\n`
-                                                                                                gcode += `M3;laser ON\n`
-                                                                                                gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
-                                                                                        } else {
-                                                                                                gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
-                                                                                        }
-                                                                                })
-                                                                                gcode += `M5; laser OFF\n`
-                                                                        }
-                                                                })
+                                                if (tabBool == false) {
+                                                        function contour() {
+                                                                for (var pass = 0; pass < passes; pass++) {
+                                                                        var zStep = zeta * pass
+                                                                        paths.forEach(originalPath => {
+                                                                                var path = originalPath.slice()
+                                                                                if (path.length > 0) {
+                                                                                        path.forEach((point, index) => {
+                                                                                                const x = point.X.toFixed(2)
+                                                                                                const y = (dHeight + 6 - point.Y).toFixed(2)
+                                                                                                if (index === 0) {
+                                                                                                        gcode += `G0 X${x} Y${y} Z${zMax} F${speedTRVL} S${minPWR}\n`
+                                                                                                        gcode += `M3; laser ON\n`
+                                                                                                        gcode += `G1 X${x} Y${y} Z${zMax} F1 S0\n`
+                                                                                                        gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
+                                                                                                        gcode += `; PAUSE:${pause}ms (handled by worker)\n`
+                                                                                                } else {
+                                                                                                        gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
+                                                                                                }
+                                                                                        }); gcode += `M5; laser OFF\n`
+                                                                                }
+                                                                        })
+                                                                }
                                                         }
+                                                }
+                                                if (tabBool == true) {
+                                                        function contour() {
+                                                                for (var pass = 0; pass < passes; pass++) {
+                                                                        var zStep = zeta * pass
+                                                                        paths.forEach(originalPath => {
+                                                                                var path = originalPath.slice()
+
+                                                                                if (path.length > 1) {
+                                                                                        let first = path[0], last = path[path.length - 1]
+                                                                                        if (Math.abs(first.X - last.X) < 1e-6 && Math.abs(first.Y - last.Y) < 1e-6) {
+                                                                                                path.pop()
+                                                                                        }
+                                                                                        let x0 = path[0].X.toFixed(2)
+                                                                                        let y0 = (dHeight + 6 - path[0].Y).toFixed(2)
+                                                                                        gcode += `G0 X${x0} Y${y0} Z${zMax} F${speedTRVL} S${minPWR}\n`
+                                                                                        gcode += `; PAUSE:${pause}ms (handled by worker)\n`
+                                                                                        gcode += `M3; laser ON\n`
+
+                                                                                        for (let i = 1; i < path.length; i++) {
+                                                                                                let x = path[i].X.toFixed(2)
+                                                                                                let y = (dHeight + 6 - path[i].Y).toFixed(2)
+                                                                                                gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
+                                                                                        }; gcode += `M5; laser OFF\n`
+                                                                                }
+                                                                        })
+                                                                }
+                                                        }; tabBool = false
                                                 }
 
                                                 // --- pattern di riempimento ---
@@ -1191,8 +1220,6 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                         }
                                 }
 
-
-
                                 function img2gc() {
                                         try {
                                                 var type = 'raster'
@@ -1295,6 +1322,16 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                 function roundCoord(coord){return Math.round(coord * 10) / 10}
                                 function convertToMM(value, dpi = 96){var mmPerInch = 25.4; return (value / dpi) * mmPerInch}
 
+function getCurrentGRBLValues() {
+    let accX = Number(document.getElementById('_11').value) || 500
+    let accY = Number(document.getElementById('_11').value) || 500
+    let accZ = Number(document.getElementById('_11').value) || 500
+
+    let speedTRVL = Number(document.getElementById('_04').value) || 1000
+    let speedLSR  = Number(document.getElementById('_05').value) || 1000
+
+    return { accX, accY, accZ, speedTRVL, speedLSR };
+}
                                 function estimateJobTime(gcodeText, speedTRVL = 1000, speedLSR = 1000, accel = 500, overheadPerCmd = 0.003, corrFactor = 1.15) {
                                         let lines = gcodeText.split(/\r?\n/)
                                         let timeSec = 0
@@ -1356,7 +1393,6 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                                         last = {x, y, z}
                                                 }
                                         }
-; sendConfigToGRBL()
                                         return timeSec * corrFactor
                                 }
 
@@ -1431,7 +1467,9 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                                                         isImageMode = (file.mode === "raster")
                                                                         gcVIEW(gcodeText)
 
-                                                                        let estSec = estimateJobTime(gcodeText, speedTRVL, speedLSR)
+                                                                        let {accX, accY, accZ, speedTRVL, speedLSR} = getCurrentGRBLValues()
+                                                                        let estSec = estimateJobTime(gcodeText, speedTRVL, speedLSR, accX)
+
                                                                         let h = Math.floor(estSec / 3600)
                                                                         let m = Math.floor((estSec % 3600) / 60)
                                                                         let s = Math.floor(estSec % 60)
@@ -1467,7 +1505,7 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                 }                               
                         </script>
                 </div>
-
+                
                 <div id="GCSender" style="">                
                         <div id="leftPanel" style="background:#101010; position:absolute; width:200px; top:100px; z-index:500;
                         left:calc(50% - (var(--viewWidth) / 2) - 100px); border:1px solid #3c3c3c; z-index:500; visibility:hidden">
@@ -1766,7 +1804,7 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                                         { setting: "$27", value: "1.000", description: "Homing switch pull-off distance, millimeters" },
                                                         { setting: "$30", value: "1000", description: "Maximum spindle speed, RPM" },
                                                         { setting: "$31", value: "0", description: "Minimum spindle speed, RPM" },
-                                                        { setting: "$32", value: "0", description: "Laser-mode enable, boolean" },
+                                                        { setting: "$32", value: "1", description: "Laser-mode enable, boolean" },
                                                         { setting: "$100", value: "250.000", description: "X-axis steps per millimeter" },
                                                         { setting: "$101", value: "250.000", description: "Y-axis steps per millimeter" },
                                                         { setting: "$102", value: "250.000", description: "Z-axis steps per millimeter" },
@@ -1985,33 +2023,43 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
 
                                         self.onmessage = (e) => {
                                                 const { cmd, data } = e.data
-                                                if(cmd === 'start'){
-                                                        lines = data.lines.map(l => l.split(';')[0].trim()).filter(l => l.length > 0)
-                                                        currentIndex = 0; paused = false; stopped = false; pump()
+                                                if (cmd === 'start') {
+                                                        lines = data.lines
+                                                                .map(l => l.replace(/\\(.*?\\)/g, ''))  // rimuove commenti ( ... )
+                                                                .map(l => l.split(';')[0].trim())       // rimuove commenti inline
+                                                                .filter(l => l.length > 0 || /^; PAUSE:/i.test(l)) // conserva pause
+                                                        currentIndex = 0
+                                                        paused = false
+                                                        stopped = false
+                                                        pump()
                                                 }
-                                                else if(cmd === 'ok'){pump()}
-                                                else if(cmd === 'pause'){paused = true}
-                                                else if(cmd === 'resume'){paused = false; pump()}
-                                                else if(cmd === 'stop'){stopped = true}
+                                                else if (cmd === 'ok') { pump() }
+                                                else if (cmd === 'pause') { paused = true }
+                                                else if (cmd === 'resume') { paused = false; pump() }
+                                                else if (cmd === 'stop') { stopped = true }
                                         }
 
-                                        function pump(){
-                                                if(stopped){
-                                                        self.postMessage({type: 'stopped'})
+                                        function pump() {
+                                                if (stopped) {
+                                                        self.postMessage({ type: 'stopped' })
                                                         return
                                                 }
-                                                if(paused) return
-                                                if(currentIndex >= lines.length){
-                                                        self.postMessage({type: 'done'})
+                                                if (paused) return
+                                                if (currentIndex >= lines.length) {
+                                                        self.postMessage({ type: 'done' })
                                                         return
                                                 }
 
                                                 const raw = lines[currentIndex++]
-                                                const formatted = raw + '\\n'
-                                                self.postMessage({type: 'send', line: {raw, formatted}})
+
+                                                if (/^; PAUSE:/i.test(raw)) {
+                                                        const ms = parseInt(raw.split(':')[1])
+                                                        self.postMessage({ type: 'pause', time: ms })
+                                                } else {
+                                                        self.postMessage({ type: 'send', line: { raw, formatted: raw + '\\n' } })
+                                                }
                                         }
                                 `
-
                                 const blob = new Blob([workerCode], {type: 'application/javascript'})
                                 const worker = new Worker(URL.createObjectURL(blob))
                                 worker.onerror = e => console.error("Worker error:", e.message)
@@ -2055,32 +2103,44 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                    ========================= */
                                 worker.onmessage = async (e) => {
                                         const msg = e.data
-                                        if(msg.type === 'send'){
+
+                                        if (msg.type === 'send') {
                                                 const { raw, formatted } = msg.line
                                                 console.log("→ Sending:", formatted.trim())
 
-                                                try{
+                                                try {
                                                         await writer.write(encoder.encode(formatted))
-                                                } catch(e){
-                                                        console.error("Errore invio:", e)
+                                                } catch (e) {
+                                                        console.error("Error writing to GRBL:", e)
                                                         return
                                                 }
 
                                                 await new Promise(resolve => {
                                                         const listener = () => {
                                                                 okListeners = okListeners.filter(cb => cb !== listener)
-                                                                try { parser.parseLine(raw) } catch(e){console.warn("parse error:", e)}
-                                                                sentGCodeLines++; updateProgressBar()
-                                                                resolve()
+                                                                try { parser.parseLine(raw) } catch (err) { console.warn("parse error:", err) }
+                                                                sentGCodeLines++; updateProgressBar(); resolve()
                                                         }
                                                         okListeners.push(listener)
                                                 })
+
                                                 startPingGRBL()
-                                                worker.postMessage({cmd:'ok'})
-                                        } else if(msg.type === 'done'){
-                                                isSending = false
-                                                console.log("Streaming completed"); stopPingGRBL()
-                                        } else if(msg.type === 'stopped'){
+                                                worker.postMessage({ cmd: 'ok' })
+                                        }
+
+                                        else if (msg.type === 'pause') {
+                                                const ms = msg.time || 0
+                                                await new Promise(r => setTimeout(r, ms))
+                                                worker.postMessage({ cmd: 'ok' })
+                                        }
+
+                                        else if (msg.type === 'done') {
+                                                flushLog(); isSending = false
+                                                console.log("Streaming completed")
+                                                stopPingGRBL()
+                                        }
+
+                                        else if (msg.type === 'stopped') {
                                                 isSending = false
                                                 console.log("Streaming stopped")
                                         }
@@ -2179,58 +2239,95 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
                                 /* =========================
                                         READ SERIAL DATA
                                    ========================= */
-                                async function readSerialData(){
-                                        if(!port) throw new Error("No port")
-                                        const decoder = new TextDecoderStream()
-                                        readableStreamClosed = port.readable.pipeTo(decoder.writable)
-                                        reader = decoder.readable.getReader()
-                                        
-                                        let buffer = ''
-                                        try{
-                                                while(true){
-                                                        const { value, done } = await reader.read()
-                                                        if(done) break
-                                                        buffer += value
-                                                        const lines = buffer.split(/\r?\n/)
-                                                        buffer = lines.pop()
-                                                        for(const raw of lines){
-                                                                const line = raw.trim()
-                                                                if(!line) continue
-                                                                
-                                                                if(line === 'ok'){
-                                                                        okListeners.forEach(cb => { try{ cb() }catch(e){} })
-                                                                        console.response("← GRBL:", line); continue
-                                                                }
-                                                                if(line.startsWith('echo:')) console.warn('[GRBL echo]', line)
-                                                                else if(line.startsWith('[MSG:')) console.info('[GRBL MSG]', line)
-                                                                else if(line.startsWith('error:')) console.error('[GRBL error]', line)
-                                                                else if(line.startsWith('alarm:')) console.error('[GRBL alarm]', line)
-                                                                else if(line.startsWith('<') && line.endsWith('>')) {
-                                                                        statusListeners.forEach(cb => {try{ cb(line)} catch(e){}})
-                                                                        var el = document.getElementById('grbl')
-                                                                        if (!el) return
-                                                                        var parts = line.replace(/[<>]/g, '').split('|')   // <Idle|MPos:...|FS:...>
+let lastLineLogged = null
+let repeatCount = 0
 
-                                                                        var formatted = parts.map(part => {
-                                                                                if (part.includes(':')) {
-                                                                                        const [key, value] = part.split(':')
-                                                                                        return `${key.trim()}:  ${value.trim()}`
-                                                                                }
-                                                                                return part.trim()
-                                                                        }).join('\n')
-                                                                        el.textContent = formatted
-                                                                }   
-                                                        }
-                                                }
-                                        } catch(e){
-                                                console.error('Serial read error:', e)
-                                                isConnected = false
-                                                try{await port.close()}catch(err){}
-                                        } finally{
-                                                try{reader.releaseLock()}catch(e){}
-                                                if(isManualDisconnect) try{await port.close()}catch(e){}
-                                        }
-                                }
+function logGRBL(line){
+    if(!isSending){     
+        console.response(`← GRBL: ${line}`);
+        return;
+    }
+    
+    if(line === lastLineLogged){
+        repeatCount++;
+    } else {
+        flushLog();
+        lastLineLogged = line;
+        repeatCount = 1;
+    }
+}
+
+
+function flushLog() {
+    if (lastLineLogged !== null) {
+        if (repeatCount > 1) {
+            console.response(`← GRBL: ${lastLineLogged} (x${repeatCount})`);
+        } else {
+            console.response(`← GRBL: ${lastLineLogged}`);
+        }
+        lastLineLogged = null;
+        repeatCount = 0;
+    }
+}
+
+async function readSerialData() {
+    if(!port) throw new Error("No port")
+    const decoder = new TextDecoderStream()
+    readableStreamClosed = port.readable.pipeTo(decoder.writable)
+    reader = decoder.readable.getReader()
+    
+    let buffer = ''
+    try {
+        while(true){
+            const { value, done } = await reader.read()
+            if(done) break
+            buffer += value
+            const lines = buffer.split(/\r?\n/)
+            buffer = lines.pop()
+            
+            for(const raw of lines){
+                const line = raw.trim()
+                if(!line) continue
+                
+                if(line === 'ok'){
+                    okListeners.forEach(cb => { try{ cb() }catch(e){} });
+                    logGRBL(line);
+                    continue;
+                } else {
+                    flushLog(); // stampo eventuali OK accumulati
+                }
+
+                if(line.startsWith('echo:')) console.warn('[GRBL echo]', line)
+                else if(line.startsWith('[MSG:')) console.info('[GRBL MSG]', line)
+                else if(line.startsWith('error:')) console.error('[GRBL error]', line)
+                else if(line.startsWith('alarm:')) console.error('[GRBL alarm]', line)
+                else if(line.startsWith('<') && line.endsWith('>')) {
+                    statusListeners.forEach(cb => {try{ cb(line)} catch(e){}})
+                    var el = document.getElementById('grbl')
+                    if (!el) return
+                    var parts = line.replace(/[<>]/g, '').split('|')
+                    var formatted = parts.map(part => {
+                        if (part.includes(':')) {
+                            const [key, value] = part.split(':')
+                            return `${key.trim()}:  ${value.trim()}`
+                        }
+                        return part.trim()
+                    }).join('\n')
+                    el.textContent = formatted
+                }   
+            }
+        }
+        flushLog(); // flush finale quando finisce la lettura
+    } catch(e){
+        console.error('Serial read error:', e)
+        isConnected = false
+        try{await port.close()}catch(err){}
+    } finally{
+        try{reader.releaseLock()}catch(e){}
+        if(isManualDisconnect) try{await port.close()}catch(e){}
+    }
+}
+
 
                                 /* =========================
                                         GRBL PING
@@ -2479,6 +2576,6 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
 </html>  
 
 <!--
-                        
+
 -->
 
