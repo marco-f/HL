@@ -1470,8 +1470,9 @@
                                 this._tabWidth = gapWidth; this._tabSpacing = numTabs
                                 return this;
                         }
-                        path.gcode = function(){toggleGCconv(); remToEdt(".gcode()"); return this}
-
+                        Object.defineProperty(path, "nc", {
+                                get() {toggleGCconv(); remToEdt(".nc()"); return this}
+                        })
                         return path                            
                 }                      
                         
@@ -1907,7 +1908,9 @@
                                         });
                                         canvas.renderAll(); remToEdt(".vecor()"); return this
                                 },
-                                gcode: function(){toggleGCconv(); TAClose(); remToEdt(".gcode()")}                     
+                                get nc() {
+                                        toggleGCconv(); remToEdt(".nc()"); return this
+                                }                   
                         }; return imageController
                 }
                    
