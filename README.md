@@ -12,6 +12,8 @@
 
 A **Progressive Web App (PWA)** for controlling **CNC or laser machines** from the browser using the **Web Serial API**. It allows users to draw, process images, generate G-code, and communicate with controllers – directly in Google Chrome, with full offline support.
 
+HobbyLASER is aimed at users of CNC machines, engravers, and plotters—particularly self-built or budget models. It was developed to fill the gap between the basic software offered by low-cost machine manufacturers and professional software solutions, with a focus on hobby use and rapid prototyping."
+                           
 > ⚠ **Optimized for Google Chrome in Dark Mode**
 
 ---
