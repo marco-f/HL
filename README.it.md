@@ -15,6 +15,8 @@ Permette di disegnare, elaborare immagini, generare G-code e comunicare con i co
 
 HobbyLASER è pensato per gli utenti di macchine CNC, incisori e plotter — in particolare modelli autocostruiti o a basso costo. È stato sviluppato per colmare il divario tra il software base fornito dai produttori di macchine economiche e le soluzioni professionali, con un focus sull’uso hobbistico e il prototipaggio rapido.
 
+Semplice ma non banale, utilizza un sistema ibrido di strumenti e script per creare e trasformare disegni vettoriali, elaborare immagini e generare file pronti da inviare ai microcontrollori. HobbyLASER non richiede installazione: funziona interamente nel browser, senza dipendenze né driver, grazie alla Web Serial API per la comunicazione USB.
+
 Il progetto è da considerarsi in costante sviluppo, ma grazie alla sua natura di **Progressive Web App (PWA)**, gli aggiornamenti sono disponibili immediatamente al rilascio.  
 Attualmente è possibile importare file di testo con estensioni: `.svg`, `.dxf`, `.gcode`, `.nc`, e immagini raster in formato `.png`, `.jpg` o `.jpeg`.  
 Il formato `.svg` è uno standard aperto, ma sono accettati solo disegni a percorso singolo che utilizzano comandi assoluti. Ad esempio, un file esportato da Inkscape verrà rifiutato se contiene percorsi multipli, gruppi o comandi relativi.
