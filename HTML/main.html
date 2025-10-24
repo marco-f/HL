@@ -10,7 +10,8 @@
                 <meta http-equiv="pragma" content="no-cache">
                 <meta charset="UTF-8">
 
-                <title>HobbyLaser!</title>           
+                <title>HobbyLaser!</title>
+
 
                 <!-- favicon -->
                 <link rel="icon" type="image/png" href="../IMG/lsr.svg">
@@ -94,7 +95,7 @@
 
                 #editor {position:absolute;bottom:0; top:10px; border: 0;
                         left:0; right:0; line-height: 1.2;background:#050505}
-                .ace_editor *{font-size: 11px !important; color:gray}
+                .ace_editor *{font-size: 12px !important; color:gray}
                 .ace_editor {border: none !important}
                 .ace_scrollbar {display: none !important}
                 .ace_editor .ace_marker-layer .ace_selection {background:#202020}
@@ -192,7 +193,7 @@
                 .btAlert:focus {
                         background: #0a0a0a;
                         color: #2f81f7;
-                        box-shadow: 0 0 0 2px #ffffff44;
+                        //box-shadow: 0 0 0 2px #ffffff44;
                 }
                 .btAlert:focus::before {
                         clip-path: inset(0 0 0 0);
@@ -248,7 +249,7 @@
                 #td:first-child {padding-right: 30px}
 
                 .close-btn {
-                        font-weight: bold; font-size: 18px;
+                        font-weight: bold; font-size: 14px;
                         width:30px; height:30px; background-color:#080808;
                         position:absolute; top:10px; right:10px; z-index:500;
                         text-align:center; line-height:26px; cursor: pointer;        
@@ -258,16 +259,24 @@
 
                 .btRD {
                         display: flex;align-items: center; 
-                        justify-content:center;color: white;        
+                        justify-content:center;color: gray;        
                         cursor: pointer; border-radius: 50%;
                         border: 1px solid #3c3c3c; font-size: 15px; outline:none;       
                         background:#080808; width:16px; height:16px; padding-bottom:2px           
                 }
-                .btRD:focus {outline:none; color:#f0f}
+                .btRD:focus {outline:none; color:white}
                 .btRD:disabled {
                         opacity: 0.4; cursor: not-allowed;    
                         color: #888; background: #222; border-color: #555
-                }                             
+                }
+
+                .btTool {margin-left: 0px;
+                        text-align: center;  color: gray;        
+                        cursor: pointer; border-radius: 50px;
+                        border: 1px solid #3c3c3c; font-size: 10px;        
+                        background:#080808; width:80px; padding:5px;              
+                }
+                .btTool:hover {color:white}                             
         </style>
                                                               
         <body>   
@@ -570,7 +579,7 @@ simpleGear(15, 20, 4).nc
                                 }; ftr()
 
                                 var cnsLog = document.getElementById('cnsLog')
-                                function logging() {
+                                /*function logging() {
                                         var MAX_LOG_LINES = 200
                                         var logBuffer = []
                                         var bufferFlushInterval = 200  // ms
@@ -639,7 +648,7 @@ simpleGear(15, 20, 4).nc
                                         scrollTimeout = setTimeout(() => {
                                                 cnsLog.scrollTop = cnsLog.scrollHeight
                                         }, 100)
-                                }); observer.observe(cnsLog, {childList: true})
+                                }); observer.observe(cnsLog, {childList: true})*/
 
                                 var objNumber = 0;
                                 function addToConsole() {
@@ -708,16 +717,11 @@ simpleGear(15, 20, 4).nc
                         <!--button class="bs" style="top:20px; right:-20px; cursor:pointer" onclick="toggleGCconv()">X</button-->       
                                
                         <div class="buttons-container" style="top:70px; width:100%">
-                                <div style="width:auto; height:auto; margin:0 auto; position:relative; display:flex; align-items:center; gap:6px">
+                                <div style="width:auto; height:auto; margin-left:10px; position:relative; display:flex; gap:6px">
                                         <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px; text-align:center">MODE</span>
                                         <button class="btRD" id="m_1" onclick="setMODE('m_1')">●</button> cutter
-                                        <button class="btRD" id="m_2" onclick="setMODE('m_2')">●</button> engrave                  
+                                        <button class="btRD" id="m_2" onclick="setMODE('m_2')">●</button> infill                  
                                         <button class="btRD" id="m_3" onclick="setMODE('m_3')">●</button> image
-                                        <br>
-                                        <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px; text-align:center">&nbsp;&nbsp;INFILL</span>
-                                        <button class="btRD" id="m_4" onclick="setFILL('m_4')">●</button> hexagon
-                                        <button class="btRD" id="m_5" onclick="setFILL('m_5')">●</button> grid                  
-                                        <button class="btRD" id="m_6" onclick="setFILL('m_6')">●</button> triangle
                                 </div>
                         </div>
                                           
@@ -739,13 +743,13 @@ simpleGear(15, 20, 4).nc
                         </div>
                         <div id="t_2" class="buttons-container" style="top:160px">
                                 <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">rowsPerMM</span>
-                                <input class="txtInp" type="text" id="_07" placeholder="rows/mm" maxlength="4" value="3"/>
+                                <input class="txtInp" type="text" id="_07" placeholder="rows/mm" maxlength="4" value="1"/>
 
                                 <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">Z-AXIS</span>
                                 <input class="txtInp" type="text" id="_08" placeholder="inc. Z" maxlength="4" value="0"/>
 
                                 <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">Z-MAX</span>
-                                <input class="txtInp" type="text" id="_09" placeholder="inc. Z" maxlength="4" value="1"/>                                
+                                <input class="txtInp" type="text" id="_09" placeholder="inc. Z" maxlength="4" value="0"/>                                
 
                                 <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">&nbsp;air&nbsp;
                                 ASSIST</span><input class="txtInp" type="text" id="_10" placeholder="set air" maxlength="4" value="0"/>
@@ -756,21 +760,21 @@ simpleGear(15, 20, 4).nc
 
                         <div id="t_3" class="buttons-container" style="top:220px; width:100%">
                                 <div id="d_1" style="width:auto; height:auto; margin:0 auto; position:relative; display:flex; align-items:center; gap:6px">
-                                        add BB<button class="btRD" id="m_7" onclick="toggleBB()">●</button>&nbsp;&nbsp;
+
                                 
                                         <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">toGCODE</span>
                                         <button class="btTool" onclick="obj2gc()">create</button>
                                 </div>
                         </div>
 
-                        <p class="bs" style="width:100%; top:290px; text-align:center">* default row filling (no fill selected)</p>                 
+                        <p class="bs" style="width:100%; top:290px; text-align:center">* set MODE cutter/infill (vector), image (raster)</p>                 
                                
                         <script>                       
                                 var gcBool = false
                                 function toggleGCconv() {
                                         if (!gcBool) {
-                                                $('#GCC').show(); gcBool = true; GCSenderHide(); 
-                                                updateFillButtons()
+                                                $('#GCC').show(); gcBool = true
+                                                GCSenderHide(); updateButtons()
                                                 setTimeout(function() {
                                                         mode = 'cutter'; document.getElementById("m_1").focus()
                                                 }, 0)
@@ -785,46 +789,33 @@ simpleGear(15, 20, 4).nc
 
                                         button1.blur(); button2.blur(); button3.blur()
                                         document.getElementById(activeId).focus()
-                                        if (activeId === 'm_1') {mode = 'cutter'; updateFillButtons()}
-                                        else if (activeId === 'm_2') {mode = 'engrave'; updateFillButtons()}
-                                        else if (activeId === 'm_3') {mode = 'image'; updateFillButtons()}
-                                }
-                                var inFill = ''
-                                var setFILL = function(activeId) {
-                                        if(tabBool) return
-                                        var button4 = document.getElementById('m_4')
-                                        var button5 = document.getElementById('m_5')
-                                        var button6 = document.getElementById('m_6')
 
-                                        button4.blur(); button5.blur(); button6.blur()
+                                        if (activeId === 'm_1') mode = 'cutter'
+                                        else if (activeId === 'm_2') mode = 'engrave'
+                                        else if (activeId === 'm_3') mode = 'image'
 
-                                        if (activeId === 'm_4') {button4.focus(); inFill = 'hex'}
-                                        else if (activeId === 'm_5') {button5.focus(); inFill = 'grid'}
-                                        else if (activeId === 'm_6') {button6.focus(); inFill = 'tri'}
+                                        updateButtons()
                                 }
+
                                 document.addEventListener('DOMContentLoaded', function() {
-                                        updateFillButtons()
-                                })                             
-                                function updateFillButtons() {
+                                        updateButtons()
+                                })
+
+                                function updateButtons() {
                                         if (tabBool) {
-                                                $('#m_2, #m_3, #m_4, #m_5, #m_6').prop('disabled', true)
-                                                return
-                                        }      
+                                                $('#m_2, #m_3').prop('disabled', true); return
+                                        }
+
                                         if (mode == 'cutter' || mode == 'image') {
-                                                document.getElementById('m_4').disabled = true
-                                                document.getElementById('m_5').disabled = true
-                                                document.getElementById('m_6').disabled = true
                                                 document.getElementById('m_2').disabled = false
                                                 document.getElementById('m_3').disabled = false
-                                        }
+                                        } 
                                         else if (mode == 'engrave') {
-                                                document.getElementById('m_4').disabled = false
-                                                document.getElementById('m_5').disabled = false
-                                                document.getElementById('m_6').disabled = false
                                                 document.getElementById('m_2').disabled = false
                                                 document.getElementById('m_3').disabled = false
                                         }
                                 }
+
 
                                 var GCSenderShow = function() {
                                         lines = 0
@@ -877,6 +868,94 @@ simpleGear(15, 20, 4).nc
                                         editor.setValue(updatedContent, -1); editor.focus()
                                 }
 
+                                var bbGCode = ''
+                                function getBoundingBoxFromGCode(gcode) {
+                                        const lines = gcode.split(/\r?\n/)
+                                        let lastX = 0, lastY = 0, lastZ = 0
+                                        let lastPower = 0
+                                        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+
+                                        for (const raw of lines) {
+                                                let line = raw.split(';')[0] || ''
+                                                line = line.trim()
+                                                if (!line) continue
+
+                                                const tokens = line.match(/[A-Za-z][^ \t]*/g) || []
+                                                if (tokens.length === 0) continue
+
+                                                const cmd = tokens[0].toUpperCase()
+                                                if (!cmd) continue
+
+                                                const args = {}
+                                                for (let i = 1; i < tokens.length; i++) {
+                                                        const t = tokens[i]
+                                                        if (!t || t.length < 2) continue
+                                                        const key = t[0].toUpperCase()
+                                                        const num = parseFloat(t.substring(1))
+                                                        if (Number.isNaN(num)) continue
+                                                        args[key] = num
+                                                }
+
+                                                if (cmd === 'M3' || cmd === 'M03') {
+                                                        if (args['S'] !== undefined) lastPower = args['S']
+                                                        continue
+                                                }
+                                                if (cmd === 'M5' || cmd === 'M05') {
+                                                        lastPower = 0
+                                                        continue
+                                                }
+                                                if (args['S'] !== undefined) lastPower = args['S']
+
+                                                let gnum = NaN
+                                                if (cmd.startsWith('G')) {
+                                                        gnum = parseInt(cmd.slice(1), 10)
+                                                }
+
+                                                if (!Number.isNaN(gnum) && (gnum === 0 || gnum === 1)) {
+                                                        const newX = args['X'] !== undefined ? args['X'] : lastX
+                                                        const newY = args['Y'] !== undefined ? args['Y'] : lastY
+                                                        const newZ = args['Z'] !== undefined ? args['Z'] : lastZ
+
+                                                        const isDraw = gnum === 1 && lastPower > 0
+                                                        if (isDraw) {
+                                                                minX = Math.min(minX, lastX, newX)
+                                                                maxX = Math.max(maxX, lastX, newX)
+                                                                minY = Math.min(minY, lastY, newY)
+                                                                maxY = Math.max(maxY, lastY, newY)
+                                                        }
+
+                                                        lastX = newX
+                                                        lastY = newY
+                                                        lastZ = newZ
+                                                }
+                                        }
+
+                                        if (!isFinite(minX)) return null
+                                        return {minX, maxX, minY, maxY}
+                                }
+                                async function addBoundingBox(gcode) {
+                                        const { minX, maxX, minY, maxY } = getBoundingBoxFromGCode(gcode)
+
+                                        if (!isFinite(minX) || !isFinite(maxX) || !isFinite(minY) || !isFinite(maxY)) return
+
+                                        const margin = 1
+                                        const x1 = minX - margin
+                                        const y1 = minY - margin
+                                        const x2 = maxX + margin
+                                        const y2 = maxY + margin
+                                        bbGCode = ''
+                                        bbGCode += '\n; start BB\n'
+                                        bbGCode += `G0 X${x1.toFixed(2)} Y${y1.toFixed(2)}\n`
+                                        bbGCode += 'M3 S0\n'
+                                        bbGCode += `G1 X${x2.toFixed(2)} Y${y1.toFixed(2)} F1000\n`
+                                        bbGCode += `G1 X${x2.toFixed(2)} Y${y2.toFixed(2)} F1000\n`
+                                        bbGCode += `G1 X${x1.toFixed(2)} Y${y2.toFixed(2)} F1000\n`
+                                        bbGCode += `G1 X${x1.toFixed(2)} Y${y1.toFixed(2)} F1000\n`
+                                        bbGCode += 'M5\nG4 P1\n'
+                                        bbGCode += '; end BB\n\n'
+
+                                        console.log("bounding-box:", {x1, y1, x2, y2}); 
+                                }
                                 function prepareGCodeSettings(type) {
                                         var minPWR = parseInt($("#_02").val())
                                         var maxPWR = parseInt($("#_03").val())
@@ -931,370 +1010,181 @@ simpleGear(15, 20, 4).nc
                                               ('0' + now.getMinutes()).slice(-2) + ':' +
                                               ('0' + now.getSeconds()).slice(-2)
 
+                                        function addAcc() {
+                                                accX = document.getElementById('_11').value
+                                                accY = document.getElementById('_11').value
+                                                accZ = document.getElementById('_11').value
+                                                return{accX, accY, accZ}
+                                        }; addAcc()
+                                        
                                         pre += "; Created using HobbyLaser " + now + "\n\n"
-
+                                        pre += "; ======= PREAMBLE =======\n"
+                                        pre += "; General machine settings\n"
                                         pre += "; mode:" + type + "\n"
                                         pre += "; Laser Speed: " + speedTRVL + " mm/min\n"
                                         pre += "; Travel Speed: " + speedLSR + " mm/min\n"
                                         pre += "; Power: [" + minPWR + ", " + maxPWR + "]\n\n"
                                         pre += "G21; units in mm\n"
                                         pre += "G90; absolute positioning\n"
+
+                                        pre += "; Acceleration control\n"
+                                        pre += "$120=" + accX + "; Acceleration X mm/s² (GRBL)\n"
+                                        pre += "$121=" + accY + "; Acceleration Y mm/s² (GRBL)\n"
+                                        pre += "$122=" + accZ + "; Acceleration Z mm/s² (GRBL)\n\n"
+                                        
                                         pre += "G0 X0 Y0 Z0 F" + speedTRVL + "\n"
                                         if (air !== 0) pre += "M8; start airAssist\n"
 
+                                        post += "\n; ======= POSTAMBLE =======\n"
                                         post += "G0 X0 Y0 Z0 F" + speedTRVL + "\n"
                                         if (air !== 0) post += "M9; stop airAssist\n"
                                         post += "M2; end program\n"
+                                        post += "\n; ======= END JOB =======\n"
 
                                         return {minPWR, maxPWR, speedTRVL, speedLSR, passes, rowPerMM, zeta, zMax, air, flName, gcode, pre, post}
                                 }
 
-                                var abbBB = false
-                                function toggleBB() {
-                                        abbBB = !abbBB
-                                        document.getElementById("m_7").innerText = abbBB ? "◉" : "●"
-                                }
-                               
                                 function svg2gc(md) {
-                                        function boundingBoxPreviewPATH(bounds, settings) {
-                                                var {minPWR, speedTRVL, speedLSR, zMax} = settings
+                                        var type = 'vector'
+                                        var settings = prepareGCodeSettings(type)
+                                        var { minPWR, maxPWR, speedTRVL, speedLSR, passes, rowPerMM, zeta, zMax, flName, gcode, pre, post } = settings
 
-                                                var g = ''
-                                                var xMin = bounds.minX.toFixed(2)
-                                                var yMin = (dHeight + 6 - bounds.minY).toFixed(2)
-                                                var xMax = bounds.maxX.toFixed(2)
-                                                var yMax = (dHeight + 6 - bounds.maxY).toFixed(2)
+                                        var Points = svgpath.replace(/,/g, ' ')
+                                        var Points_1 = svgPathToPoints(Points)
+                                        var pointsArray = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ')
+                                        var Points_2 = svgPathToClipperPaths(pointsArray)
+                                        var paths = use(Points_2.slice())
+                                        var bounds = calculateBoundingBox(paths)                                  
 
-                                                g += '\n; start BB\n'
-                                                for (var i = 0; i < 2; i++) {
-                                                        
-                                                        g += `M5 ; laser OFF\n`
-                                                        g += `G0 X${xMin} Y${yMin} Z${zMax} F${speedTRVL} S${minPWR}\n`
-                                                        g += `M3 ; laser ON\n`
-                                                        g += `G1 X${xMax} Y${yMin} F${speedLSR} S${minPWR}\n`
-                                                        g += `G1 X${xMax} Y${yMax} F${speedLSR} S${minPWR}\n`
-                                                        g += `G1 X${xMin} Y${yMax} F${speedLSR} S${minPWR}\n`
-                                                        g += `G1 X${xMin} Y${yMin} F${speedLSR} S${minPWR}\n`
-                                                        g += `M5 ; laser OFF\n`
-                                                        
-                                                }
-                                                g += '; end BB\n\n'; return g
-                                        } 
-                                        
-                                        try {
-                                                var fill, pause = 100, type = 'vector'
-                                                var settings = prepareGCodeSettings(type)
-                                                var {minPWR, maxPWR, speedTRVL, speedLSR, passes, rowPerMM, zeta, zMax, air, flName, gcode, pre, post, type} = settings
+                                        function contour() {
+                                                var commentCol = 35, lineNum = 1
 
-                                                var Points = svgpath.replace(/,/g, ' ')
-                                                var Points_1 = svgPathToPoints(Points)
-                                                var pointsArray = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ')
-                                                var Points_2 = svgPathToClipperPaths(pointsArray)
-                                                var paths = use(Points_2.slice())
-                                                var bounds = calculateBoundingBox(paths)
-
-                                                // --- distanza tra due punti ---
-                                                function distance(p1, p2) {
-                                                        return Math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+                                                function addLine(code, comment = "") {
+                                                        const spaces = Math.max(commentCol - code.length, 1)
+                                                        const padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
+                                                        gcode += padded + "\n"; lineNum++
                                                 }
 
-                                                // --- ottimizzazione segmenti (Nearest Neighbor) ---
-                                                function optimizeSegments(segments) {
-                                                        var remaining = segments.slice()
-                                                        var optimized = []
-                                                        var current = [0, 0]
+                                                for (let pass = 0; pass < passes; pass++) {
+                                                        const zStep = zeta * pass
+                                                        paths.forEach(originalPath => {
+                                                                const path = originalPath.slice()
+                                                                if (!path || path.length < 1) return
 
-                                                        while (remaining.length > 0) {
-                                                                var nearestIndex = 0
-                                                                var nearestDist = Infinity
-                                                                var invert = false
-
-                                                                for (var i = 0; i < remaining.length; i++) {
-                                                                        var seg = remaining[i]
-                                                                        var distStart = distance(current, seg[0])
-                                                                        var distEnd = distance(current, seg[1])
-
-                                                                        if (distStart < nearestDist) {
-                                                                                nearestDist = distStart
-                                                                                nearestIndex = i
-                                                                                invert = false
-                                                                        }
-                                                                        if (distEnd < nearestDist) {
-                                                                                nearestDist = distEnd
-                                                                                nearestIndex = i
-                                                                                invert = true
-                                                                        }
+                                                                if (tabBool && path.length > 1) {
+                                                                        const first = path[0]
+                                                                        const last = path[path.length - 1]
+                                                                        if (Math.abs(first.X - last.X) < 1e-6 && Math.abs(first.Y - last.Y) < 1e-6) path.pop()
                                                                 }
 
-                                                                var chosen = remaining[nearestIndex]
-                                                                if (invert) chosen = [chosen[1], chosen[0]]
+                                                                const x0 = path[0].X.toFixed(2)
+                                                                const y0 = (dHeight + 6 - path[0].Y).toFixed(2)
 
-                                                                optimized.push(chosen)
-                                                                current = chosen[1]
-                                                                remaining.splice(nearestIndex, 1)
-                                                        }
-                                                        return optimized
-                                                }
+                                                                addLine(`G0 X${x0} Y${y0} Z${zMax} F${speedTRVL} S${minPWR}`, "Move to start")
+                                                                addLine(`G1 X${x0} Y${y0} Z${zMax} F${Math.floor(speedTRVL/10)} S${minPWR}`, "stabilize laser")
+                                                                addLine(`M3 S${minPWR}`, "Laser ON at initial power")
 
-                                                if (tabBool == false) {
-                                                        function contour() {
-                                                                for (var pass = 0; pass < passes; pass++) {
-                                                                        var zStep = zeta * pass
-                                                                        paths.forEach(originalPath => {
-                                                                                var path = originalPath.slice()
-                                                                                if (path.length > 0) {
-                                                                                        path.forEach((point, index) => {
-                                                                                                var x = point.X.toFixed(2)
-                                                                                                var y = (dHeight + 6 - point.Y).toFixed(2)
-                                                                                                if (index === 0) {
-                                                                                                        gcode += `G0 X${x} Y${y} Z${zMax} F${speedTRVL} S${minPWR}\n`
-                                                                                                        gcode += `M3; laser ON\n`
-                                                                                                        gcode += `G1 X${x} Y${y} Z${zMax} F1 S0\n`
-                                                                                                        gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
-                                                                                                        gcode += `; PAUSE:${pause}ms (handled by worker)\n`
-                                                                                                } else {
-                                                                                                        gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
-                                                                                                }
-                                                                                        }); gcode += `M5; laser OFF\n`
-                                                                                }
-                                                                        })
+                                                                if (!tabBool) {
+                                                                        addLine(`G1 X${x0} Y${y0} Z${zMax} F${speedTRVL} S0`, "Position for descent")
+                                                                        addLine(`G1 X${x0} Y${y0} Z${zStep} F${speedLSR} S${maxPWR}`, "start job")
                                                                 }
-                                                        }
-                                                }
-                                                if (tabBool == true) {
-                                                        function contour() {
-                                                                for (var pass = 0; pass < passes; pass++) {
-                                                                        var zStep = zeta * pass
-                                                                        paths.forEach(originalPath => {
-                                                                                var path = originalPath.slice()
 
-                                                                                if (path.length > 1) {
-                                                                                        var first = path[0], last = path[path.length - 1]
-                                                                                        if (Math.abs(first.X - last.X) < 1e-6 && Math.abs(first.Y - last.Y) < 1e-6) {
-                                                                                                path.pop()
-                                                                                        }
-                                                                                        var x0 = path[0].X.toFixed(2)
-                                                                                        var y0 = (dHeight + 6 - path[0].Y).toFixed(2)
-                                                                                        gcode += `G0 X${x0} Y${y0} Z${zMax} F${speedTRVL} S${minPWR}\n`
-                                                                                        gcode += `; PAUSE:${pause}ms (handled by worker)\n`
-                                                                                        gcode += `M3; laser ON\n`
-
-                                                                                        for (var i = 1; i < path.length; i++) {
-                                                                                                var x = path[i].X.toFixed(2)
-                                                                                                var y = (dHeight + 6 - path[i].Y).toFixed(2)
-                                                                                                gcode += `G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}\n`
-                                                                                        }; gcode += `M5; laser OFF\n`
-                                                                                }
-                                                                        })
+                                                                for (let i = 1; i < path.length; i++) {
+                                                                        const x = path[i].X.toFixed(2)
+                                                                        const y = (dHeight + 6 - path[i].Y).toFixed(2)
+                                                                        addLine(`G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}`, `segment ${i}`)
                                                                 }
-                                                        }; tabBool = false; updateFillButtons()
-                                                }
 
-                                                // --- pattern di riempimento ---
-                                                function infillLines(rect, angle = 0) {
-                                                        var lines = []
-                                                        var rad = angle * Math.PI / 180
-                                                        var cosA = Math.cos(rad)
-                                                        var sinA = Math.sin(rad)
-
-                                                        var cx = (rect[0] + rect[2]) / 2
-                                                        var cy = (rect[1] + rect[3]) / 2
-
-                                                        for (var y = rect[1]; y <= rect[3]; y += 1 / rowPerMM) {
-                                                                var p1 = [rect[0], y]
-                                                                var p2 = [rect[2], y]
-
-                                                                p1 = [p1[0] - cx, p1[1] - cy]
-                                                                p2 = [p2[0] - cx, p2[1] - cy]
-
-                                                                p1 = [p1[0]*cosA - p1[1]*sinA, p1[0]*sinA + p1[1]*cosA]
-                                                                p2 = [p2[0]*cosA - p2[1]*sinA, p2[0]*sinA + p2[1]*cosA]
-
-                                                                p1 = [p1[0] + cx, p1[1] + cy]
-                                                                p2 = [p2[0] + cx, p2[1] + cy]
-
-                                                                lines.push([p1, p2])
-                                                        }
-                                                        return lines
-                                                }
-
-                                                function intersectInfill(infillLines) {
-                                                        window.alert = function () {}
-                                                        var clipper = new ClipperLib.Clipper()
-                                                        var infillPaths = infillLines.map(line => line.map(([x, y]) => ({ X: x * 1000, Y: y * 1000 })))
-                                                        var scaledPaths = JSON.parse(JSON.stringify(paths))
-                                                        ClipperLib.JS.ScaleUpPaths(scaledPaths, 1000)
-                                                        var result = new ClipperLib.Paths()
-                                                        clipper.AddPaths(infillPaths, ClipperLib.PolyType.ptSubject, false)
-                                                        clipper.AddPaths(scaledPaths, ClipperLib.PolyType.ptClip, true)
-                                                        clipper.Execute(ClipperLib.ClipType.ctIntersection, result, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
-                                                        ClipperLib.JS.ScaleDownPaths(result, 1000)
-                                                        return result
-                                                }
-
-                                                function hexPattern(rect, size) {
-                                                        var w = size * 2, h = Math.sqrt(3) * size
-                                                        var dx = 3/2 * size, dy = h, lines = []
-                                                        var [minX, minY, maxX, maxY] = rect
-
-                                                        for (var y = minY; y <= maxY + h; y += dy) {
-                                                                for (var x = minX; x <= maxX + w; x += dx) {
-                                                                        var offsetY = (Math.floor((x - minX) / dx) % 2) * (h / 2)
-                                                                        var cx = x
-                                                                        var cy = y + offsetY
-
-                                                                        var hexPoints = []
-                                                                        for (var i = 0; i < 6; i++) {
-                                                                                var angle = Math.PI / 3 * i
-                                                                                var px = cx + size * Math.cos(angle)
-                                                                                var py = cy + size * Math.sin(angle)
-                                                                                hexPoints.push([px, py])
-                                                                        }
-                                                                        for (var i = 0; i < 6; i++) {
-                                                                                var p1 = hexPoints[i]
-                                                                                var p2 = hexPoints[(i + 1) % 6]
-                                                                                lines.push([p1, p2])
-                                                                        }
-                                                                }
-                                                        }
-                                                        return lines
-                                                }
-
-                                                function gridPattern(rect, spacing) {
-                                                        var lines = []
-                                                        var [minX, minY, maxX, maxY] = rect
-
-                                                        for (var y = minY; y <= maxY; y += spacing) {
-                                                                var p1 = [minX, y]
-                                                                var p2 = [maxX, y]
-                                                                lines.push([p1, p2])
-                                                        }
-                                                        for (var x = minX; x <= maxX; x += spacing) {
-                                                                var p1 = [x, minY]
-                                                                var p2 = [x, maxY]
-                                                                lines.push([p1, p2])
-                                                        }
-                                                        return lines
-                                                }
-
-                                                function triPattern(rect, size) {
-                                                        var lines = []
-                                                        var [minX, minY, maxX, maxY] = rect
-                                                        var h = (Math.sqrt(3) / 2) * size
-
-                                                        for (var y = minY; y <= maxY + h; y += h) {
-                                                                for (var x = minX; x <= maxX + size; x += size) {
-                                                                        var offsetY = ((Math.floor((x - minX) / size)) % 2) * (h / 2)
-                                                                        var cx = x, cy = y + offsetY
-                                                                        var t1 = [
-                                                                                [cx, cy],
-                                                                                [cx + size / 2, cy + h],
-                                                                                [cx - size / 2, cy + h]
-                                                                        ]
-                                                                        lines.push([t1[0], t1[1]])
-                                                                        lines.push([t1[1], t1[2]])
-                                                                        lines.push([t1[2], t1[0]])
-
-                                                                        var t2 = [
-                                                                                [cx, cy + h],
-                                                                                [cx + size / 2, cy],
-                                                                                [cx - size / 2, cy]
-                                                                        ]
-                                                                        lines.push([t2[0], t2[1]])
-                                                                        lines.push([t2[1], t2[2]])
-                                                                        lines.push([t2[2], t2[0]])
-                                                                }
-                                                        }
-                                                        return lines
-                                                }
-
-                                                // --- scrittura GCODE dai segmenti ottimizzati ---
-                                                function engraveSegments(segments) {
-                                                        var optimized = optimizeSegments(segments)
-                                                        for (var pass = 0; pass < passes; pass++) {
-                                                                var zStep = zeta * pass
-                                                                optimized.forEach(seg => {
-                                                                        var [x1, y1] = seg[0]
-                                                                        var [x2, y2] = seg[1]
-                                                                        x1 = x1.toFixed(2)
-                                                                        y1 = (dHeight + 6 - y1).toFixed(2)
-                                                                        x2 = x2.toFixed(2)
-                                                                        y2 = (dHeight + 6 - y2).toFixed(2)
-
-                                                                        gcode += `M5; laser OFF\n`
-                                                                        gcode += `G0 X${x1} Y${y1} Z${zMax} F${speedTRVL} S${minPWR}\n`
-                                                                        gcode += `M3; laser ON\n`
-                                                                        gcode += `G1 X${x2} Y${y2} Z${zStep} F${speedLSR} S${maxPWR}\n`
-                                                                        gcode += `M5; laser OFF\n`
-                                                                })
-                                                        }
-                                                }
-
-                                                // --- logica principale ---
-                                                if (md == 0) {
-                                                        contour()
-                                                        if (abbBB) {gcode = pre + boundingBoxPreviewPATH(bounds, settings) + gcode + post}
-                                                        else {gcode = pre + gcode + post}
-                                                } else {
-                                                        if (inFill == '') {
-                                                                fill = infillLines([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY])
-                                                        } else if (inFill == 'hex') {
-                                                                fill = hexPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 2)
-                                                                inFill = ''
-                                                        } else if (inFill == 'grid') {
-                                                                fill = gridPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 3)
-                                                                inFill = ''
-                                                        } else if (inFill == 'tri') {
-                                                                fill = triPattern([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY], 5)
-                                                                inFill = ''
-                                                        }
-
-                                                        var intersectedPaths = intersectInfill(fill)
-                                                        var segments = []
-                                                        intersectedPaths.forEach(path => {
-                                                                for (var i = 0; i < path.length - 1; i++) {
-                                                                        segments.push([[path[i].X, path[i].Y], [path[i+1].X, path[i+1].Y]])
-                                                                }
+                                                                addLine(`M5`, "Laser OFF")
+                                                                addLine(`G0 Z${zMax} F${speedTRVL}`, "Retract to safe Z")
                                                         })
-
-                                                        engraveSegments(segments)
-                                                        contour()
-
-                                                        if (abbBB) {gcode = pre + boundingBoxPreviewPATH(bounds, settings) + gcode + post}
-                                                        else {gcode = pre + gcode + post}
                                                 }
 
-                                                saveGCODE(gcode, flName, "vector")
-                                                GCSenderShow()
-                                        } catch (error) {
-                                                console.error(error.message)
+                                                if (tabBool) {tabBool = false; updateButtons()}
                                         }
+
+                                        function infillLines(rect) {
+                                                var lines = []
+                                                for (var y = rect[1]; y <= rect[3]; y += 1 / rowPerMM) {
+                                                        var p1 = [rect[0], y]
+                                                        var p2 = [rect[2], y]
+                                                        lines.push([p1, p2])
+                                                }
+                                                return lines
+                                        }
+
+                                        function intersectInfill(infillLines) {
+                                                window.alert = function () {}
+                                                var clipper = new ClipperLib.Clipper()
+                                                var infillPaths = infillLines.map(line => line.map(([x, y]) => ({ X: x * 1000, Y: y * 1000 })))
+                                                var scaledPaths = JSON.parse(JSON.stringify(paths))
+                                                ClipperLib.JS.ScaleUpPaths(scaledPaths, 1000)
+                                                var result = new ClipperLib.Paths()
+                                                clipper.AddPaths(infillPaths, ClipperLib.PolyType.ptSubject, false)
+                                                clipper.AddPaths(scaledPaths, ClipperLib.PolyType.ptClip, true)
+                                                clipper.Execute(ClipperLib.ClipType.ctIntersection, result, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero)
+                                                ClipperLib.JS.ScaleDownPaths(result, 1000)
+                                                return result
+                                        }
+
+                                        function engraveSegments(intersectedPaths) {
+                                                if (!intersectedPaths || intersectedPaths.length === 0) return
+
+                                                var commentCol = 35, lineNum = 1
+                                                function addLine(code, comment = "") {
+                                                        var spaces = Math.max(commentCol - code.length, 1)
+                                                        var padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
+                                                        gcode += padded + "\n"; lineNum++
+                                                }
+
+                                                for (let pass = 0; pass < passes; pass++) {
+                                                        var zStep = zeta * pass
+                                                        var isForward = true
+
+                                                        intersectedPaths.forEach(path => {
+                                                                if (!path || path.length < 2) return
+
+                                                                var ordered = isForward ? path.slice() : path.slice().reverse();
+                                                                var p0 = ordered[0];
+                                                                var x0 = p0.X !== undefined ? p0.X : p0[0]
+                                                                var y0 = p0.Y !== undefined ? p0.Y : p0[1]
+
+                                                                addLine(`M5`, "Laser OFF before move");
+                                                                addLine(`G0 X${x0.toFixed(2)} Y${(dHeight + 6 - y0).toFixed(2)} Z${zMax} F${speedTRVL} S${minPWR}`, "Move to start");
+                                                                addLine(`G1 X${x0.toFixed(2)} Y${(dHeight + 6 - y0).toFixed(2)} Z${zMax} F${Math.floor(speedTRVL / 10)} S${minPWR}`, "Stabilize laser (slow move)");
+                                                                addLine(`M3 S${minPWR}`, "Laser ON at initial power")
+
+                                                                ordered.forEach((p, i) => {
+                                                                        const x = p.X !== undefined ? p.X : p[0]
+                                                                        const y = p.Y !== undefined ? p.Y : p[1]
+                                                                        addLine(`G1 X${x.toFixed(2)} Y${(dHeight + 6 - y).toFixed(2)} Z${zStep} F${speedLSR} S${maxPWR}`, `infill segment ${i + 1}`)
+                                                                })
+
+                                                                addLine(`M5`, "Laser OFF")
+                                                                addLine(`G0 Z${zMax} F${speedTRVL}`, "Retract to safe Z")
+
+                                                                isForward = !isForward
+                                                        })
+                                                }
+                                        }                                       
+
+                                        try {
+                                                if (md == 0) {
+                                                        contour(); addBoundingBox(gcode) 
+                                                        gcode = pre + bbGCode + gcode + post
+                                                } else {
+                                                        var fill = infillLines([bounds.minX, bounds.minY, bounds.maxX, bounds.maxY])
+                                                        var intersectedPaths = intersectInfill(fill)
+                                                        engraveSegments(intersectedPaths)
+                                                        contour(); addBoundingBox(gcode) 
+                                                        gcode = pre + bbGCode + gcode + post
+                                                }
+                                                
+                                                saveGCODE(gcode, flName, "vector"); GCSenderShow()
+                                        } catch (e) {console.error(e.message)}
                                 }
 
                                 function img2gc() {
-                                        function boundingBoxPreviewIMG(settings) {
-                                                var {minPWR, speedTRVL, speedLSR, zMax} = settings
-
-                                                var g = ''
-                                                var xMin = borderX.toFixed(2)
-                                                var yMin = (dHeight - (convertToMM(scaledHeight) - borderY)).toFixed(2)
-                                                var xMax = (borderX + convertToMM(scaledWidth)).toFixed(2)
-                                                var yMax = (dHeight + borderY).toFixed(2)
-
-                                                g += '\n; start BB\n'
-                                                for (var i = 0; i < 2; i++) {
-                                                        g += `M5 ; laser OFF\n`
-                                                        g += `G0 X${xMin} Y${yMin} Z${zMax} F${speedTRVL} S${minPWR}\n`
-                                                        g += `M3 ; laser ON\n`
-                                                        g += `G1 X${xMax} Y${yMin} F${speedLSR} S${minPWR}\n`
-                                                        g += `G1 X${xMax} Y${yMax} F${speedLSR} S${minPWR}\n`
-                                                        g += `G1 X${xMin} Y${yMax} F${speedLSR} S${minPWR}\n`
-                                                        g += `G1 X${xMin} Y${yMin} F${speedLSR} S${minPWR}\n`
-                                                        g += `M5 ; laser OFF\n`
-                                                }
-                                                g += '; end BB\n\n'; return g
-                                        }
-                                        
                                         try {
                                                 var type = 'raster'
                                                 var settings = prepareGCodeSettings(type)
@@ -1302,8 +1192,6 @@ simpleGear(15, 20, 4).nc
 
                                                 var imageData = ctxIMG.getImageData(0, 0, scaledWidth, scaledHeight)
                                                 var width = imageData.width, height = imageData.height, data = imageData.data
-
-                                                gcode += "; mode: raster\n"
 
                                                 function findActivePixelRange(y) {
                                                         var firstActivePixel = -1
@@ -1324,62 +1212,74 @@ simpleGear(15, 20, 4).nc
                                                         return { firstActivePixel, lastActivePixel }
                                                 }
 
+                                                var commentCol = 35, lineNum = 1
+                                                function addLine(code, comment = "") {
+                                                        var spaces = Math.max(commentCol - code.length, 1)
+                                                        var padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
+                                                        gcode += padded + "\n"; lineNum++
+                                                }                                                
                                                 function generatePassGcode(zOffset) {
-                                                        var powerStep = 5
-                                                        var powerTolerance = 5
-                                                        var lineSpacing = 1 / rowPerMM
-                                                        for (var yMM = 0; yMM < convertToMM(height); yMM += lineSpacing) {
-                                                                var y = Math.round(yMM * 96 / 25.4)
-                                                                if (y >= height) break
-                                                                var { firstActivePixel, lastActivePixel } = findActivePixelRange(y)
-                                                                if (firstActivePixel === -1) continue
-                                                                var startX = firstActivePixel
-                                                                var endX = lastActivePixel
-                                                                var step = (y % 2 === 0) ? 1 : -1
-                                                                if (step === -1) [startX, endX] = [endX, startX]
-                                                                var yCoord = dHeight - (yMM - borderY)
-                                                                var rowGcode = ''
-                                                                var drawing = false
-                                                                var lastPower = 0
-                                                                for (var ix = startX; ix !== endX + step; ix += step) {
-                                                                        var idx = (y * width + ix) * 4
-                                                                        var red = data[idx]
-                                                                        var green = data[idx + 1]
-                                                                        var blue = data[idx + 2]
-                                                                        var alpha = data[idx + 3]
-                                                                        var isWhite = red > 240 && green > 240 && blue > 240
-                                                                        var isTransparent = alpha <= 10
-                                                                        var power = 0
+                                                        const powerStep = 5;
+                                                        const powerTolerance = 5;
+                                                        const lineSpacing = 1 / rowPerMM;
+
+                                                        for (let yMM = 0; yMM < convertToMM(height); yMM += lineSpacing) {
+                                                                const y = Math.round(yMM * 96 / 25.4);
+                                                                if (y >= height) break;
+
+                                                                const { firstActivePixel, lastActivePixel } = findActivePixelRange(y);
+                                                                if (firstActivePixel === -1) continue;
+
+                                                                let startX = firstActivePixel;
+                                                                let endX = lastActivePixel;
+                                                                let step = (y % 2 === 0) ? 1 : -1;
+                                                                if (step === -1) [startX, endX] = [endX, startX];
+
+                                                                const yCoord = (dHeight - yMM) - borderY;
+                                                                let drawing = false;
+                                                                let lastPower = 0;
+
+                                                                for (let ix = startX; ix !== endX + step; ix += step) {
+                                                                        const idx = (y * width + ix) * 4;
+                                                                        const red = data[idx];
+                                                                        const green = data[idx + 1];
+                                                                        const blue = data[idx + 2];
+                                                                        const alpha = data[idx + 3];
+
+                                                                        const isWhite = red > 240 && green > 240 && blue > 240;
+                                                                        const isTransparent = alpha <= 10;
+
+                                                                        let power = 0;
                                                                         if (!isWhite && !isTransparent) {
-                                                                                var brightness = red * 0.3 + green * 0.59 + blue * 0.11
-                                                                                power = minPWR + (1.0 - brightness / 255.0) * (maxPWR - minPWR)
-                                                                                power = Math.round(power / powerStep) * powerStep
+                                                                                const brightness = red * 0.3 + green * 0.59 + blue * 0.11;
+                                                                                power = minPWR + (1.0 - brightness / 255.0) * (maxPWR - minPWR);
+                                                                                power = Math.round(power / powerStep) * powerStep;
                                                                         }
+
                                                                         if (power > 0) {
                                                                                 if (!drawing) {
-                                                                                        var segmentStartX = convertToMM(ix) + borderX
-                                                                                        rowGcode += `G0 X${segmentStartX.toFixed(3)} Y${yCoord.toFixed(3)} Z${zMax} F${speedTRVL}\n`
-                                                                                        drawing = true
-                                                                                        lastPower = power
+                                                                                        const xCoord = convertToMM(ix) + borderX;
+                                                                                        addLine(`G0 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zMax} F${speedTRVL} S${minPWR}`, `Move to start raster`);
+                                                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${power}`, `Laser ON`);
+                                                                                        drawing = true;
+                                                                                        lastPower = power;
                                                                                 } else if (Math.abs(power - lastPower) > powerTolerance) {
-                                                                                        var xCoord = convertToMM(ix) + borderX
-                                                                                        rowGcode += `G1 X${xCoord.toFixed(3)} Y${yCoord.toFixed(3)} Z${zOffset.toFixed(3)} S${lastPower} F${speedLSR}\n`
-                                                                                        rowGcode += `G1 X${xCoord.toFixed(3)} Y${yCoord.toFixed(3)} Z${zOffset.toFixed(3)} S${power} F${speedLSR}\n`
-                                                                                        lastPower = power
+                                                                                        const xCoord = convertToMM(ix) + borderX;
+                                                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, `Set power ${lastPower}`);
+                                                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${power}`, `New power ${power} `);
+                                                                                        lastPower = power;
                                                                                 }
-                                                                        } else {
-                                                                                if (drawing) {
-                                                                                        var xCoord = convertToMM(ix - step) + borderX
-                                                                                        rowGcode += `G1 X${xCoord.toFixed(3)} Y${yCoord.toFixed(3)} Z${zOffset.toFixed(3)} S${lastPower} F${speedLSR}\n`
-                                                                                        drawing = false
-                                                                                }
+                                                                        } else if (drawing) {
+                                                                                const xCoord = convertToMM(ix - step) + borderX;
+                                                                                addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, `Laser OFF`);
+                                                                                drawing = false;
                                                                         }
                                                                 }
                                                                 if (drawing) {
-                                                                        var xCoord = convertToMM(endX) + borderX
-                                                                        rowGcode += `G1 X${xCoord.toFixed(3)} Y${yCoord.toFixed(3)} Z${zOffset.toFixed(3)} S${lastPower} F${speedLSR}\n`
+                                                                        const xCoord = convertToMM(endX) + borderX;
+                                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, `Laser OFF`);
+                                                                        drawing = false;
                                                                 }
-                                                                gcode += rowGcode
                                                         }
                                                 }
 
@@ -1387,11 +1287,10 @@ simpleGear(15, 20, 4).nc
                                                         generatePassGcode(pass * zeta)
                                                 }
 
-                                                if (abbBB) {gcode = pre + boundingBoxPreviewIMG(settings) + gcode + post}
-                                                else {gcode = pre + gcode + post}
+                                                addBoundingBox(gcode) 
+                                                gcode = pre + bbGCode + gcode + post
 
-                                                saveGCODE(gcode, flName, "raster")
-                                                GCSenderShow()
+                                                saveGCODE(gcode, flName, "raster"); GCSenderShow()
                                         } catch (error) {
                                                 console.error(error.message)
                                         }
@@ -1473,30 +1372,34 @@ simpleGear(15, 20, 4).nc
 
                                 var db, request = indexedDB.open("GCODE_DB", 1)
                                 indexedDB.deleteDatabase("GCODE_DB")
-                                var dirName = document.getElementById("_10").value
 
                                 request.onupgradeneeded = function(event) {
                                         db = event.target.result
-                                        var fileStore = db.createObjectStore("gcode_files", {keyPath: "id", autoIncrement: true})
+                                        var fileStore = db.createObjectStore("gcode_files", { keyPath: "id", autoIncrement: true })
                                         fileStore.createIndex("name", "name", {unique: false})
+                                        fileStore.createIndex("order", "order", {unique: false})
                                 }
 
                                 request.onsuccess = function(event) {
-                                        db = event.target.result
-                                        loadFiles()
+                                        db = event.target.result; loadFiles()
                                 }
 
                                 function saveGCODE(data, flName, mode) {
                                         var fileName = flName
                                         var gcode = data
-                                        gcodeText = data
+                                        gc = data
                                         if (!fileName || !gcode) return
 
                                         var blob = new Blob([gcode], {type: "text/plain"})
 
                                         var transaction = db.transaction("gcode_files", "readwrite")
                                         var store = transaction.objectStore("gcode_files")
-                                        store.add({name: fileName, data: blob, mode: mode}) // mode = "vector" | "raster"
+
+                                        store.getAll().onsuccess = function(e) {
+                                                var files = e.target.result
+                                                var nextOrder = files.length
+                                                store.add({name:fileName, data:blob, mode:mode, order:nextOrder})
+                                        }
 
                                         transaction.oncomplete = function() {
                                                 gcode = ""; loadFiles()
@@ -1505,11 +1408,12 @@ simpleGear(15, 20, 4).nc
 
                                 var gcodeText = ""
                                 function loadFiles() {
-                                        var speedTRVL = parseInt($("#_04").val())                     
+                                        var speedTRVL = parseInt($("#_04").val())
                                         var speedLSR = parseInt($("#_05").val())
                                         var transaction = db.transaction("gcode_files", "readonly")
                                         var store = transaction.objectStore("gcode_files")
-                                        var request = store.getAll()
+                                        var index = store.index("order")
+                                        var request = index.getAll()
 
                                         request.onsuccess = function() {
                                                 var fileList = document.getElementById("fileList")
@@ -1518,20 +1422,25 @@ simpleGear(15, 20, 4).nc
                                                 request.result.forEach(file => {
                                                         var li = document.createElement("li")
                                                         li.textContent = "   ├── " + file.name + " [" + (file.mode || "vector") + "]"
+                                                        li.dataset.id = file.id
                                                         li.setAttribute("draggable", "true")
+
                                                         li.addEventListener("dragstart", function(e) {
                                                                 e.dataTransfer.setData("text/plain", li.dataset.id)
                                                                 li.classList.add("dragging")
-                                                                li.classList.add("ghost")   // 👈 aggiunta classe ghost
+                                                                li.classList.add("ghost")
                                                                 draggedElement = li
                                                         })
+
                                                         li.addEventListener("dragend", function() {
                                                                 li.classList.remove("dragging")
-                                                                li.classList.remove("ghost") // 👈 rimossa classe ghost
+                                                                li.classList.remove("ghost")
+                                                                saveOrder()
                                                         })
+
                                                         li.addEventListener("dragover", function(e) {
                                                                 e.preventDefault()
-                                                                const dragging = document.querySelector(".dragging")
+                                                                var dragging = document.querySelector(".dragging")
                                                                 if (dragging && dragging !== li) {
                                                                         var parent = li.parentNode
                                                                         var rect = li.getBoundingClientRect()
@@ -1550,12 +1459,12 @@ simpleGear(15, 20, 4).nc
                                                         var downloadBtn = document.createElement("button")
                                                         downloadBtn.textContent = "download"
                                                         downloadBtn.classList.add("btTool")
-                                                        downloadBtn.onclick = function() {downloadFile(file)}
+                                                        downloadBtn.onclick = function() { downloadFile(file) }
 
                                                         var deleteBtn = document.createElement("button")
                                                         deleteBtn.textContent = "delete"
                                                         deleteBtn.classList.add("btTool")
-                                                        deleteBtn.onclick = function() {deleteFile(file.id)}
+                                                        deleteBtn.onclick = function() { deleteFile(file.id) }
 
                                                         var dBtn = document.createElement("button")
                                                         dBtn.textContent = "add view"
@@ -1565,8 +1474,7 @@ simpleGear(15, 20, 4).nc
                                                                 reader.onload = function(e) {
                                                                         gcodeText = e.target.result
                                                                         isImageMode = (file.mode === "raster")
-                                                                        gcVIEW(gcodeText)
-
+                                                                        clrScene(scene); gcVIEW(gcodeText)
                                                                         var {acc, speedTRVL, speedLSR} = getCurrentGRBLValues()
                                                                         var estSec = estimateJobTime(gcodeText, speedTRVL, speedLSR, acc)
 
@@ -1587,11 +1495,33 @@ simpleGear(15, 20, 4).nc
                                         }
                                 }
 
+                                function saveOrder() {
+                                        var items = document.querySelectorAll("#fileList li")
+                                        var transaction = db.transaction("gcode_files", "readwrite")
+                                        var store = transaction.objectStore("gcode_files")
+
+                                        items.forEach((li, index) => {
+                                                var id = parseInt(li.dataset.id)
+                                                var request = store.get(id)
+                                                request.onsuccess = function() {
+                                                        var file = request.result
+                                                        if (!file) return
+                                                        file.order = index
+                                                        store.put(file)
+                                                }
+                                        })
+                                }
+
                                 function downloadFile(file) {
-                                        var url = URL.createObjectURL(file.data)
+                                        if (!gc || typeof gc !== "string" || gc.trim() === "") return
+
+                                        const blob = new Blob([gc], { type: "text/plain" })
+                                        const url = URL.createObjectURL(blob)
+                                        
+                                        //var url = URL.createObjectURL(file.data)
                                         var a = document.createElement("a")
                                         a.href = url
-                                        a.download = file.name + ".gcode"
+                                        a.download = file.name + ".nc"
                                         document.body.appendChild(a)
                                         a.click()
                                         document.body.removeChild(a)
@@ -1601,8 +1531,43 @@ simpleGear(15, 20, 4).nc
                                         var transaction = db.transaction("gcode_files", "readwrite")
                                         var store = transaction.objectStore("gcode_files")
                                         store.delete(id)
-                                        transaction.oncomplete = function() { loadFiles() }
-                                }                               
+                                        transaction.oncomplete = function() {
+                                                loadFiles()
+                                        }
+                                }
+
+                                var addQUEUE = function() {
+                                        var transaction = db.transaction("gcode_files", "readonly")
+                                        var store = transaction.objectStore("gcode_files")
+                                        var index = store.index("order")
+                                        var request = index.getAll() 
+
+                                        request.onsuccess = function() {
+                                                var files = request.result
+                                                if (files.length < 2) return
+
+                                                var combinedText = ""
+                                                var filesRead = 0
+
+                                                files.forEach((file, index) => {
+                                                        var reader = new FileReader()
+                                                        reader.onload = function(e) {
+                                                                var content = e.target.result
+
+                                                                combinedText += `\n; ===== START FILE ${file.name} =====\n`
+                                                                combinedText += `\n; type:combined\n`
+                                                                combinedText += content;
+                                                                combinedText += `\n; ===== END FILE ${file.name} =====\n`
+
+                                                                filesRead++
+                                                                if (filesRead === files.length) {
+                                                                        saveGCODE(combinedText, "COMB.", "combined")
+                                                                }
+                                                        }; 
+                                                        reader.readAsText(file.data);
+                                                })
+                                        }
+                                }
                         </script>
                 </div>
                 
@@ -1627,9 +1592,9 @@ simpleGear(15, 20, 4).nc
                         </div>             
 
                         <div id="centerPanel" class="panel" style="position:absolute; top:100px; left:0; overflow:hidden; visibility:hidden">
-                                <div id="spinner" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:20px"></div>
+                                <span id="spinner" style="position:absolute; top:50%; left:50%; width:20px; transform:translate(-50%,-50%)"></span>
                                 <div id="3dView">
-                                        <script>
+                                        <script>                                        
                                                 //------ gcode VIEW
                                                 function clrScene(scene) {
                                                         while (scene.children.length > 0) {
@@ -1648,7 +1613,7 @@ simpleGear(15, 20, 4).nc
                                                         var semicolonIndex = text.indexOf(';')
                                                         if (semicolonIndex >= 0) {
                                                                 comment = text.substring(semicolonIndex).trim()
-                                                                text = text.substring(0, semicolonIndex).trim() // rimuovi commento dal comando
+                                                                text = text.substring(0, semicolonIndex).trim() 
                                                         }
 
                                                         if (comment && this.handlers['comment']) {
@@ -1680,12 +1645,11 @@ simpleGear(15, 20, 4).nc
                                                         }
                                                 }
 
-                                                var visitedSegments = [], lastPower = 0
                                                 function createObjFromGC(gcode) {
                                                         var positions = [], colors = [], pathPoints = [], lastLine = { x: 0, y: 0, z: 0 }
                                                         var visitedSegments = [], lastPower = 0
-                                                        var inBB = false // flag bounding box
-                                                        var bbColor = new THREE.Color(0xff0000) // rosso fisso per BB
+                                                        var inBB = false 
+                                                        var bbColor = new THREE.Color(0x555555) 
                                                         var isImageMode = gcode.includes('; mode:raster')
 
                                                         function addSegment(p1, p2, power, isBB) {
@@ -1694,10 +1658,8 @@ simpleGear(15, 20, 4).nc
 
                                                                 var color
                                                                 if (isBB) {
-                                                                        // BB sempre rosso, indipendentemente dal tipo di G-code
                                                                         color = bbColor
                                                                 } else {
-                                                                        // resto dei segmenti
                                                                         var intensity = power / 255
                                                                         if (isImageMode) intensity = 1 - intensity
                                                                         color = new THREE.Color().setRGB(intensity, intensity, intensity)
@@ -1794,12 +1756,13 @@ simpleGear(15, 20, 4).nc
                                                 var camera = new THREE.PerspectiveCamera(40, tW / tH, 1, 1000)
                                                 camera.lookAt(0,0,0); camera.up.set(0, 1, 0)
                                                 var controls = new THREE.OrbitControls(camera, renderer.domElement)
-
+                                                controls.enableKeys = false
+                                                
                                                 function resetCAMERA() {
                                                         camera = new THREE.PerspectiveCamera(40, tW / tH, 0.1, 1000)
                                                         camera.position.set(5, -22, 138)
                                                         controls = new THREE.OrbitControls(camera, renderer.domElement)
-                                                        controls.update()
+                                                        controls.enableKeys = false; controls.update()
                                                 }
 
                                                 function loop() {
@@ -1835,25 +1798,19 @@ simpleGear(15, 20, 4).nc
                                                         camera.updateProjectionMatrix()
                                                 })
 
-                                                var spinner = document.getElementById('spinner');
-                                                var frames = ['⠁','⠂','⠄','⡀','⢀','⠠','⠐','⠈'].reverse()
-                                                var i = 0; intervalId = null;
-
-                                                var spinnerEl = document.getElementById('spinner')
-                                                var spinnerFrames = ['⠁','⠂','⠄','⡀','⢀','⠠','⠐','⠈'].reverse()
-                                                var spinnerInterval = null
+                                                var frames = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
+                                                var interval = 80, timer
                                                 function startSpinner() {
-                                                        if (spinnerInterval) return
-                                                        var i = 0; spinnerInterval = setInterval(() => {
-                                                                spinnerEl.textContent = spinnerFrames[i]
-                                                                i = (i + 1) % spinnerFrames.length
-                                                        }, 100); spinnerEl.style.visibility = 'visible'
+                                                        var i = 0;
+                                                        var el = document.getElementById("spinner");
+                                                        timer = setInterval(() => {
+                                                                el.textContent = frames[i % frames.length]; i++
+                                                        }, interval); return timer
                                                 }
 
                                                 function stopSpinner() {
-                                                    clearInterval(spinnerInterval)
-                                                    spinnerInterval = null
-                                                    spinnerEl.style.visibility = 'hidden'
+                                                        clearInterval(timer)
+                                                        document.getElementById("spinner").textContent = ""
                                                 }
                                         </script>
                                 </div>    
@@ -1992,7 +1949,6 @@ simpleGear(15, 20, 4).nc
                                                 }; isSendingConfig = false
                                         }
                                 </script>
-
                         </div>
 
                         <div id="rightPanel" style="background:#101010; position:absolute; width:500px; top:100px; z-index:500;
@@ -2007,7 +1963,10 @@ simpleGear(15, 20, 4).nc
 
                                 <div id="crud-wrapper" style="">              
                                         <div id="crud"> <ul id="fileList"></ul></div>
-                                </div>                                
+                                </div>
+
+                                <button id="print" class="btTool" style="position:absolute;
+                                width:100px; bottom:8px; right:10px" onclick="addBoundingBox()">addBB</button>
                         </div>
 
                          <script>
@@ -2057,6 +2016,7 @@ var lineNumber = 0, lastStatusReq = 0
 var totalGCodeLines = 0, sentGCodeLines = 0
 var parser, lastLine, lastPower, center = {x: 0, y: 0, z: 0}
 var pingInterval, OK_TIMEOUT = 1000
+var lastLineSent, error2Count = 0
 
 /* =========================
         UTILITIES
@@ -2067,7 +2027,7 @@ function enqueueOkResolver(resolve) {
 
 function clearOkQueue() {
         while (okQueue.length) {
-                try { okQueue.shift()(new Error('streaming aborted')) } catch(e){}
+                try {okQueue.shift()(new Error('streaming aborted'))} catch(e){}
         }
 }
 
@@ -2078,36 +2038,167 @@ function formatGcodeLine(rawLine){
 /* =========================
         PARSER 3D
 ========================= */
-function makeStreamParser(scene){
-        return new GCodeParser({
+function makeStreamParser(scene) {
+        let segments = []
+        let currentSegmentIndex = 0
+        let currentSegmentProgress = 0
+        let completedLineMeshes = []
+        let activeLineMesh = null
+        let laserMesh = null
+
+        let inBB = false
+        const bbColor = new THREE.Color(0x555555)
+        const minSegmentDuration = 0.02
+        const laserHeight = 4.0
+        const defaultFeed = 1200
+
+        function dist(a, b) {
+                const dx = a.x - b.x
+                const dy = a.y - b.y
+                const dz = a.z - b.z
+                return Math.sqrt(dx * dx + dy * dy + dz * dz)
+        }
+
+        const speedFactor = 0.2
+        function calcDuration(length, feed) {
+                const feedUsed = (feed && feed > 0) ? feed : defaultFeed
+                const speed_mm_per_sec = feedUsed / 60
+                const duration = speed_mm_per_sec > 0 ? (length / speed_mm_per_sec) : (length * 0.01)
+                return Math.max(duration * speedFactor, minSegmentDuration)
+        }
+
+        let running = false
+        function animateLoop(timestamp) {
+                if (currentSegmentIndex >= segments.length) {
+                        if (running) requestAnimationFrame(animateLoop)
+                        return
+                }
+
+                const seg = segments[currentSegmentIndex]
+                if (typeof seg._lastTimestamp === 'undefined') seg._lastTimestamp = timestamp || performance.now()
+                const now = timestamp || performance.now()
+                const dt = (now - seg._lastTimestamp) / 1000
+                seg._lastTimestamp = now
+                seg._elapsed = (seg._elapsed || 0) + dt
+                currentSegmentProgress = Math.min(1, seg._elapsed / seg.duration)
+
+                const x = seg.oldPt.x + (seg.newPt.x - seg.oldPt.x) * currentSegmentProgress
+                const y = seg.oldPt.y + (seg.newPt.y - seg.oldPt.y) * currentSegmentProgress
+                const z = seg.oldPt.z + (seg.newPt.z - seg.oldPt.z) * currentSegmentProgress
+
+                // === linea attiva ===
+                if (!activeLineMesh) {
+                        const geom = new THREE.BufferGeometry().setFromPoints([
+                                new THREE.Vector3(seg.oldPt.x, seg.oldPt.y, seg.oldPt.z),
+                                new THREE.Vector3(x, y, z)
+                        ])
+
+                        const color = seg.inBB ? bbColor : new THREE.Color(seg.powerRatio, seg.powerRatio, seg.powerRatio)
+                        geom.setAttribute('color', new THREE.Float32BufferAttribute([
+                                color.r, color.g, color.b, color.r, color.g, color.b
+                        ], 3))
+
+                        const mat = new THREE.LineBasicMaterial({ vertexColors: true })
+                        activeLineMesh = new THREE.Line(geom, mat)
+                        scene.add(activeLineMesh)
+                } else {
+                        activeLineMesh.geometry.setFromPoints([
+                                new THREE.Vector3(seg.oldPt.x, seg.oldPt.y, seg.oldPt.z),
+                                new THREE.Vector3(x, y, z)
+                        ])
+                        activeLineMesh.geometry.attributes.position.needsUpdate = true
+                }
+
+                // === laser ===
+                if (!laserMesh) {
+                        const radius = 0.5
+                        const laserGeom = new THREE.ConeGeometry(radius, laserHeight, 16)
+                        const laserMat = new THREE.MeshBasicMaterial({ color: 0x0000ff })
+                        laserMesh = new THREE.Mesh(laserGeom, laserMat)
+                        scene.add(laserMesh)
+                }
+
+                const laserTop = new THREE.Vector3(x, y, z + laserHeight)
+                const laserBottom = new THREE.Vector3(x, y, z)
+                const dir = new THREE.Vector3().subVectors(laserBottom, laserTop)
+                const length = dir.length()
+                dir.normalize()
+                laserMesh.scale.set(1, length / laserHeight, 1)
+                const axis = new THREE.Vector3(0, 1, 0)
+                const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, dir)
+                laserMesh.setRotationFromQuaternion(quaternion)
+                const center = new THREE.Vector3().addVectors(laserTop, laserBottom).multiplyScalar(0.5)
+                laserMesh.position.copy(center)
+
+                if (currentSegmentProgress >= 1) {
+                        activeLineMesh.geometry.setFromPoints([
+                                new THREE.Vector3(seg.oldPt.x, seg.oldPt.y, seg.oldPt.z),
+                                new THREE.Vector3(seg.newPt.x, seg.newPt.y, seg.newPt.z)
+                        ])
+                        completedLineMeshes.push(activeLineMesh)
+                        activeLineMesh = null
+                        currentSegmentIndex++
+                        currentSegmentProgress = 0
+                }
+
+                if (running) requestAnimationFrame(animateLoop)
+        }
+
+        function ensureAnimationRunning() {
+                if (!running) {
+                        stopSpinner()
+                        running = true
+                        requestAnimationFrame(animateLoop)
+                }
+        }
+
+        // === istanzia il parser ===
+        const parser = new GCodeParser({
                 G0: args => {
                         if ('s' in args) lastPower = args.s
-                        var zReal = ('z' in args) ? args.z : lastLine.z
+                        const zReal = ('z' in args) ? args.z : lastLine.z
                         lastLine = { x: args.x ?? lastLine.x, y: args.y ?? lastLine.y, z: zReal }
                 },
+
                 G1: args => {
                         if ('s' in args) lastPower = args.s
-                        var powerRatio = isImageMode ? 1 - (lastPower / 255) : (lastPower / 255)
-                        var zReal = ('z' in args) ? args.z : lastLine.z
-                        var zOffset = -powerRatio
-                        var newPt = { x: (args.x ?? lastLine.x) - center.x, y: (args.y ?? lastLine.y) - center.y, z: (zReal + zOffset) - center.z }
-                        var oldPt = { x: lastLine.x - center.x, y: lastLine.y - center.y, z: lastLine.z + zOffset - center.z }
-                        var geom = new THREE.BufferGeometry()
-                        geom.setAttribute('position', new THREE.Float32BufferAttribute([
-                                oldPt.x, oldPt.y, oldPt.z, newPt.x, newPt.y, newPt.z
-                        ], 3))
-                        var c = new THREE.Color().setRGB(powerRatio, powerRatio, powerRatio)
-                        geom.setAttribute('color', new THREE.Float32BufferAttribute([
-                                c.r, c.g, c.b, c.r, c.g, c.b
-                        ], 3))
-                        var mat = new THREE.LineBasicMaterial({vertexColors: true})
-                        var lineSeg = new THREE.LineSegments(geom, mat)
-                        scene.add(lineSeg)
-
-                        stopSpinner()                       
-                        lastLine = {x: args.x ?? lastLine.x, y: args.y ?? lastLine.y, z: zReal}
+                        const powerRatio = isImageMode ? 1 - (lastPower / 255) : (lastPower / 255)
+                        const zReal = ('z' in args) ? args.z : lastLine.z
+                        const zOffset = -powerRatio
+                        const newPt = {
+                                x: (args.x ?? lastLine.x) - center.x,
+                                y: (args.y ?? lastLine.y) - center.y,
+                                z: (zReal + zOffset) - center.z
+                        }
+                        const oldPt = {
+                                x: lastLine.x - center.x,
+                                y: lastLine.y - center.y,
+                                z: lastLine.z + zOffset - center.z
+                        }
+                        const length = dist(oldPt, newPt)
+                        const feed = ('f' in args) ? args.f : undefined
+                        const duration = calcDuration(length, feed)
+                        segments.push({
+                                oldPt, newPt, powerRatio, feed,
+                                length, duration, _elapsed: 0, inBB
+                        })
+                        lastLine = { x: args.x ?? lastLine.x, y: args.y ?? lastLine.y, z: zReal }
+                        ensureAnimationRunning()
                 }
         })
+
+        return {
+                parseLine: (line) => {
+                        const trimmed = line.trim()
+                        if (trimmed.startsWith(';')) {
+                                const text = trimmed.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()
+                                if (text.includes('start bb')) inBB = true
+                                if (text.includes('end bb')) inBB = false
+                                return
+                        }
+                        parser.parseLine(line)
+                }
+        }
 }
 
 /* =========================
@@ -2120,33 +2211,48 @@ var workerCode = `
                 var { cmd, data } = e.data
                 if (cmd === 'start') {
                         lines = data.lines
-                                .map(l => l.replace(/\\(.*?\\)/g, ''))
-                                .map(l => l.split(';')[0].trim())
-                                .filter(l => l.length > 0 || /^; PAUSE:/i.test(l))
+                                .map(l => l.replace(/\\(.*?\\)/g, ''))   
+                                //.map(l => l.split(';')[0].trim())       
+                                .filter(l => l.length > 0)               
                         currentIndex = 0; paused = false
                         stopped = false; pump()
                 }
-                else if (cmd === 'ok') {pump()}
-                else if (cmd === 'pause') {paused = true}
-                else if (cmd === 'resume') {paused = false; pump()}
-                else if (cmd === 'stop') {stopped = true}
+                else if (cmd === 'ok') { pump() }
+                else if (cmd === 'pause') { paused = true }
+                else if (cmd === 'resume') { paused = false; pump() }
+                else if (cmd === 'stop') { stopped = true }
         }
 
-        function pump() {
+        async function pump() {
                 if (stopped) {
-                        self.postMessage({type: 'stopped'}); return
+                        self.postMessage({type: 'stopped'})
+                        return
                 }
                 if (paused) return
                 if (currentIndex >= lines.length) {
-                        self.postMessage({type: 'done'}); return
+                        self.postMessage({type: 'done'})
+                        return
                 }
+
                 var raw = lines[currentIndex++]
-                if (/^; PAUSE:/i.test(raw)) {
-                        var ms = parseInt(raw.split(':')[1])
-                        self.postMessage({type: 'pause', time: ms})
-                } else {
-                        self.postMessage({type: 'send', line: {raw, formatted: raw + '\\n'}})
+
+                // --- Riconosci ; PAUSE:xxx (millisecondi) o G4 Pxxx
+                if (/^;\\s*PAUSE[:=]/i.test(raw)) {
+                        var ms = parseInt(raw.split(/[:=]/)[1])
+                        if (!isNaN(ms)) {
+                                self.postMessage({type: 'pause', time: ms})
+                                return
+                        }
                 }
+                var dwell = raw.match(/^G0?4\\s+P([\\d\\.]+)/i)
+                if (dwell) {
+                        var sec = parseFloat(dwell[1])
+                        if (!isNaN(sec)) {
+                                self.postMessage({type: 'pause', time: sec * 1000})
+                                return
+                        }
+                }
+                self.postMessage({type: 'send', line: {raw, formatted: raw + '\\n'}})
         }
 `
 var blob = new Blob([workerCode], {type: 'application/javascript'})
@@ -2156,6 +2262,7 @@ worker.onerror = e => console.error("Worker error:", e.message)
 /* =========================
         STREAMING G-CODE
 ========================= */
+
 async function streamGCodeWorkerMain(){
         if (!gcodeText || !gcodeText.trim()) return console.warn("G-code empty")
         if (isSending) return console.warn("Streaming in progress")
@@ -2176,10 +2283,8 @@ async function streamGCodeWorkerMain(){
         parser = makeStreamParser(scene)
         var lines = gcodeText.split('\n')
         totalGCodeLines = lines.filter(l => l.trim() && !l.startsWith(';')).length
-        sentGCodeLines = 0
-        lineNumber = 0
-        isSending = true
-        stopRequested = false
+        sentGCodeLines = 0; lineNumber = 0
+        isSending = true; stopRequested = false
         startSpinner(); worker.postMessage({cmd:'start', data:{lines}})
 }
 
@@ -2188,34 +2293,29 @@ async function streamGCodeWorkerMain(){
 ========================= */
 worker.onmessage = async (e) => {
         var msg = e.data
+
         if (msg.type === 'send') {
-                var { raw, formatted } = msg.line
+                var { raw, formatted } = msg.line;
                 console.log("→ Sending:", formatted.trim())
                 try {
-                        await writer.write(encoder.encode(formatted))
-                } catch (e) {
-                        console.error("Error writing to GRBL:", e); return
-                }
-                startPingGRBL()
-                await new Promise((resolve, reject) => {
-                        enqueueOkResolver(async () => {
-                                try {
-                                        try {parser.parseLine(raw)}
-                                        catch (err) {console.warn("parse error:", err)}
-                                        sentGCodeLines++; updateProgressBar(); resolve()
-                                } catch(e) { reject(e) }
-                        })
-                })
+                        lastLineSent = formatted;
+                        try { parser.parseLine(raw) } catch (err) {console.warn("parse error:", err)}
+
+                        sentGCodeLines++; updateProgressBar()
+                        await writer.write(encoder.encode(formatted));
+                        startPingGRBL()
+                        await new Promise(resolve => enqueueOkResolver(resolve));
+                } catch (e) { console.error("Error sending line:", e) }
 
                 worker.postMessage({cmd: 'ok'})
         } else if (msg.type === 'pause') {
                 var ms = msg.time || 0
                 await new Promise(r => setTimeout(r, ms))
-                worker.postMessage({ cmd: 'ok' })
+                worker.postMessage({cmd: 'ok'})
         } else if (msg.type === 'done') {
                 isSending = false; stopPingGRBL()
                 console.log("Streaming completed")
-                
+                //disconnectSerial(); GCSenderHide()
         } else if (msg.type === 'stopped') {
                 isSending = false; clearOkQueue()
                 console.log("Streaming stopped")
@@ -2283,7 +2383,7 @@ async function connectSerial(){
                 setTimeout(async () => {
                         try {
                                 setTimeout(async () => {
-                                        await writer.write(new Uint8Array([0x18]))
+                                        //await writer.write(new Uint8Array([0x18]))
                                         await writer.write(encoder.encode("$X\n"))
                                 }, 1500)
                         } catch(e) { console.error("Error sending $X:", e) }
@@ -2325,14 +2425,14 @@ async function readSerialData(){
         try {
                 while (true) {
                         var {value, done} = await reader.read()
-                        if (done) break
-                        buffer += value
+                        if (done) break; buffer += value
                         var lines = buffer.split(/\r?\n/)
                         buffer = lines.pop()
                         for (var raw of lines) {
                                 var line = raw.trim()
                                 if (!line) continue
                                 if (line === 'ok') {
+                                        error2Count = 0
                                         var resolver = okQueue.shift()
                                         if (resolver) {
                                                 try {
@@ -2340,9 +2440,22 @@ async function readSerialData(){
                                                         console.response("← GRBL:", line)
                                                 } catch(e){}
                                         }; continue
-                                }
+                                }                             
                                 if (line.startsWith('echo:')) console.warn('[GRBL echo]', line)
                                 else if (line.startsWith('[MSG:')) console.info('[GRBL MSG]', line)
+                                else if (line.startsWith('error:2')) {
+                                        if (lastLineSent && error2Count < 3) {
+                                                error2Count++; await writer.write(encoder.encode(lastLineSent))
+                                        } else {
+                                                console.error("Repeated error:2, skipping line:", lastLineSent)
+                                        }
+                                }
+                                else if (line.startsWith('error:24')){
+                                        await writer.write(encoder.encode("$X\n"))
+                                        if (isSending && !stopRequested) {
+                                                setTimeout(() => worker.postMessage({cmd:'ok'}), 500)
+                                        }; continue
+                                }
                                 else if (line.startsWith('error:')) console.error('[GRBL error]', line)
                                 else if (line.startsWith('alarm:')) console.error('[GRBL alarm]', line)
                                 else if (line.startsWith('<') && line.endsWith('>')) {
@@ -2580,9 +2693,7 @@ document.getElementById('resume').addEventListener('click', resumeStreaming)
                 <div id="pwa-warning" style="
                         display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
                         background:#000; border:1px solid #3c3c3c; padding:15px 20px; font-size:12px; z-index:9999;
-                ">
-                  ⚠️ for stable background execution, install the PWA from your browser.
-                </div>
+                ">⚠️ for stable background execution, install the PWA from your browser</div>
                                   
                 <div id="splash" style="z-index:9999; position:absolute; width:100%; height:100%; left:50%; transform:translateX(-50%)">
                         <script>                                    
@@ -2594,12 +2705,13 @@ document.getElementById('resume').addEventListener('click', resumeStreaming)
                                                         setTimeout(() => { $("#splash").remove(); }, 2000)
                                                 }, 3000)
                                         })
-                                        setTimeout(() => {setWorkArea(); TAOpen()}, 5000)
+                                        setTimeout(() => {
+                                                $("#pwa-warning").fadeOut(2000)
+                                                setWorkArea(); TAOpen()
+                                        }, 5000)
                                 }, 0)
-
                         </script>   
-                        
-                </div>                
+                </div>                 
         </body>             
 </html>  
 
