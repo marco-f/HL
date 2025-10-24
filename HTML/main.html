@@ -508,7 +508,7 @@ simpleGear(15, 20, 4).nc
    
 
                                 var runSCRIPT = () => {
-                                        try {
+                                        //try {
                                                 clearCNVS()
                                                 var userCode = editor.getValue()
                                                 var content = edtContent(userCode)
@@ -524,7 +524,7 @@ simpleGear(15, 20, 4).nc
                                                         canvas.add(guidePair.intersectionCircle).bringToFront()                                       
                                                 }
                                                 cancBool = false
-                                        } catch(error) {console.error(error)}
+                                        //} catch(error) {console.error(error)}
                                 }
                         </script>
                 </div>
@@ -1406,7 +1406,7 @@ simpleGear(15, 20, 4).nc
                                         }
                                 }
 
-                                var gcodeText = ""
+                                var gcodeText = "", preview = false
                                 function loadFiles() {
                                         var speedTRVL = parseInt($("#_04").val())
                                         var speedLSR = parseInt($("#_05").val())
@@ -1467,9 +1467,10 @@ simpleGear(15, 20, 4).nc
                                                         deleteBtn.onclick = function() { deleteFile(file.id) }
 
                                                         var dBtn = document.createElement("button")
-                                                        dBtn.textContent = "add view"
+                                                        dBtn.textContent = "preview"
                                                         dBtn.classList.add("btTool")
-                                                        dBtn.onclick = function() { 
+                                                        dBtn.onclick = function() {
+                                                                preview = true
                                                                 var reader = new FileReader()
                                                                 reader.onload = function(e) {
                                                                         gcodeText = e.target.result
@@ -1587,7 +1588,10 @@ simpleGear(15, 20, 4).nc
                                 position:absolute; left:10px; top:200px; width:177px" placeholder="send command 'ctrl + enter'"/>
 
                                 <div id="grbl" style="position:absolute; bottom:100px; left:10px; right:5px;
-                                color:gray; font-size:12px; line-height:1.4; white-space:pre-wrap;"></div>                                    
+                                color:gray; font-size:12px; line-height:1.4; white-space:pre-wrap;"></div>
+
+                                <div id="ovLP" style="background:transparent; position:absolute; width:200px; top:35px; z-index:600;
+                                left:calc(50% - (var(--viewWidth) / 2) - 100px); height:2000px; z-index:500, display:none"></div>
        
                         </div>             
 
@@ -2113,7 +2117,7 @@ function makeStreamParser(scene) {
                 if (!laserMesh) {
                         const radius = 0.5
                         const laserGeom = new THREE.ConeGeometry(radius, laserHeight, 16)
-                        const laserMat = new THREE.MeshBasicMaterial({ color: 0x0000ff })
+                        const laserMat = new THREE.MeshBasicMaterial({ color: 0xff00ff })
                         laserMesh = new THREE.Mesh(laserGeom, laserMat)
                         scene.add(laserMesh)
                 }
@@ -2217,10 +2221,10 @@ var workerCode = `
                         currentIndex = 0; paused = false
                         stopped = false; pump()
                 }
-                else if (cmd === 'ok') { pump() }
-                else if (cmd === 'pause') { paused = true }
-                else if (cmd === 'resume') { paused = false; pump() }
-                else if (cmd === 'stop') { stopped = true }
+                else if (cmd === 'ok') {pump()}
+                else if (cmd === 'pause') {paused = true}
+                else if (cmd === 'resume') {paused = false; pump()}
+                else if (cmd === 'stop') {stopped = true}
         }
 
         async function pump() {
@@ -2264,28 +2268,32 @@ worker.onerror = e => console.error("Worker error:", e.message)
 ========================= */
 
 async function streamGCodeWorkerMain(){
-        if (!gcodeText || !gcodeText.trim()) return console.warn("G-code empty")
-        if (isSending) return console.warn("Streaming in progress")
-        if (!isConnected || !writer) {
-                try {
-                        await connectSerial()
-                        await new Promise(r => setTimeout(r, 100))
-                } catch(e) {
-                        return console.error("Cannot connect:", e)
+        if (preview == true){
+                cnsLog.innerHTML=''
+                if (!gcodeText || !gcodeText.trim()) return console.warn("G-code empty")
+                if (isSending) return console.warn("Streaming in progress")
+                if (!isConnected || !writer) {
+                        try {
+                                await connectSerial()
+                                await new Promise(r => setTimeout(r, 100))
+                        } catch(e) {
+                                return console.error("Cannot connect:", e)
+                        }
                 }
-        }
-        stopPingGRBL()
-        clrScene && clrScene(scene)
-        var pre = createObjFromGC && createObjFromGC(gcodeText)
-        if (pre) center = pre.center
-        lastLine = {x:0, y:0, z:0}
-        lastPower = 0
-        parser = makeStreamParser(scene)
-        var lines = gcodeText.split('\n')
-        totalGCodeLines = lines.filter(l => l.trim() && !l.startsWith(';')).length
-        sentGCodeLines = 0; lineNumber = 0
-        isSending = true; stopRequested = false
-        startSpinner(); worker.postMessage({cmd:'start', data:{lines}})
+                stopPingGRBL()
+                clrScene && clrScene(scene)
+                var pre = createObjFromGC && createObjFromGC(gcodeText)
+                if (pre) center = pre.center
+                lastLine = {x:0, y:0, z:0}
+                lastPower = 0
+                parser = makeStreamParser(scene)
+                var lines = gcodeText.split('\n')
+                totalGCodeLines = lines.filter(l => l.trim() && !l.startsWith(';')).length
+                sentGCodeLines = 0; lineNumber = 0
+                isSending = true; stopRequested = false
+                startSpinner(); worker.postMessage({cmd:'start', data:{lines}})
+                preview= false
+        } else {console.error('add preview')}
 }
 
 /* =========================
@@ -2297,15 +2305,18 @@ worker.onmessage = async (e) => {
         if (msg.type === 'send') {
                 var { raw, formatted } = msg.line;
                 console.log("→ Sending:", formatted.trim())
-                try {
-                        lastLineSent = formatted;
-                        try { parser.parseLine(raw) } catch (err) {console.warn("parse error:", err)}
 
-                        sentGCodeLines++; updateProgressBar()
-                        await writer.write(encoder.encode(formatted));
-                        startPingGRBL()
-                        await new Promise(resolve => enqueueOkResolver(resolve));
-                } catch (e) { console.error("Error sending line:", e) }
+                try { parser.parseLine(raw) } catch (err) { console.warn("parse error:", err) }
+
+                const sendToGrbl = formatted.split(';')[0].trim()
+                if (sendToGrbl) {
+                        try {
+                                sentGCodeLines++; updateProgressBar()
+                                await writer.write(encoder.encode(sendToGrbl + '\n'))
+                                startPingGRBL()
+                                await new Promise(resolve => enqueueOkResolver(resolve))
+                        } catch (e) { console.error("Error sending line:", e)}
+                }
 
                 worker.postMessage({cmd: 'ok'})
         } else if (msg.type === 'pause') {
@@ -2370,6 +2381,8 @@ function updateProgressBar(){
 async function connectSerial(){
         if (isConnected) return
         try {
+                var ovLP = document.getElementById('ovLP')
+                ovLP.style.display = 'none'
                 if (!port) {
                         var ports = await navigator.serial.getPorts()
                         port = ports[0] || await navigator.serial.requestPort()
