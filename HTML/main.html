@@ -508,7 +508,7 @@ simpleGear(15, 20, 4).nc
    
 
                                 var runSCRIPT = () => {
-                                        //try {
+                                        try {
                                                 clearCNVS()
                                                 var userCode = editor.getValue()
                                                 var content = edtContent(userCode)
@@ -524,7 +524,7 @@ simpleGear(15, 20, 4).nc
                                                         canvas.add(guidePair.intersectionCircle).bringToFront()                                       
                                                 }
                                                 cancBool = false
-                                        //} catch(error) {console.error(error)}
+                                        } catch(error) {console.error(error)}
                                 }
                         </script>
                 </div>
@@ -579,7 +579,7 @@ simpleGear(15, 20, 4).nc
                                 }; ftr()
 
                                 var cnsLog = document.getElementById('cnsLog')
-                                /*function logging() {
+                                function logging() {
                                         var MAX_LOG_LINES = 200
                                         var logBuffer = []
                                         var bufferFlushInterval = 200  // ms
@@ -648,7 +648,7 @@ simpleGear(15, 20, 4).nc
                                         scrollTimeout = setTimeout(() => {
                                                 cnsLog.scrollTop = cnsLog.scrollHeight
                                         }, 100)
-                                }); observer.observe(cnsLog, {childList: true})*/
+                                }); observer.observe(cnsLog, {childList: true})
 
                                 var objNumber = 0;
                                 function addToConsole() {
