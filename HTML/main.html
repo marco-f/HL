@@ -39,6 +39,7 @@
                 <script src="../JS/three/three.js"></script>
                 <script src="../JS/three/gcode-model.js"></script>
                 <script src="../JS/three/OrbitControls.js"></script>
+                <script src="../JS/three/SVGLoader.js"></script>
         </head>
 
         <style>
@@ -480,19 +481,21 @@ simpleGear(15, 20, 4).nc
                                 })
 
                                 function remToEdt(searchString) {
-                                        var content = editor.getValue();
-                                        var regex = new RegExp(searchString + "\\([^)]*\\)", "g")
-                                        var lines = content.split("\n"),
-                                                modifiedLine = -1;
+                                        var content = editor.getValue()
+                                        var regex = new RegExp("\\." + searchString + "(\\([^)]*\\))?", "g")
+                                        var lines = content.split("\n")
+                                        var modifiedLine = -1
                                         for (var i = 0; i < lines.length; i++) {
                                                 if (regex.test(lines[i])) {
                                                         modifiedLine = i; break
                                                 }
                                         }
-                                        var updatedContent = content.replace(regex, "")
-                                        editor.setValue(updatedContent, -1)
+
+                                        var updatedContent = content.replace(regex, "");
+                                        editor.setValue(updatedContent, -1);
+
                                         if (modifiedLine !== -1) {
-                                                editor.gotoLine(modifiedLine + 2, 0, true)
+                                                editor.gotoLine(modifiedLine + 2, 0, true);
                                         }; editor.focus()
                                 }
 
@@ -743,7 +746,7 @@ simpleGear(15, 20, 4).nc
                         </div>
                         <div id="t_2" class="buttons-container" style="top:160px">
                                 <span class="txtInp" style="background:transparent; border:0; cursor:default; width:70px">rowsPerMM</span>
-                                <input class="txtInp" type="text" id="_07" placeholder="rows/mm" maxlength="4" value="1"/>
+                                <input class="txtInp" type="text" id="_07" placeholder="rows/mm" maxlength="4" value="3"/>
 
                                 <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">Z-AXIS</span>
                                 <input class="txtInp" type="text" id="_08" placeholder="inc. Z" maxlength="4" value="0"/>
@@ -1406,7 +1409,7 @@ simpleGear(15, 20, 4).nc
                                         }
                                 }
 
-                                var gcodeText = "", preview = false
+                                var gcodeText = "", preview = false, mV
                                 function loadFiles() {
                                         var speedTRVL = parseInt($("#_04").val())
                                         var speedLSR = parseInt($("#_05").val())
@@ -1459,12 +1462,12 @@ simpleGear(15, 20, 4).nc
                                                         var downloadBtn = document.createElement("button")
                                                         downloadBtn.textContent = "download"
                                                         downloadBtn.classList.add("btTool")
-                                                        downloadBtn.onclick = function() { downloadFile(file) }
+                                                        downloadBtn.onclick = function() {downloadFile(file)}
 
                                                         var deleteBtn = document.createElement("button")
                                                         deleteBtn.textContent = "delete"
                                                         deleteBtn.classList.add("btTool")
-                                                        deleteBtn.onclick = function() { deleteFile(file.id) }
+                                                        deleteBtn.onclick = function() {deleteFile(file.id)}
 
                                                         var dBtn = document.createElement("button")
                                                         dBtn.textContent = "preview"
@@ -1475,7 +1478,10 @@ simpleGear(15, 20, 4).nc
                                                                 reader.onload = function(e) {
                                                                         gcodeText = e.target.result
                                                                         isImageMode = (file.mode === "raster")
-                                                                        clrScene(scene); gcVIEW(gcodeText)
+                                                                        clrScene(scene)
+                                                                        gcVIEW(gcodeText)
+                                                                        mV = file.mode; console.log(mV)
+                                                                        //render3DFile(mV)
                                                                         var {acc, speedTRVL, speedLSR} = getCurrentGRBLValues()
                                                                         var estSec = estimateJobTime(gcodeText, speedTRVL, speedLSR, acc)
 
@@ -1514,15 +1520,10 @@ simpleGear(15, 20, 4).nc
                                 }
 
                                 function downloadFile(file) {
-                                        if (!gc || typeof gc !== "string" || gc.trim() === "") return
-
-                                        const blob = new Blob([gc], { type: "text/plain" })
-                                        const url = URL.createObjectURL(blob)
-                                        
-                                        //var url = URL.createObjectURL(file.data)
-                                        var a = document.createElement("a")
+                                        let url = URL.createObjectURL(file.data)
+                                        let a = document.createElement("a")
                                         a.href = url
-                                        a.download = file.name + ".nc"
+                                        a.download = file.name + ".gcode"
                                         document.body.appendChild(a)
                                         a.click()
                                         document.body.removeChild(a)
@@ -1970,7 +1971,7 @@ simpleGear(15, 20, 4).nc
                                 </div>
 
                                 <button id="print" class="btTool" style="position:absolute;
-                                width:100px; bottom:8px; right:10px" onclick="addBoundingBox()">addBB</button>
+                                width:100px; bottom:8px; right:10px" onclick="">lito</button>
                         </div>
 
                          <script>
