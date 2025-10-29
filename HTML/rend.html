@@ -80,33 +80,14 @@
                 border: 1px solid #3c3c3c;                          
                 text-align:right; color:#fff;         
         }
-        .btTool {margin-left: 0px;
-                text-align: center;  color: white;        
-                cursor: pointer; border-radius: 50px;
-                border: 1px solid #3c3c3c; font-size: 10px;        
-                background:#080808; width:80px; padding:5px;              
-        }
-        .btTool:hover {color:#f0f}
-            
-        .btRD {
-                display: flex;align-items: center; 
-                justify-content:center;color: white;        
-                cursor: pointer; border-radius: 50%;
-                border: 1px solid #3c3c3c; font-size: 15px; outline:none;       
-                background:#080808; width:16px; height:16px; padding-bottom:2px           
-        }
-        .btRD:focus {outline:none; color:#f0f}                       
-        .btRD:disabled {
-                opacity: 0.4; cursor: not-allowed;    
-                color: #888; background: #222; border-color: #555
-        }
-                             
+                                                
         .ghost {
                 opacity: 0.5;
                 background-color: #202020;
         }
         .fade {opacity: 0; transition: opacity 2s ease-in-out}
-</style> 
+</style>
+     
 <body>
         <svg id="allSVG" style="display:block; height:200%;">
                 <path id="svgPath" marker-mid="url(#markerdot)"/>
@@ -1361,7 +1342,7 @@
                         }
                         path.tab = function(gapWidth, numTabs){
                                 tabBool = true
-                                updateFillButtons()
+                                updateButtons()
                                 var gapWidth = gapWidth    
                                 var numTabs  = numTabs    
                                 var newPaths = []
@@ -1471,10 +1452,10 @@
                                 this.length = 0
                                 for (var sp of newPaths) {sp._isTabPath = true; this.push(sp)}
                                 this._tabWidth = gapWidth; this._tabSpacing = numTabs
-                                return this;
+                                return this
                         }
                         Object.defineProperty(path, "nc", {
-                                get() {toggleGCconv(); remToEdt(".nc()"); return this}
+                                get() {toggleGCconv(); remToEdt("nc"); return this}
                         })
                         return path                            
                 }                      
@@ -1912,7 +1893,7 @@
                                         canvas.renderAll(); remToEdt(".vecor()"); return this
                                 },
                                 get nc() {
-                                        toggleGCconv(); remToEdt(".nc()"); return this
+                                        toggleGCconv(); remToEdt("nc"); return this
                                 }                   
                         }; return imageController
                 }
@@ -1928,9 +1909,7 @@
                         }; canvas.renderAll(); remToEdt("rstIMG()")
                 }
 
-
-
-                 //------------------------------------------------------------------------------------------------------------------------------------------------------------ importFILE                                      
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------ importFILE                                      
                 var imageLoader = document.getElementById('input')
                 imageLoader.addEventListener('change', handleImage, false)                              
 
@@ -1960,7 +1939,7 @@
                                                                 originalImg = img.cloneNode()
                                                                 currentImg = img.cloneNode()
                                                                 var editorContent = editor.getValue()
-                                                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='')`)
+                                                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='').nc`)
                                                                 editor.clearSelection(); editor.focus(); TAOpen()//runSCRIPT()                                                              
                                                         }; img.src = event.target.result
                                                 }; reader.readAsDataURL(event.target.files[0]); file = event.target.files[0]
