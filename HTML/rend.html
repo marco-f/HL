@@ -315,6 +315,10 @@
                         }); return circle                       
                 }
                 function snapToGrid(value){return Math.round(value / GRID) * GRID}
+                function _snapToGrid(value){
+                        var grid = GRID / 5
+                        return Math.round(value / grid) * grid
+                }       
                 function createInteractiveGuide(){
                         var initialX = snapToGrid(GRID)
                         var initialY = snapToGrid(GRID)        
@@ -348,9 +352,8 @@
                                 lineVrt.set({opacity: 0})
                                 
                                 var pointer = canvas.getPointer(event.e)
-
-                                var snappedX = snapToGrid(pointer.x)
-                                var snappedY = snapToGrid(pointer.y)+11
+                                var snappedX = _snapToGrid(pointer.x)
+                                var snappedY = _snapToGrid(pointer.y)+11
 
                                 activeIntersection.intersectionCircle.set({left: snappedX - 5, top: snappedY - 5})
 
@@ -387,7 +390,7 @@
                         else {return Math.round(value / GRID) * GRID}
                 }
 
-                var GRID = 18.8976377952, dWidth=100, dHeight=100, numSEG=30
+                var GRID = 18.8976377952, dWidth=150, dHeight=150, numSEG=30
                 var intersectionCircleWA, isDraggingWA = false
 
 
@@ -421,7 +424,7 @@
                                 left: pxWidth - 5,
                                 top: pxHeight - 5,
                                 radius: 5,
-                                stroke: '#000000',
+                                stroke: '#00ffff',
                                 fill: 'transparent',
                                 selectable: true,
                                 hasControls: false,
@@ -449,7 +452,7 @@
 
                         fabric.Image.fromURL('../IMG/wa.svg', function(img) {
                                 img.set({
-                                        left: pxWidth,
+                                        left: pxWidth + 10,
                                         top: pxHeight,
                                         originX: 'left',
                                         originY: 'top',
@@ -478,13 +481,13 @@
                                 dWidth = CONV(newX)
                                 dHeight = CONV(newY) - 2.65;
 
-                                vLineWA.set({ x1: newX, x2: newX, y1: 10, y2: newY })
-                                oLineWA.set({ x1: 0, y1: newY, x2: newX, y2: newY })
+                                vLineWA.set({x1: newX, x2: newX, y1: 10, y2: newY})
+                                oLineWA.set({x1: 0, y1: newY, x2: newX, y2: newY})
 
                                 if (imgWA) {
-                                        imgWA.set({ left: newX, top: newY })
+                                        imgWA.set({left: newX, top: newY })
                                 }
-                                intersectionCircleWA.set({ left: newX - 5, top: newY - 5 })
+                                intersectionCircleWA.set({left: newX - 5, top: newY - 5})
                                 canvas.renderAll()
                         }
                 })
@@ -511,11 +514,7 @@
                                 }
                         }; canvas.renderAll(); 
                 }
-                     
-                  
-
          
-                                  
                 //----------------------------------------------------------------------------------------------------------------------------------------------------------- addSVGPATHS                          
                 var bV = true, pt
                 stroke = color = '#fff', fill = '#00000003'
@@ -1695,22 +1694,67 @@
                                                         mouseUpHandler: function(){
                                                                 fabric.controlsUtils.scalingEqually
                                                                 var imgBounds = imgInstance.getBoundingRect()
-                                                                var cropLeft = (cropRect.left - imgBounds.left) / imgInstance.scaleX
-                                                                var cropTop = (cropRect.top - imgBounds.top) / imgInstance.scaleY
-                                                                var cropWidth = (cropRect.width * cropRect.scaleX) / imgInstance.scaleX
-                                                                var cropHeight = (cropRect.height * cropRect.scaleY) / imgInstance.scaleY    
-                                                                var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
-                                                                tempCtx.drawImage(
-                                                                        imgInstance._element,
-                                                                        cropLeft, cropTop, cropWidth, cropHeight, 
-                                                                        0, 0, newWidth, newHeight
+
+                                                                var cropLeftInBounds = (cropRect.left - imgBounds.left)
+                                                                var cropTopInBounds  = (cropRect.top  - imgBounds.top)
+                                                                var cropWidthInBounds  = (cropRect.width * cropRect.scaleX)
+                                                                var cropHeightInBounds = (cropRect.height * cropRect.scaleY)
+
+                                                                var el = imgInstance._element; // elemento <img>
+                                                                var imgNaturalW = el.naturalWidth || el.width
+                                                                var imgNaturalH = el.naturalHeight || el.height
+
+                                                                var scaleX = imgInstance.scaleX || 1
+                                                                var scaleY = imgInstance.scaleY || 1
+                                                                var angle = (imgInstance.angle || 0) * Math.PI / 180;
+                                                                var tmpW = Math.ceil(imgBounds.width)
+                                                                var tmpH = Math.ceil(imgBounds.height)
+
+                                                                var off = document.createElement('canvas')
+                                                                off.width = tmpW
+                                                                off.height = tmpH
+                                                                var offCtx = off.getContext('2d')
+                                                                var cx = tmpW / 2, cy = tmpH / 2
+
+                                                                offCtx.save()
+                                                                offCtx.translate(cx, cy)
+                                                                offCtx.rotate(angle)
+
+                                                                var flipScaleX = imgInstance.flipX ? -1 : 1
+                                                                var flipScaleY = imgInstance.flipY ? -1 : 1
+                                                                offCtx.scale(flipScaleX, flipScaleY);
+
+                                                                var drawW = imgNaturalW * scaleX
+                                                                var drawH = imgNaturalH * scaleY
+
+                                                                offCtx.drawImage(el, -drawW / 2, -drawH / 2, drawW, drawH)
+                                                                offCtx.restore();
+
+                                                                var cropW = Math.round(cropWidthInBounds)
+                                                                var cropH = Math.round(cropHeightInBounds)
+
+                                                                if (cropW <= 0 || cropH <= 0) { 
+                                                                        canvas.remove(cropRect); return
+                                                                }
+
+                                                                var finalCanvas = document.createElement('canvas')
+                                                                finalCanvas.width = cropW
+                                                                finalCanvas.height = cropH
+                                                                var finalCtx = finalCanvas.getContext('2d')
+
+                                                                finalCtx.drawImage(
+                                                                        off,
+                                                                        Math.round(cropLeftInBounds), Math.round(cropTopInBounds),
+                                                                        cropW, cropH, 0, 0, cropW, cropH
                                                                 )
 
                                                                 var updatedImg = new Image()
-                                                                updatedImg.src = tempCanvas.toDataURL()
+                                                                updatedImg.src = finalCanvas.toDataURL()
                                                                 updatedImg.onload = () => {
-                                                                        img = updatedImg; currentImg = updatedImg
-                                                                        if(imgInstance){canvas.remove(imgInstance)}
+                                                                        img = updatedImg;
+                                                                        currentImg = updatedImg;
+
+                                                                        if (imgInstance) canvas.remove(imgInstance); 
                                                                         imgInstance = new fabric.Image(currentImg, {
                                                                                 left: CONV(borderX, true),
                                                                                 top: CONV(borderY, true),
@@ -1719,15 +1763,17 @@
                                                                                 selectable: false,
                                                                                 hasControls: false,
                                                                                 hasBorders: false,
-                                                                        })
-                                                                        const scaleX = width / imageData.width
-                                                                        const scaleY = height / imageData.height
-                                                                        imgInstance.set({scaleX: scaleX, scaleY: scaleY})
+                                                                                angle: 0 
+                                                                        }); imgInstance.set({ scaleX: 1, scaleY: 1 })
+
                                                                         tempIMG(currentImg)
                                                                         canvas.add(imgInstance); canvas.renderAll()
                                                                         lineHrz.bringToFront(); lineVrt.bringToFront()
                                                                 }; canvas.remove(cropRect)
-                                                        }       
+                                                        }
+
+
+      
                                                 })
                                         }
                                         canvas.add(cropRect); canvas.setActiveObject(cropRect)
@@ -2085,3 +2131,123 @@
         <div id="alert" class="alert"><p class="bs" id="error" style="top:-5px; width:100%"></p></div>  
 </body>
 
+<!--
+                var borderX = 0, borderY = 0, imageController, cropRect = null                      
+                function IMAGE(size, gamma, x, y, rot, flip){                     
+                        if(imgInstance){canvas.remove(imgInstance)}                                             
+
+                        size = CONV(size,true)
+                        borderX = x; borderY = y
+                        
+                        var aspectRatio = img.width / img.height
+                        if(img.width > img.height){
+                                newWidth = size; newHeight = size / aspectRatio
+                        } else {
+                                newHeight = size; newWidth = size * aspectRatio
+                        }
+                       
+                        var centerX = CONV(borderX, true) + newWidth / 2
+                        var centerY = CONV(borderY, true) + newHeight / 2
+
+                        imgInstance = new fabric.Image(img, {
+                                left: centerX,
+                                top: centerY,
+                                originX: 'center',
+                                originY: 'center',
+                                angle: rot || 0, 
+                                selectable: false,
+                                hasControls: false,
+                                hasBorders: false,
+                        })
+
+                        if (rot !== null && rot !== undefined) {
+                                imgInstance.set("angle", rot)
+                        }
+                        
+                        imgInstance.filters.push(
+                                new fabric.Image.filters.Grayscale(),
+                                new fabric.Image.filters.Contrast({contrast: gamma}),
+                                new fabric.Image.filters.Brightness({brightness: gamma})
+                        )                        
+                        imgInstance.applyFilters()
+                        const scaleX = newWidth / img.width
+                        const scaleY = newHeight / img.height
+                        imgInstance.set({scaleX: scaleX, scaleY: scaleY})
+
+                        if(flip !== null){
+                                if(flip === 'x'){imgInstance.set('flipX', !imgInstance.flipX)}
+                                else if(flip === 'y'){imgInstance.set('flipY', !imgInstance.flipY)}
+                        }
+
+                        canvas.add(imgInstance)
+                        lineHrz.bringToFront(); lineVrt.bringToFront()
+                        tempIMG(img); canvas.renderAll()
+
+                        imageController = {
+                                cutter: function(){
+                                        if(!imgInstance || cancBool){return}                      
+                                        if(cropRect){canvas.remove(cropRect)}
+
+                                        var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
+                                        tempCtx.drawImage(imgInstance._element, 0, 0, tempCanvas.width, tempCanvas.height)
+
+                                        var width = tempCanvas.width, height = tempCanvas.height
+                                        var imageData = tempCtx.getImageData(0, 0, width, height)                                       
+
+                                        cropRect = new fabric.Rect({
+                                                selectable: true,
+                                                fill: 'rgba(0, 0, 0, 0.3)',
+                                                width: size*0.7, height: size*0.7,     
+                                                top: size*0.15, left: size*0.15,
+                                                stroke: 'gray', strokeWidth: 1,
+                                                hasControls: true,  hasBorders: false, 
+                                        })
+                                        canvas.on('mouse:move', function() {
+                                                canvas.upperCanvasEl.style.cursor = 'none'
+                                        })                   
+                                        cropRect.controls = {
+                                                br: new fabric.Control({x:0.5, y:0.5, 
+                                                        offsetX: 0, offsetY: 0, cursorStyle:'none',
+                                                        actionHandler: fabric.controlsUtils.scalingEqually,
+                                                        mouseUpHandler: function(){
+                                                                fabric.controlsUtils.scalingEqually
+                                                                var imgBounds = imgInstance.getBoundingRect()
+                                                                var cropLeft = (cropRect.left - imgBounds.left) / imgInstance.scaleX
+                                                                var cropTop = (cropRect.top - imgBounds.top) / imgInstance.scaleY
+                                                                var cropWidth = (cropRect.width * cropRect.scaleX) / imgInstance.scaleX
+                                                                var cropHeight = (cropRect.height * cropRect.scaleY) / imgInstance.scaleY    
+                                                                var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
+                                                                tempCtx.drawImage(
+                                                                        imgInstance._element,
+                                                                        cropLeft, cropTop, cropWidth, cropHeight, 
+                                                                        0, 0, newWidth, newHeight
+                                                                )
+
+                                                                var updatedImg = new Image()
+                                                                updatedImg.src = tempCanvas.toDataURL()
+                                                                updatedImg.onload = () => {
+                                                                        img = updatedImg; currentImg = updatedImg
+                                                                        if(imgInstance){canvas.remove(imgInstance)}
+                                                                        imgInstance = new fabric.Image(currentImg, {
+                                                                                left: CONV(borderX, true),
+                                                                                top: CONV(borderY, true),
+                                                                                originX: 'left',
+                                                                                originY: 'top',
+                                                                                selectable: false,
+                                                                                hasControls: false,
+                                                                                hasBorders: false,
+                                                                        })
+                                                                        const scaleX = width / imageData.width
+                                                                        const scaleY = height / imageData.height
+                                                                        imgInstance.set({scaleX: scaleX, scaleY: scaleY})
+                                                                        tempIMG(currentImg)
+                                                                        canvas.add(imgInstance); canvas.renderAll()
+                                                                        lineHrz.bringToFront(); lineVrt.bringToFront()
+                                                                }; canvas.remove(cropRect)
+                                                        }       
+                                                })
+                                        }
+                                        canvas.add(cropRect); canvas.setActiveObject(cropRect)
+                                        canvas.renderAll(); remToEdt(".cutter()"); return this
+                                },
+-->
