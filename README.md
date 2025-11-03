@@ -132,7 +132,7 @@ This app uses the **Chrome Web Serial API** to communicate with CNC/laser contro
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/marco-f/HLgit
+   git clone https://github.com/marco-f/HL
    ```
 2. Navigate to the project folder:
 
