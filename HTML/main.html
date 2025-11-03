@@ -45,13 +45,16 @@
         <style>
                 * {box-sizing: border-box}
 
-                html, body {width:100%; height:auto; margin:0; color:#fff}        
+                html, body {width:100%; height:100%; margin:0; color:#fff}        
                 .hidden-cursor {cursor: none} 
                 @font-face {
-                        font-family: test-family;
-                        src: url("FONT/Roboto-Black.ttf")
+                        font-family: Roboto-Black;
+                        src: url("../FONT/Roboto-Black.ttf")
                 }   
-         
+                @font-face {
+                        font-family: matrix;
+                        src: url("../FONT/matrix.ttf")
+                }       
                 ::-webkit-scrollbar {width:7px}
                 ::-webkit-scrollbar-thumb {
                         background:rgba(0,0,0,0);
@@ -78,10 +81,10 @@
 
                 #_2D {
                         overflow-x:hidden;
-                        position: absolute;
+                        position: fixed;
                         background:#080808;
                         top: 20px; left: 0; right: 0;
-                        width: 100%; height: 100%; 
+                        width: 100%; height: 200%; 
                 }
 
                 #n_Line {
@@ -285,7 +288,8 @@
                         border: 1px solid #3c3c3c; font-size: 10px;        
                         background:#080808; width:80px; padding:5px;              
                 }
-                .btTool:hover {color:white}                             
+                .btTool:hover {color:white}
+                        
         </style>
                                                               
         <body>   
@@ -462,8 +466,8 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
         }
         paths[0].push(paths[0][0]); return use(paths);
 }
-simpleGear(15, 20, 4).nc
-//POLYLINE("M10 10 L40 10 L40 40 L10 40 L10 10 Z").tab(2,4).nc
+//simpleGear(15, 20, 4).nc
+POLYLINE("M10 10 L40 10 L40 40 L10 40 L10 10 Z").nc
 `)
 editor.clearSelection()
 editor.moveCursorTo(0, 0);
@@ -957,6 +961,7 @@ function getBoundingBoxFromGCode(gcode) {
         return {minX, maxX, minY, maxY}
 }
 async function addBoundingBox(gcode) {
+        var zeta = parseFloat($("#_08").val())
         const {minX, maxX, minY, maxY} = getBoundingBoxFromGCode(gcode)
 
         if (!isFinite(minX) || !isFinite(maxX) || !isFinite(minY) || !isFinite(maxY)) return
@@ -968,13 +973,14 @@ async function addBoundingBox(gcode) {
         const y2 = (maxY + margin).toFixed(2)
         bbGCode = ''
         bbGCode += '\n; start BB\n'
-        bbGCode += `G0 X${x1} Y${y1}\n`
+        bbGCode += `G0 X${x1} Y${y1} Z` + zeta +`\n`
         bbGCode += 'M3 S0\n'
         bbGCode += `G1 X${x2} Y${y1} F1000\n`
         bbGCode += `G1 X${x2} Y${y2} F1000\n`
         bbGCode += `G1 X${x1} Y${y2} F1000\n`
         bbGCode += `G1 X${x1} Y${y1} F1000\n`
-        bbGCode += 'M5\nG4 P1\n'
+        bbGCode += 'M5\n'
+        bbGCode += `G0 X${x1} Y${y1} Z` + zeta +`\n`
         bbGCode += '; end BB\n\n'
 
         console.log("bounding-box:", {x1, y1, x2, y2}); 
@@ -1055,11 +1061,11 @@ function prepareGCodeSettings(type) {
         pre += "$121=" + accY + "; Acceleration Y mm/s² (GRBL)\n"
         pre += "$122=" + accZ + "; Acceleration Z mm/s² (GRBL)\n\n"
         
-        pre += "G0 X0 Y0 Z0 F" + speedTRVL + "\n"
+        pre += "G0 X0 Y0 Z" + zMax + " F" + speedTRVL + "\n"
         if (air !== 0) pre += "M8; start airAssist\n"
 
         post += "\n; ======= POSTAMBLE =======\n"
-        post += "G0 X0 Y0 Z0 F" + speedTRVL + "\n"
+        post += "G0 X0 Y0 Z" + zMax + " F" + speedTRVL + "\n"
         if (air !== 0) post += "M9; stop airAssist\n"
         post += "M2; end program\n"
         post += "\n; ======= END JOB =======\n"
@@ -1253,17 +1259,20 @@ function img2gc() {
                         return { firstActivePixel, lastActivePixel }
                 }
 
-                var commentCol = 35, lineNum = 1
-                function addLine(code, comment = "") {
-                        var spaces = Math.max(commentCol - code.length, 1)
-                        var padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
-                        gcode += padded + "\n"; lineNum++
-                }
-
                 function generatePassGcode(zOffset) {
+                        var commentCol = 35, lineNum = 1
+                        function addLine(code, comment = "") {
+                                var spaces = Math.max(commentCol - code.length, 1)
+                                var padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
+                                gcode += padded + "\n"
+                                lineNum++
+                        }
+
                         const powerStep = 5
                         const powerTolerance = 5
                         const lineSpacing = 1 / rowPerMM
+
+                        let isForward = true
 
                         for (let yMM = 0; yMM < convertToMM(height); yMM += lineSpacing) {
                                 const y = Math.round(yMM * 96 / 25.4)
@@ -1274,12 +1283,15 @@ function img2gc() {
 
                                 let startX = firstActivePixel
                                 let endX = lastActivePixel
-                                let step = (y % 2 === 0) ? 1 : -1
-                                if (step === -1) [startX, endX] = [endX, startX]
+                                let step = isForward ? 1 : -1
+                                if (!isForward) [startX, endX] = [endX, startX]
 
                                 const yCoord = (dHeight - yMM) - borderY
                                 let drawing = false
                                 let lastPower = 0
+
+                                addLine("M5", "Laser OFF before move")
+                                addLine(`G0 Z${zMax.toFixed(2)} F${speedTRVL}`, "Retract to safe Z")
 
                                 for (let ix = startX; ix !== endX + step; ix += step) {
                                         const idx = (y * width + ix) * 4
@@ -1298,31 +1310,47 @@ function img2gc() {
                                                 power = Math.round(power / powerStep) * powerStep
                                         }
 
+                                        const xCoord = convertToMM(ix) + borderX
+
                                         if (power > 0) {
                                                 if (!drawing) {
-                                                        const xCoord = convertToMM(ix) + borderX
-                                                        addLine(`G0 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zMax} F${speedTRVL} S${minPWR}`, `Move to start raster`)
-                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${power}`, `Laser ON`)
+                                                        addLine(`G0 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} F${speedTRVL}`, "Move to start of raster line")
+                                                        addLine(`G0 Z${zOffset.toFixed(2)} F${speedTRVL}`, "Move to working Z")
+                                                        addLine(`M3 S${minPWR}`, "Laser ON at low power")
+                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${power}`, "Start engraving")
                                                         drawing = true
                                                         lastPower = power
                                                 } else if (Math.abs(power - lastPower) > powerTolerance) {
-                                                        const xCoord = convertToMM(ix) + borderX
-                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, `Set power ${lastPower}`)
-                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${power}`, `New power ${power}`)
+                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${power}`, `Adjust power ${power}`)
                                                         lastPower = power
+                                                } else {
+                                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${power}`, "Continue engraving")
                                                 }
                                         } else if (drawing) {
-                                                const xCoord = convertToMM(ix - step) + borderX
-                                                addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, `Laser OFF`)
+                                                const xPrev = convertToMM(ix - step) + borderX
+                                                addLine(`G1 X${xPrev.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, "End raster segment")
+                                                addLine("M5", "Laser OFF")
                                                 drawing = false
                                         }
                                 }
+
                                 if (drawing) {
                                         const xCoord = convertToMM(endX) + borderX
-                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, `Laser OFF`)
-                                        drawing = false
+                                        addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, "End raster line")
+                                        addLine("M5", "Laser OFF")
                                 }
+
+                                const nextYMM = yMM + lineSpacing
+                                const nextYCoord = (dHeight - nextYMM) - borderY
+                                if (nextYMM < convertToMM(height)) {
+                                        addLine(`G0 Y${nextYCoord.toFixed(2)} F${speedTRVL}`, "Next raster line (serpentine)")
+                                }
+
+                                isForward = !isForward
                         }
+
+                        addLine("M5", "Laser OFF - end of raster job")
+                        addLine(`G0 Z${zMax.toFixed(2)} F${speedTRVL}`, "Retract to safe Z")
                 }
 
                 for (var pass = 0; pass < passes; pass++) {
@@ -1634,6 +1662,8 @@ var addQUEUE = function() {
 
                         <div id="centerPanel" class="panel" style="position:absolute; top:100px; left:0; overflow:hidden; visibility:hidden">
                                 <span id="spinner" style="position:absolute; top:50%; left:50%; width:20px; transform:translate(-50%,-50%)"></span>
+                                <div id="count" style="position: absolute; width:30px; left:50%; top:50%;
+                                transform:translate(-50%,-50%); font-size:100px; font-family:matrix; display:none">5</div>
                                 <div id="3dView">
                                         <script>                                        
 //------ gcode VIEW
@@ -2294,7 +2324,7 @@ function makeStreamParser(scene) {
                         if (trimmed.startsWith(';')) {
                                 const text = trimmed.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()
                                 if (text.includes('start bb')) inBB = true
-                                if (text.includes('end bb')) inBB = false
+                                if (text.includes('end bb')) {inBB = false; pauseStreaming()}
                                 return
                         }
                         parser.parseLine(line)
@@ -2337,7 +2367,6 @@ var workerCode = `
 
                 var raw = lines[currentIndex++]
 
-                // --- Riconosci ; PAUSE:xxx (millisecondi) o G4 Pxxx
                 if (/^;\\s*PAUSE[:=]/i.test(raw)) {
                         var ms = parseInt(raw.split(/[:=]/)[1])
                         if (!isNaN(ms)) {
@@ -2363,7 +2392,6 @@ worker.onerror = e => console.error("Worker error:", e.message)
 /* =========================
         STREAMING G-CODE
 ========================= */
-
 async function streamGCodeWorkerMain(){
         if (preview == true){
                 cnsLog.innerHTML=''
@@ -2423,7 +2451,7 @@ worker.onmessage = async (e) => {
         } else if (msg.type === 'done') {
                 isSending = false; stopPingGRBL()
                 console.log("Streaming completed")
-                disconnectSerial(); GCSenderHide()
+                //disconnectSerial(); GCSenderHide()
         } else if (msg.type === 'stopped') {
                 isSending = false; clearOkQueue()
                 console.log("Streaming stopped")
@@ -2434,6 +2462,7 @@ worker.onmessage = async (e) => {
         CONTROLLO STREAMING
 ========================= */
 function pauseStreaming(){
+        console.log('pause')
         if (!isSending || isPaused) return
         isPaused = true
         writer && writer.write(encoder.encode("!\n")).catch(()=>{})
@@ -2515,23 +2544,68 @@ async function connectSerial(){
 }
 
 async function disconnectSerial(){
+        console.log("🔌 Disconnecting serial and resetting state...")
         isManualDisconnect = true
-        stopPingGRBL()
-        clearOkQueue()
+        stopPingGRBL(); clearOkQueue()
+        stopStreaming(); isSending = false
+        isPaused = false; stopRequested = false
+
         try {
                 if (reader) {
-                        await reader.cancel()
-                        if (readableStreamClosed) await readableStreamClosed.catch(()=>{})
-                        reader.releaseLock()
+                        try { await reader.cancel() } catch(e) { console.warn("reader.cancel() failed:", e) }
+                }
+                if (readableStreamClosed) {
+                        try { await readableStreamClosed } catch(e) {}
+                }
+                if (reader) {
+                        try { reader.releaseLock() } catch(e) {}
                 }
                 if (writer) {
-                        await writer.close()
-                        writer.releaseLock()
+                        try { await writer.close() } catch(e) { console.warn("writer.close() failed:", e) }
+                        try { writer.releaseLock() } catch(e) {}
                 }
-                if (port) await port.close()
-                isConnected = false
-                reader = writer = port = readableStreamClosed = null
-        } catch(e) { console.error("Disconnect error:", e) }
+                if (port) {
+                        try { await port.close() } catch(e) { console.warn("port.close() failed:", e) }
+                }
+        }
+        catch (e) { console.error("Disconnect error:", e) }
+        finally {
+                reader = null; writer = null
+                port = null; readableStreamClosed = null
+                isConnected = false; resetAllState()
+                console.log("✅ Disconnected and reset complete")
+        }
+}
+
+function resetAllState(){
+        if (worker) {
+                try { worker.postMessage({cmd:'stop'}) } catch(e){}
+        }
+
+        const bar = document.getElementById('progress-bar')
+        const info = document.getElementById('progress-info')
+        if (bar) bar.style.width = '0%'
+        if (info) {
+                info.textContent = '0%'
+                info.style.left = '0%'
+        }
+
+        okQueue = [], lineNumber = 0
+        totalGCodeLines = 0; sentGCodeLines = 0
+        lastLine = {x:0, y:0, z:0}; lastPower = 0
+        error2Count = 0; gcodeText = ''
+        preview = false; center = {x:0, y:0, z:0}
+        if (typeof parser !== 'undefined') parser = null
+
+        try {
+                if (typeof clrScene === 'function' && typeof scene !== 'undefined') clrScene(scene)
+        } catch(e) { console.warn("Scene clear failed:", e) }
+
+        const grbl = document.getElementById('grbl')
+        if (grbl) grbl.textContent = ''
+        if (typeof cnsLog !== 'undefined' && cnsLog) cnsLog.innerHTML = ''
+        const ovLP = document.getElementById('ovLP')
+        if (ovLP) ovLP.style.display = 'block'
 }
 
 /* =========================
@@ -2810,7 +2884,15 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 })
                                                
-                </script>                                 
+                </script>
+
+                <!--div id="warning" style="
+                        visibility:hidden;
+                        display:flex; justify-content:center; align-items:center;                
+                        position:fixed; top:80%; transform:translateY(-50%); width:100%; height:40px;
+                        background:#202020cc; border-top:1px solid #3c3c3c; border-bottom:1px solid #3c3c3c; z-index:9999">
+                        <p id="wrn" style=font-size:12px; margin:0 auto">TEXT</p>
+                </div-->                
 
                 <div id="pwa-warning" style="
                         display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
