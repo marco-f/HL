@@ -88,7 +88,7 @@
         .fade {opacity: 0; transition: opacity 2s ease-in-out}
 </style>
      
-<body>
+<body style="height:200%">
         <svg id="allSVG" style="display:block; height:200%;">
                 <path id="svgPath" marker-mid="url(#markerdot)"/>
                 <defs>
@@ -111,7 +111,7 @@
         </svg>
         <div id="datadiv" style="display:none" oncontextmenu="return false"></div>
 
-        <div id="wrapper" style="position:absolute; left:4px; top:14px; width:120%; height:200%">            
+        <div id="wrapper" style="position:relative; left:4px; top:14px; width:120%; height:200%">            
                 <canvas id="canvas" style="z-index:1; cursor:none !important"></canvas>
         </div>
 	
@@ -192,7 +192,7 @@
                         
                 $.ajaxSetup({cache: false})
                 document.addEventListener("contextmenu",
-                function(e) {e.preventDefault()}, false)                                      
+                function(e) {e.preventDefault()}, false)                               
 
                 var rulerInstance, updateZoom, zoomLevel
                 $(document).ready(function(){
@@ -390,10 +390,8 @@
                         else {return Math.round(value / GRID) * GRID}
                 }
 
-                var GRID = 18.8976377952, dWidth=150, dHeight=150, numSEG=30
+                var GRID = 18.8976377952, dWidth=120, dHeight=120, numSEG=30
                 var intersectionCircleWA, isDraggingWA = false
-
-
                 function setWorkArea() {
                         canvas.getObjects().forEach(obj => {
                                 if (obj.workAreaLine || obj.waImage || obj.intersectionCircleWA) {
@@ -777,6 +775,8 @@
                                 opentype.load("../FONT/arial.ttf").then(function(font){fonts.arial = font}),
                                 opentype.load("../FONT/Times.ttf").then(function(font){fonts.times = font}),
                                 opentype.load("../FONT/Gilroy.ttf").then(function(font){fonts.gilroy = font}),
+                                opentype.load("../FONT/seven.ttf").then(function(font){fonts.seven = font}),
+                                opentype.load("../FONT/matrix.ttf").then(function(font){fonts.matrix = font}), 
                                 opentype.load("../FONT/WildWest.ttf").then(function(font){fonts.wildwest = font}),                               
                                 opentype.load("../FONT/WestIcons.ttf").then(function(font){fonts.westicon = font}),                               
                                 opentype.load("../FONT/Roboto-Black.ttf").then(function(font){fonts.roboto_b = font}),
@@ -788,7 +788,6 @@
                                 opentype.load("../FONT/AVH_2.ttf").then(function(font){fonts.cnc_2 = font}),
                                 opentype.load("../FONT/AVH_3.ttf").then(function(font){fonts.cnc_3 = font}),
 
-                                opentype.load("../FONT/digital.ttf").then(function(font){fonts.digit = font}),
                         ]; return Promise.all(fontPromises)
                 }
                 preloadFonts().then(function(){console.log('Fonts preloaded')})
@@ -1051,7 +1050,7 @@
                 };
                 var addTEXT = function(){
                         resetZoom() 
-                        displayString = "\nTEXT('cnc_1', 30, 30, 30, 'HobbyLASER')"
+                        displayString = "\nTEXT('seven', 30, 30, 30, '4321')"
 
                         var editorContent = editor.getValue()
                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
@@ -1208,8 +1207,7 @@
                                         default: break
                                 }
                         })
-                        if(currentPath.length > 0){clipperPaths.push(currentPath)}
-                        return clipperPaths
+                        if(currentPath.length > 0){clipperPaths.push(currentPath)}; return clipperPaths
                 }
 
                 //------ boolean OP
@@ -2132,122 +2130,5 @@
 </body>
 
 <!--
-                var borderX = 0, borderY = 0, imageController, cropRect = null                      
-                function IMAGE(size, gamma, x, y, rot, flip){                     
-                        if(imgInstance){canvas.remove(imgInstance)}                                             
 
-                        size = CONV(size,true)
-                        borderX = x; borderY = y
-                        
-                        var aspectRatio = img.width / img.height
-                        if(img.width > img.height){
-                                newWidth = size; newHeight = size / aspectRatio
-                        } else {
-                                newHeight = size; newWidth = size * aspectRatio
-                        }
-                       
-                        var centerX = CONV(borderX, true) + newWidth / 2
-                        var centerY = CONV(borderY, true) + newHeight / 2
-
-                        imgInstance = new fabric.Image(img, {
-                                left: centerX,
-                                top: centerY,
-                                originX: 'center',
-                                originY: 'center',
-                                angle: rot || 0, 
-                                selectable: false,
-                                hasControls: false,
-                                hasBorders: false,
-                        })
-
-                        if (rot !== null && rot !== undefined) {
-                                imgInstance.set("angle", rot)
-                        }
-                        
-                        imgInstance.filters.push(
-                                new fabric.Image.filters.Grayscale(),
-                                new fabric.Image.filters.Contrast({contrast: gamma}),
-                                new fabric.Image.filters.Brightness({brightness: gamma})
-                        )                        
-                        imgInstance.applyFilters()
-                        const scaleX = newWidth / img.width
-                        const scaleY = newHeight / img.height
-                        imgInstance.set({scaleX: scaleX, scaleY: scaleY})
-
-                        if(flip !== null){
-                                if(flip === 'x'){imgInstance.set('flipX', !imgInstance.flipX)}
-                                else if(flip === 'y'){imgInstance.set('flipY', !imgInstance.flipY)}
-                        }
-
-                        canvas.add(imgInstance)
-                        lineHrz.bringToFront(); lineVrt.bringToFront()
-                        tempIMG(img); canvas.renderAll()
-
-                        imageController = {
-                                cutter: function(){
-                                        if(!imgInstance || cancBool){return}                      
-                                        if(cropRect){canvas.remove(cropRect)}
-
-                                        var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
-                                        tempCtx.drawImage(imgInstance._element, 0, 0, tempCanvas.width, tempCanvas.height)
-
-                                        var width = tempCanvas.width, height = tempCanvas.height
-                                        var imageData = tempCtx.getImageData(0, 0, width, height)                                       
-
-                                        cropRect = new fabric.Rect({
-                                                selectable: true,
-                                                fill: 'rgba(0, 0, 0, 0.3)',
-                                                width: size*0.7, height: size*0.7,     
-                                                top: size*0.15, left: size*0.15,
-                                                stroke: 'gray', strokeWidth: 1,
-                                                hasControls: true,  hasBorders: false, 
-                                        })
-                                        canvas.on('mouse:move', function() {
-                                                canvas.upperCanvasEl.style.cursor = 'none'
-                                        })                   
-                                        cropRect.controls = {
-                                                br: new fabric.Control({x:0.5, y:0.5, 
-                                                        offsetX: 0, offsetY: 0, cursorStyle:'none',
-                                                        actionHandler: fabric.controlsUtils.scalingEqually,
-                                                        mouseUpHandler: function(){
-                                                                fabric.controlsUtils.scalingEqually
-                                                                var imgBounds = imgInstance.getBoundingRect()
-                                                                var cropLeft = (cropRect.left - imgBounds.left) / imgInstance.scaleX
-                                                                var cropTop = (cropRect.top - imgBounds.top) / imgInstance.scaleY
-                                                                var cropWidth = (cropRect.width * cropRect.scaleX) / imgInstance.scaleX
-                                                                var cropHeight = (cropRect.height * cropRect.scaleY) / imgInstance.scaleY    
-                                                                var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
-                                                                tempCtx.drawImage(
-                                                                        imgInstance._element,
-                                                                        cropLeft, cropTop, cropWidth, cropHeight, 
-                                                                        0, 0, newWidth, newHeight
-                                                                )
-
-                                                                var updatedImg = new Image()
-                                                                updatedImg.src = tempCanvas.toDataURL()
-                                                                updatedImg.onload = () => {
-                                                                        img = updatedImg; currentImg = updatedImg
-                                                                        if(imgInstance){canvas.remove(imgInstance)}
-                                                                        imgInstance = new fabric.Image(currentImg, {
-                                                                                left: CONV(borderX, true),
-                                                                                top: CONV(borderY, true),
-                                                                                originX: 'left',
-                                                                                originY: 'top',
-                                                                                selectable: false,
-                                                                                hasControls: false,
-                                                                                hasBorders: false,
-                                                                        })
-                                                                        const scaleX = width / imageData.width
-                                                                        const scaleY = height / imageData.height
-                                                                        imgInstance.set({scaleX: scaleX, scaleY: scaleY})
-                                                                        tempIMG(currentImg)
-                                                                        canvas.add(imgInstance); canvas.renderAll()
-                                                                        lineHrz.bringToFront(); lineVrt.bringToFront()
-                                                                }; canvas.remove(cropRect)
-                                                        }       
-                                                })
-                                        }
-                                        canvas.add(cropRect); canvas.setActiveObject(cropRect)
-                                        canvas.renderAll(); remToEdt(".cutter()"); return this
-                                },
 -->
