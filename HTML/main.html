@@ -1,4 +1,4 @@
-<!-- /HTML/main.html -->
+ <!-- /HTML/main.html -->
 <!DOCTYPE html>
 <html xml:lang="en" lang="en">
         <head>
@@ -259,6 +259,27 @@
                 }
                 th {background: transparent; padding-left: 10px; font-size: 12px}
                 #td:first-child {padding-right: 30px}
+                .custom-select {
+                        color: #fff; font-size: 12px;
+                        position: relative; width: 100%;                        
+                        border-radius: 4px; cursor: pointer;
+                        background: #080808; border: 1px solid #3c3c3c;                       
+                        user-select: none; padding: 4px; margin-top: 3px;
+                }
+                .custom-select .selected {padding: 4px}
+                .custom-select .options {
+                        display: none; position: absolute; top: 100%;
+                        background: #111; border: 1px solid #3c3c3c;
+                        border-top: none; max-height: 160px; left: 0;
+                        overflow-y: auto; z-index: 1000; width: 100%;
+                }
+                .custom-select .option {
+                        padding: 5px 6px; color: #ddd;
+                }
+                .custom-select .option:hover,
+                .custom-select .option.active {
+                        background: #555; color: #fff;
+                }
 
                 .close-btn {
                         font-weight: bold; font-size: 14px;
@@ -466,8 +487,8 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
         }
         paths[0].push(paths[0][0]); return use(paths);
 }
-//simpleGear(15, 20, 4).nc
-POLYLINE("M10 10 L40 10 L40 40 L10 40 L10 10 Z").nc
+//simpleGear(15, 20, 4)
+
 `)
 editor.clearSelection()
 editor.moveCursorTo(0, 0);
@@ -499,22 +520,22 @@ editor.getSession().on('change', function() {
 
 function remToEdt(searchString) {
         var content = editor.getValue()
-        var regex = new RegExp("\\." + searchString + "(\\([^)]*\\))?", "g")
+        var regex = new RegExp("(\\.|\\b)" + searchString + "\\s*(\\([^)]*\\))?", "g")
         var lines = content.split("\n")
         var modifiedLine = -1
+
         for (var i = 0; i < lines.length; i++) {
-                if (regex.test(lines[i])) {
-                        modifiedLine = i; break
-                }
+                if (regex.test(lines[i])) modifiedLine = i; break
+
         }
 
-        var updatedContent = content.replace(regex, "");
-        editor.setValue(updatedContent, -1);
+        var updatedContent = content.replace(regex, "")
+        editor.setValue(updatedContent, -1)
 
         if (modifiedLine !== -1) {
-                editor.gotoLine(modifiedLine + 2, 0, true);
+                editor.gotoLine(modifiedLine + 1, 0, true)
         }; editor.focus()
-}
+}                                  
 
 editor.commands.addCommand({
         name: "executeCommand",
@@ -527,7 +548,7 @@ editor.commands.addCommand({
 })
 
 var runSCRIPT = () => {
-        //try {
+        try {
                 clearCNVS()
                 var userCode = editor.getValue()
                 var content = edtContent(userCode)
@@ -543,7 +564,7 @@ var runSCRIPT = () => {
                         canvas.add(guidePair.intersectionCircle).bringToFront()                                       
                 }
                 cancBool = false
-        //} catch(error) {console.error(error)}
+        } catch(error) {console.error(error)}
 }
                         </script>
                 </div>
@@ -780,7 +801,7 @@ function calculateFPS() {
 
                         <div id="t_3" class="buttons-container" style="top:220px; width:100%">
                                 <div id="d_1" style="width:auto; height:auto; margin:0 auto; position:relative; display:flex; align-items:center; gap:6px">
-
+                                        add BB<button class="btRD" id="m_4" onclick="">●</button>&nbsp;&nbsp;
                                 
                                         <span class="txtInp" style="background:transparent; border:0; cursor:default; width:50px">toGCODE</span>
                                         <button class="btTool" onclick="obj2gc()">create</button>
@@ -826,13 +847,18 @@ function updateButtons() {
                 $('#m_2, #m_3').prop('disabled', true); return
         }
 
-        if (mode == 'cutter' || mode == 'image') {
+        var content = editor.getValue()
+        var hasImageObj = /IMAGE\s*\(/.test(content)
+
+        if (hasImageObj) {
+                document.getElementById('m_1').disabled = true   // cutter
+                document.getElementById('m_2').disabled = true   // engrave
+                document.getElementById('m_3').disabled = false  // image
+        } else {
+                // Otherwise (vector), disable image mode
+                document.getElementById('m_1').disabled = false
                 document.getElementById('m_2').disabled = false
-                document.getElementById('m_3').disabled = false
-        } 
-        else if (mode == 'engrave') {
-                document.getElementById('m_2').disabled = false
-                document.getElementById('m_3').disabled = false
+                document.getElementById('m_3').disabled = true
         }
 }
 
@@ -897,28 +923,28 @@ function obj2gc() {
 
 var bbGCode = ''
 function getBoundingBoxFromGCode(gcode) {
-        const lines = gcode.split(/\r?\n/)
-        let lastX = 0, lastY = 0, lastZ = 0
-        let lastPower = 0
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+        var lines = gcode.split(/\r?\n/)
+        var lastX = 0, lastY = 0, lastZ = 0
+        var lastPower = 0
+        var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
 
-        for (const raw of lines) {
-                let line = raw.split(';')[0] || ''
+        for (var raw of lines) {
+                var line = raw.split(';')[0] || ''
                 line = line.trim()
                 if (!line) continue
 
-                const tokens = line.match(/[A-Za-z][^ \t]*/g) || []
+                var tokens = line.match(/[A-Za-z][^ \t]*/g) || []
                 if (tokens.length === 0) continue
 
-                const cmd = tokens[0].toUpperCase()
+                var cmd = tokens[0].toUpperCase()
                 if (!cmd) continue
 
-                const args = {}
-                for (let i = 1; i < tokens.length; i++) {
-                        const t = tokens[i]
+                var args = {}
+                for (var i = 1; i < tokens.length; i++) {
+                        var t = tokens[i]
                         if (!t || t.length < 2) continue
-                        const key = t[0].toUpperCase()
-                        const num = parseFloat(t.substring(1))
+                        var key = t[0].toUpperCase()
+                        var num = parseFloat(t.substring(1))
                         if (Number.isNaN(num)) continue
                         args[key] = num
                 }
@@ -933,17 +959,17 @@ function getBoundingBoxFromGCode(gcode) {
                 }
                 if (args['S'] !== undefined) lastPower = args['S']
 
-                let gnum = NaN
+                var gnum = NaN
                 if (cmd.startsWith('G')) {
                         gnum = parseInt(cmd.slice(1), 10)
                 }
 
                 if (!Number.isNaN(gnum) && (gnum === 0 || gnum === 1)) {
-                        const newX = args['X'] !== undefined ? args['X'] : lastX
-                        const newY = args['Y'] !== undefined ? args['Y'] : lastY
-                        const newZ = args['Z'] !== undefined ? args['Z'] : lastZ
+                        var newX = args['X'] !== undefined ? args['X'] : lastX
+                        var newY = args['Y'] !== undefined ? args['Y'] : lastY
+                        var newZ = args['Z'] !== undefined ? args['Z'] : lastZ
 
-                        const isDraw = gnum === 1 && lastPower > 0
+                        var isDraw = gnum === 1 && lastPower > 0
                         if (isDraw) {
                                 minX = Math.min(minX, lastX, newX)
                                 maxX = Math.max(maxX, lastX, newX)
@@ -962,15 +988,15 @@ function getBoundingBoxFromGCode(gcode) {
 }
 async function addBoundingBox(gcode) {
         var zeta = parseFloat($("#_08").val())
-        const {minX, maxX, minY, maxY} = getBoundingBoxFromGCode(gcode)
+        var {minX, maxX, minY, maxY} = getBoundingBoxFromGCode(gcode)
 
         if (!isFinite(minX) || !isFinite(maxX) || !isFinite(minY) || !isFinite(maxY)) return
 
-        const margin = 0.3
-        const x1 = (minX - margin).toFixed(2)
-        const y1 = (minY - margin).toFixed(2)
-        const x2 = (maxX + margin).toFixed(2)
-        const y2 = (maxY + margin).toFixed(2)
+        var margin = 0.3
+        var x1 = (minX - margin).toFixed(2)
+        var y1 = (minY - margin).toFixed(2)
+        var x2 = (maxX + margin).toFixed(2)
+        var y2 = (maxY + margin).toFixed(2)
         bbGCode = ''
         bbGCode += '\n; start BB\n'
         bbGCode += `G0 X${x1} Y${y1} Z` + zeta +`\n`
@@ -1089,25 +1115,25 @@ function svg2gc(md) {
                 var commentCol = 35, lineNum = 1
 
                 function addLine(code, comment = "") {
-                        const spaces = Math.max(commentCol - code.length, 1)
-                        const padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
+                        var spaces = Math.max(commentCol - code.length, 1)
+                        var padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
                         gcode += padded + "\n"; lineNum++
                 }
 
-                for (let pass = 0; pass < passes; pass++) {
-                        const zStep = zeta * pass
+                for (var pass = 0; pass < passes; pass++) {
+                        var zStep = zeta * pass
                         paths.forEach(originalPath => {
-                                const path = originalPath.slice()
+                                var path = originalPath.slice()
                                 if (!path || path.length < 1) return
 
                                 if (tabBool && path.length > 1) {
-                                        const first = path[0]
-                                        const last = path[path.length - 1]
+                                        var first = path[0]
+                                        var last = path[path.length - 1]
                                         if (Math.abs(first.X - last.X) < 1e-6 && Math.abs(first.Y - last.Y) < 1e-6) path.pop()
                                 }
 
-                                const x0 = path[0].X.toFixed(2)
-                                const y0 = (dHeight + 6 - path[0].Y).toFixed(2)
+                                var x0 = path[0].X.toFixed(2)
+                                var y0 = (dHeight + 6 - path[0].Y).toFixed(2)
 
                                 addLine(`G0 X${x0} Y${y0} Z${zMax} F${speedTRVL} S${minPWR}`, "Move to start")
                                 addLine(`G1 X${x0} Y${y0} Z${zeta} F${Math.floor(speedTRVL / 10)} S${minPWR}`, "stabilize laser")
@@ -1118,9 +1144,9 @@ function svg2gc(md) {
                                         addLine(`G1 X${x0} Y${y0} Z${zStep} F${speedLSR} S${maxPWR}`, "start job")
                                 }
 
-                                for (let i = 1; i < path.length; i++) {
-                                        const x = path[i].X.toFixed(2)
-                                        const y = (dHeight + 6 - path[i].Y).toFixed(2)
+                                for (var i = 1; i < path.length; i++) {
+                                        var x = path[i].X.toFixed(2)
+                                        var y = (dHeight + 6 - path[i].Y).toFixed(2)
                                         addLine(`G1 X${x} Y${y} Z${zStep} F${speedLSR} S${maxPWR}`, `segment ${i}`)
                                 }
 
@@ -1160,8 +1186,8 @@ function svg2gc(md) {
                 var commentCol = 35, lineNum = 1
 
                 function addLine(code, comment = "") {
-                        const spaces = Math.max(commentCol - code.length, 1)
-                        const padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
+                        var spaces = Math.max(commentCol - code.length, 1)
+                        var padded = code + " ".repeat(spaces) + `; ${comment} [${lineNum}]`
                         gcode += padded + "\n"; lineNum++
                 }
 
@@ -1170,9 +1196,9 @@ function svg2gc(md) {
                         return gcode
                 }
 
-                for (let pass = 0; pass < passes; pass++) {
-                        const zStep = zeta * pass
-                        let isForward = true
+                for (var pass = 0; pass < passes; pass++) {
+                        var zStep = zeta * pass
+                        var isForward = true
 
                         intersectedPaths.forEach((path, idx) => {
                                 if (!Array.isArray(path) || path.length < 2) {
@@ -1180,10 +1206,10 @@ function svg2gc(md) {
                                         return
                                 }
 
-                                const ordered = isForward ? path.slice() : path.slice().reverse()
-                                const first = ordered[0]
-                                const xStart = first.X ?? first[0]
-                                const yStart = first.Y ?? first[1]
+                                var ordered = isForward ? path.slice() : path.slice().reverse()
+                                var first = ordered[0]
+                                var xStart = first.X ?? first[0]
+                                var yStart = first.Y ?? first[1]
 
                                 if (xStart === undefined || yStart === undefined) {
                                         console.warn(`Path ${idx} ha punti non validi:`, first)
@@ -1197,8 +1223,8 @@ function svg2gc(md) {
                                 addLine(`M3 S${minPWR}`, "Laser ON at initial power")
 
                                 ordered.forEach((p, i) => {
-                                        const x = p.X ?? p[0]
-                                        const y = p.Y ?? p[1]
+                                        var x = p.X ?? p[0]
+                                        var y = p.Y ?? p[1]
                                         if (x === undefined || y === undefined) return
                                         addLine(
                                                 `G1 X${x.toFixed(2)} Y${(dHeight + 6 - y).toFixed(2)} Z${zStep.toFixed(2)} F${speedLSR} S${maxPWR}`,
@@ -1268,49 +1294,49 @@ function img2gc() {
                                 lineNum++
                         }
 
-                        const powerStep = 5
-                        const powerTolerance = 5
-                        const lineSpacing = 1 / rowPerMM
+                        var powerStep = 5
+                        var powerTolerance = 5
+                        var lineSpacing = 1 / rowPerMM
 
-                        let isForward = true
+                        var isForward = true
 
-                        for (let yMM = 0; yMM < convertToMM(height); yMM += lineSpacing) {
-                                const y = Math.round(yMM * 96 / 25.4)
+                        for (var yMM = 0; yMM < convertToMM(height); yMM += lineSpacing) {
+                                var y = Math.round(yMM * 96 / 25.4)
                                 if (y >= height) break
 
-                                const { firstActivePixel, lastActivePixel } = findActivePixelRange(y)
+                                var { firstActivePixel, lastActivePixel } = findActivePixelRange(y)
                                 if (firstActivePixel === -1) continue
 
-                                let startX = firstActivePixel
-                                let endX = lastActivePixel
-                                let step = isForward ? 1 : -1
+                                var startX = firstActivePixel
+                                var endX = lastActivePixel
+                                var step = isForward ? 1 : -1
                                 if (!isForward) [startX, endX] = [endX, startX]
 
-                                const yCoord = (dHeight - yMM) - borderY
-                                let drawing = false
-                                let lastPower = 0
+                                var yCoord = (dHeight - yMM) - borderY
+                                var drawing = false
+                                var lastPower = 0
 
                                 addLine("M5", "Laser OFF before move")
                                 addLine(`G0 Z${zMax.toFixed(2)} F${speedTRVL}`, "Retract to safe Z")
 
-                                for (let ix = startX; ix !== endX + step; ix += step) {
-                                        const idx = (y * width + ix) * 4
-                                        const red = data[idx]
-                                        const green = data[idx + 1]
-                                        const blue = data[idx + 2]
-                                        const alpha = data[idx + 3]
+                                for (var ix = startX; ix !== endX + step; ix += step) {
+                                        var idx = (y * width + ix) * 4
+                                        var red = data[idx]
+                                        var green = data[idx + 1]
+                                        var blue = data[idx + 2]
+                                        var alpha = data[idx + 3]
 
-                                        const isWhite = red > 240 && green > 240 && blue > 240
-                                        const isTransparent = alpha <= 10
+                                        var isWhite = red > 240 && green > 240 && blue > 240
+                                        var isTransparent = alpha <= 10
 
-                                        let power = 0
+                                        var power = 0
                                         if (!isWhite && !isTransparent) {
-                                                const brightness = red * 0.3 + green * 0.59 + blue * 0.11
+                                                var brightness = red * 0.3 + green * 0.59 + blue * 0.11
                                                 power = minPWR + (1.0 - brightness / 255.0) * (maxPWR - minPWR)
                                                 power = Math.round(power / powerStep) * powerStep
                                         }
 
-                                        const xCoord = convertToMM(ix) + borderX
+                                        var xCoord = convertToMM(ix) + borderX
 
                                         if (power > 0) {
                                                 if (!drawing) {
@@ -1327,7 +1353,7 @@ function img2gc() {
                                                         addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${power}`, "Continue engraving")
                                                 }
                                         } else if (drawing) {
-                                                const xPrev = convertToMM(ix - step) + borderX
+                                                var xPrev = convertToMM(ix - step) + borderX
                                                 addLine(`G1 X${xPrev.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, "End raster segment")
                                                 addLine("M5", "Laser OFF")
                                                 drawing = false
@@ -1335,13 +1361,13 @@ function img2gc() {
                                 }
 
                                 if (drawing) {
-                                        const xCoord = convertToMM(endX) + borderX
+                                        var xCoord = convertToMM(endX) + borderX
                                         addLine(`G1 X${xCoord.toFixed(2)} Y${yCoord.toFixed(2)} Z${zOffset.toFixed(2)} F${speedLSR} S${lastPower}`, "End raster line")
                                         addLine("M5", "Laser OFF")
                                 }
 
-                                const nextYMM = yMM + lineSpacing
-                                const nextYCoord = (dHeight - nextYMM) - borderY
+                                var nextYMM = yMM + lineSpacing
+                                var nextYCoord = (dHeight - nextYMM) - borderY
                                 if (nextYMM < convertToMM(height)) {
                                         addLine(`G0 Y${nextYCoord.toFixed(2)} F${speedTRVL}`, "Next raster line (serpentine)")
                                 }
@@ -1584,8 +1610,8 @@ function saveOrder() {
 }
 
 function downloadFile(file) {
-        let url = URL.createObjectURL(file.data)
-        let a = document.createElement("a")
+        var url = URL.createObjectURL(file.data)
+        var a = document.createElement("a")
         a.href = url
         a.download = file.name + ".gcode"
         document.body.appendChild(a)
@@ -1647,7 +1673,7 @@ var addQUEUE = function() {
                                 <button id="pause" class="btAlert" style="position:absolute; left:10px; top:115px">Pause</button>
                                 <button id="resume" class="btAlert" style="position:absolute; left:10px; top:150px">Resume</button>
 
-                                <button id="config"class="btAlert" style="position:absolute;  margin-left:10px; bottom:10px">setGRBL</button>
+                                <button id="configGRBL"class="btAlert" style="position:absolute;  margin-left:10px; bottom:10px">setGRBL</button>
 
                                 <input class="txtInp" type="text" id="cmd" style="text-align:center;
                                 position:absolute; left:10px; top:200px; width:177px" placeholder="send command 'ctrl + enter'"/>
@@ -1916,7 +1942,7 @@ function stopSpinner() {
 var accX = '', accY = '', accZ = ''
 
 var configVisible = false
-document.getElementById('config').addEventListener('click', function () {
+document.getElementById('configGRBL').addEventListener('click', function () {
         if (isConnected == true) {
                 configVisible = !configVisible
                 if (configVisible) {
@@ -2089,24 +2115,24 @@ var viewLeft = centerX - (tW / 2)
 sidePanel.style.left = (viewLeft - 120) + "px"
 
 function formatTime(seconds) {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60)
-        const s = Math.floor(seconds % 60)
+        var h = Math.floor(seconds / 3600);
+        var m = Math.floor((seconds % 3600) / 60)
+        var s = Math.floor(seconds % 60)
         return h > 0 ? `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}` 
                      : `${m}:${s.toString().padStart(2,'0')}`
 }
 function updateTimeRemaining() {
     if (!gcodeText || totalGCodeLines === 0) return;
 
-    const lines = gcodeText.split(/\r?\n/).filter(l => l.trim() && !l.startsWith(';'));
-    const sentLines = sentGCodeLines;
-    const remainingLines = lines.slice(sentLines).join('\n');
+    var lines = gcodeText.split(/\r?\n/).filter(l => l.trim() && !l.startsWith(';'));
+    var sentLines = sentGCodeLines;
+    var remainingLines = lines.slice(sentLines).join('\n');
 
 var speedTRVL = parseInt($("#_04").val())
 var speedLSR = parseInt($("#_05").val())
 var accX = document.getElementById('_11').value
-    const remainingSec = estimateJobTime(remainingLines, speedTRVL, speedLSR, accX)
-    const el = document.getElementById('time-remaining');
+    var remainingSec = estimateJobTime(remainingLines, speedTRVL, speedLSR, accX)
+    var el = document.getElementById('time-remaining');
     if (el) el.textContent = "timeRemaining: " + formatTime(remainingSec);
 }
 
@@ -2147,61 +2173,61 @@ function formatGcodeLine(rawLine){
         PARSER 3D
 ========================= */
 function makeStreamParser(scene) {
-        let segments = []
-        let currentSegmentIndex = 0
-        let currentSegmentProgress = 0
-        let completedLineMeshes = []
-        let activeLineMesh = null
-        let laserMesh = null
+        var segments = []
+        var currentSegmentIndex = 0
+        var currentSegmentProgress = 0
+        var completedLineMeshes = []
+        var activeLineMesh = null
+        var laserMesh = null
 
-        let inBB = false
-        const bbColor = new THREE.Color(0x555555)
-        const minSegmentDuration = 0.02
-        const laserHeight = 4.0
-        const defaultFeed = 1200
+        var inBB = false
+        var bbColor = new THREE.Color(0x555555)
+        var minSegmentDuration = 0.02
+        var laserHeight = 4.0
+        var defaultFeed = 1200
 
         function dist(a, b) {
-                const dx = a.x - b.x
-                const dy = a.y - b.y
-                const dz = a.z - b.z
+                var dx = a.x - b.x
+                var dy = a.y - b.y
+                var dz = a.z - b.z
                 return Math.sqrt(dx * dx + dy * dy + dz * dz)
         }
 
-        const speedFactor = 0.2
+        var speedFactor = 0.2
         function calcDuration(length, feed) {
-                const feedUsed = (feed && feed > 0) ? feed : defaultFeed
-                const speed_mm_per_sec = feedUsed / 60
-                const duration = speed_mm_per_sec > 0 ? (length / speed_mm_per_sec) : (length * 0.01)
+                var feedUsed = (feed && feed > 0) ? feed : defaultFeed
+                var speed_mm_per_sec = feedUsed / 60
+                var duration = speed_mm_per_sec > 0 ? (length / speed_mm_per_sec) : (length * 0.01)
                 return Math.max(duration * speedFactor, minSegmentDuration)
         }
 
-        let running = false
+        var running = false
         function animateLoop(timestamp) {
                 if (currentSegmentIndex >= segments.length) {
                         if (running) requestAnimationFrame(animateLoop)
                         return
                 }
 
-                const seg = segments[currentSegmentIndex]
+                var seg = segments[currentSegmentIndex]
                 if (typeof seg._lastTimestamp === 'undefined') seg._lastTimestamp = timestamp || performance.now()
-                const now = timestamp || performance.now()
-                const dt = (now - seg._lastTimestamp) / 1000
+                var now = timestamp || performance.now()
+                var dt = (now - seg._lastTimestamp) / 1000
                 seg._lastTimestamp = now
                 seg._elapsed = (seg._elapsed || 0) + dt
                 currentSegmentProgress = Math.min(1, seg._elapsed / seg.duration)
 
-                const x = seg.oldPt.x + (seg.newPt.x - seg.oldPt.x) * currentSegmentProgress
-                const y = seg.oldPt.y + (seg.newPt.y - seg.oldPt.y) * currentSegmentProgress
-                const z = seg.oldPt.z + (seg.newPt.z - seg.oldPt.z) * currentSegmentProgress
+                var x = seg.oldPt.x + (seg.newPt.x - seg.oldPt.x) * currentSegmentProgress
+                var y = seg.oldPt.y + (seg.newPt.y - seg.oldPt.y) * currentSegmentProgress
+                var z = seg.oldPt.z + (seg.newPt.z - seg.oldPt.z) * currentSegmentProgress
 
                 // === linea attiva ===
                 if (!activeLineMesh) {
-                        const geom = new THREE.BufferGeometry().setFromPoints([
+                        var geom = new THREE.BufferGeometry().setFromPoints([
                                 new THREE.Vector3(seg.oldPt.x, seg.oldPt.y, seg.oldPt.z),
                                 new THREE.Vector3(x, y, z)
                         ])
 
-                        let color
+                        var color
                         if (seg.isRapid) {color = new THREE.Color(0x181818)} // rapid
                         else if (seg.inBB) {color = bbColor}
                         else {color = new THREE.Color(seg.powerRatio, seg.powerRatio, seg.powerRatio)}
@@ -2209,7 +2235,7 @@ function makeStreamParser(scene) {
                                 color.r, color.g, color.b, color.r, color.g, color.b
                         ], 3))
 
-                        const mat = new THREE.LineBasicMaterial({ vertexColors: true })
+                        var mat = new THREE.LineBasicMaterial({ vertexColors: true })
                         activeLineMesh = new THREE.Line(geom, mat)
                         scene.add(activeLineMesh)
                 } else {
@@ -2222,23 +2248,23 @@ function makeStreamParser(scene) {
 
                 // === laser ===
                 if (!laserMesh) {
-                        const radius = 0.5
-                        const laserGeom = new THREE.ConeGeometry(radius, laserHeight, 16)
-                        const laserMat = new THREE.MeshBasicMaterial({ color: 0xff00ff })
+                        var radius = 0.5
+                        var laserGeom = new THREE.ConeGeometry(radius, laserHeight, 16)
+                        var laserMat = new THREE.MeshBasicMaterial({ color: 0xff00ff })
                         laserMesh = new THREE.Mesh(laserGeom, laserMat)
                         scene.add(laserMesh)
                 }
 
-                const laserTop = new THREE.Vector3(x, y, z + laserHeight)
-                const laserBottom = new THREE.Vector3(x, y, z)
-                const dir = new THREE.Vector3().subVectors(laserBottom, laserTop)
-                const length = dir.length()
+                var laserTop = new THREE.Vector3(x, y, z + laserHeight)
+                var laserBottom = new THREE.Vector3(x, y, z)
+                var dir = new THREE.Vector3().subVectors(laserBottom, laserTop)
+                var length = dir.length()
                 dir.normalize()
                 laserMesh.scale.set(1, length / laserHeight, 1)
-                const axis = new THREE.Vector3(0, 1, 0)
-                const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, dir)
+                var axis = new THREE.Vector3(0, 1, 0)
+                var quaternion = new THREE.Quaternion().setFromUnitVectors(axis, dir)
                 laserMesh.setRotationFromQuaternion(quaternion)
-                const center = new THREE.Vector3().addVectors(laserTop, laserBottom).multiplyScalar(0.5)
+                var center = new THREE.Vector3().addVectors(laserTop, laserBottom).multiplyScalar(0.5)
                 laserMesh.position.copy(center)
 
                 if (currentSegmentProgress >= 1) {
@@ -2262,24 +2288,24 @@ function makeStreamParser(scene) {
                 }
         }
 
-        const parser = new GCodeParser({
+        var parser = new GCodeParser({
                 G0: args => {
                         if ('s' in args) lastPower = args.s
-                        const zReal = ('z' in args) ? args.z : lastLine.z
+                        var zReal = ('z' in args) ? args.z : lastLine.z
 
-                        const newPt = {
+                        var newPt = {
                                 x: (args.x ?? lastLine.x) - center.x,
                                 y: (args.y ?? lastLine.y) - center.y,
                                 z: (zReal) - center.z
                         }
-                        const oldPt = {
+                        var oldPt = {
                                 x: lastLine.x - center.x,
                                 y: lastLine.y - center.y,
                                 z: lastLine.z - center.z
                         }
-                        const length = dist(oldPt, newPt)
-                        const feed = ('f' in args) ? args.f : undefined
-                        const duration = calcDuration(length, feed)
+                        var length = dist(oldPt, newPt)
+                        var feed = ('f' in args) ? args.f : undefined
+                        var duration = calcDuration(length, feed)
 
                         segments.push({
                                 oldPt, newPt, powerRatio:0,
@@ -2293,41 +2319,40 @@ function makeStreamParser(scene) {
                 },
                 G1: args => {
                         if ('s' in args) lastPower = args.s
-                        const powerRatio = isImageMode ? 1 - (lastPower / 255) : (lastPower / 255)
-                        const zReal = ('z' in args) ? args.z : lastLine.z
-                        const zOffset = (powerRatio/3)
-                        const newPt = {
+                        var powerRatio = isImageMode ? 1 - (lastPower / 255) : (lastPower / 255)
+                        var zReal = ('z' in args) ? args.z : lastLine.z
+                        var zOffset = (powerRatio/3)
+                        var newPt = {
                                 x: (args.x ?? lastLine.x) - center.x,
                                 y: (args.y ?? lastLine.y) - center.y,
                                 z: (zReal + zOffset) - center.z
                         }
-                        const oldPt = {
+                        var oldPt = {
                                 x: lastLine.x - center.x,
                                 y: lastLine.y - center.y,
                                 z: lastLine.z + zOffset - center.z
                         }
-                        const length = dist(oldPt, newPt)
-                        const feed = ('f' in args) ? args.f : undefined
-                        const duration = calcDuration(length, feed)
+                        var length = dist(oldPt, newPt)
+                        var feed = ('f' in args) ? args.f : undefined
+                        var duration = calcDuration(length, feed)
                         segments.push({
                                 oldPt, newPt, powerRatio, feed,
                                 length, duration, _elapsed: 0, inBB
                         })
-                        lastLine = { x: args.x ?? lastLine.x, y: args.y ?? lastLine.y, z: zReal }
+                        lastLine = {x: args.x ?? lastLine.x, y: args.y ?? lastLine.y, z: zReal}
                         ensureAnimationRunning()
                 }
         })
 
         return {
                 parseLine: (line) => {
-                        const trimmed = line.trim()
+                        var trimmed = line.trim()
                         if (trimmed.startsWith(';')) {
-                                const text = trimmed.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()
+                                var text = trimmed.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()
                                 if (text.includes('start bb')) inBB = true
                                 if (text.includes('end bb')) {inBB = false; pauseStreaming()}
                                 return
-                        }
-                        parser.parseLine(line)
+                        }; parser.parseLine(line)
                 }
         }
 }
@@ -2339,7 +2364,7 @@ var workerCode = `
         var lines = [], currentIndex = 0, paused = false, stopped = false
 
         self.onmessage = (e) => {
-                var { cmd, data } = e.data
+                var {cmd, data} = e.data
                 if (cmd === 'start') {
                         lines = data.lines
                                 .map(l => l.replace(/\\(.*?\\)/g, ''))   
@@ -2433,7 +2458,7 @@ worker.onmessage = async (e) => {
 
                 try { parser.parseLine(raw) } catch (err) { console.warn("parse error:", err) }
 
-                const sendToGrbl = formatted.split(';')[0].trim()
+                var sendToGrbl = formatted.split(';')[0].trim()
                 if (sendToGrbl) {
                         try {
                                 sentGCodeLines++; updateProgressBar(); updateTimeRemaining()
@@ -2495,14 +2520,14 @@ async function softReset() {
 /* =========================
         PROGRESS BAR
 ========================= */
-let progressUpdateTimeout;
+var progressUpdateTimeout;
 
 function updateProgressBar() {
-        const bar = document.getElementById('progress-bar')
-        const info = document.getElementById('progress-info')
+        var bar = document.getElementById('progress-bar')
+        var info = document.getElementById('progress-info')
         if (!bar || !info || totalGCodeLines === 0) return
 
-        const percent = Math.min(100, Math.round((sentGCodeLines / totalGCodeLines) * 100)) + 1
+        var percent = Math.min(100, Math.round((sentGCodeLines / totalGCodeLines) * 100)) + 1
 
         clearTimeout(progressUpdateTimeout)
         progressUpdateTimeout = setTimeout(() => {
@@ -2582,8 +2607,8 @@ function resetAllState(){
                 try { worker.postMessage({cmd:'stop'}) } catch(e){}
         }
 
-        const bar = document.getElementById('progress-bar')
-        const info = document.getElementById('progress-info')
+        var bar = document.getElementById('progress-bar')
+        var info = document.getElementById('progress-info')
         if (bar) bar.style.width = '0%'
         if (info) {
                 info.textContent = '0%'
@@ -2601,10 +2626,10 @@ function resetAllState(){
                 if (typeof clrScene === 'function' && typeof scene !== 'undefined') clrScene(scene)
         } catch(e) { console.warn("Scene clear failed:", e) }
 
-        const grbl = document.getElementById('grbl')
+        var grbl = document.getElementById('grbl')
         if (grbl) grbl.textContent = ''
         if (typeof cnsLog !== 'undefined' && cnsLog) cnsLog.innerHTML = ''
-        const ovLP = document.getElementById('ovLP')
+        var ovLP = document.getElementById('ovLP')
         if (ovLP) ovLP.style.display = 'block'
 }
 
@@ -2847,14 +2872,6 @@ document.addEventListener('keydown', function(event) {
                 event.preventDefault()
                 addTEXT('roboto_b', 100, 100, 100, 'test')
         }
-        else if (event.altKey && event.key === 'f') {
-                event.preventDefault()
-                addRECTinteractive()
-        }    
-        else if (event.altKey && event.key === 'g') {
-                event.preventDefault()
-                addELLIPSEinteractive()
-        }       
 })
 
 var wakeLock = null
@@ -2882,9 +2899,9 @@ window.addEventListener("DOMContentLoaded", () => {
         if (!isRunningAsPWA()) {
                 document.getElementById("pwa-warning").style.display = "block"
         }
-})
-                                               
+})                                              
                 </script>
+
 
                 <!--div id="warning" style="
                         visibility:hidden;
