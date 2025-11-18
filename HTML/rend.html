@@ -88,7 +88,7 @@
         .fade {opacity: 0; transition: opacity 2s ease-in-out}
 </style>
      
-<body style="height:200%">
+<body>
         <svg id="allSVG" style="display:block; height:200%;">
                 <path id="svgPath" marker-mid="url(#markerdot)"/>
                 <defs>
@@ -111,7 +111,7 @@
         </svg>
         <div id="datadiv" style="display:none" oncontextmenu="return false"></div>
 
-        <div id="wrapper" style="position:relative; left:4px; top:14px; width:120%; height:200%">            
+        <div id="wrapper" style="position:absolute; left:4px; top:14px; width:120%; height:200%">            
                 <canvas id="canvas" style="z-index:1; cursor:none !important"></canvas>
         </div>
 	
@@ -390,8 +390,9 @@
                         else {return Math.round(value / GRID) * GRID}
                 }
 
-                var GRID = 18.8976377952, dWidth=120, dHeight=120, numSEG=30
+                var GRID = 18.8976377952, dWidth=150, dHeight=150, numSEG=30
                 var intersectionCircleWA, isDraggingWA = false
+
                 function setWorkArea() {
                         canvas.getObjects().forEach(obj => {
                                 if (obj.workAreaLine || obj.waImage || obj.intersectionCircleWA) {
@@ -775,8 +776,6 @@
                                 opentype.load("../FONT/arial.ttf").then(function(font){fonts.arial = font}),
                                 opentype.load("../FONT/Times.ttf").then(function(font){fonts.times = font}),
                                 opentype.load("../FONT/Gilroy.ttf").then(function(font){fonts.gilroy = font}),
-                                opentype.load("../FONT/seven.ttf").then(function(font){fonts.seven = font}),
-                                opentype.load("../FONT/matrix.ttf").then(function(font){fonts.matrix = font}), 
                                 opentype.load("../FONT/WildWest.ttf").then(function(font){fonts.wildwest = font}),                               
                                 opentype.load("../FONT/WestIcons.ttf").then(function(font){fonts.westicon = font}),                               
                                 opentype.load("../FONT/Roboto-Black.ttf").then(function(font){fonts.roboto_b = font}),
@@ -788,6 +787,7 @@
                                 opentype.load("../FONT/AVH_2.ttf").then(function(font){fonts.cnc_2 = font}),
                                 opentype.load("../FONT/AVH_3.ttf").then(function(font){fonts.cnc_3 = font}),
 
+                                opentype.load("../FONT/digital.ttf").then(function(font){fonts.digit = font}),
                         ]; return Promise.all(fontPromises)
                 }
                 preloadFonts().then(function(){console.log('Fonts preloaded')})
@@ -972,20 +972,18 @@
                                         if (letter === " ") {
                                                 var spaceAdvance = font.getAdvanceWidth 
                                                         ? font.getAdvanceWidth(" ", fontSZ) 
-                                                        : fontSZ * 0.3;
-                                                x += spaceAdvance;
-                                                continue;
+                                                        : fontSZ * 0.3
+                                                x += spaceAdvance; continue
                                         }
 
-                                        var glyph = font.charToGlyph(letter);
+                                        var glyph = font.charToGlyph(letter)
                                         if (!glyph) {
-                                                console.error("Glyph error:", letter);
-                                                continue;
+                                                console.error("Glyph error:", letter); continue
                                         }
 
                                         var bbox = glyph.getBoundingBox();
-                                        var charWidth = (bbox.xMax - bbox.xMin) * fontSZ / font.unitsPerEm;
-                                        var charHeight = (bbox.yMax - bbox.yMin) * fontSZ / font.unitsPerEm;
+                                        var charWidth = (bbox.xMax - bbox.xMin) * fontSZ / font.unitsPerEm
+                                        var charHeight = (bbox.yMax - bbox.yMin) * fontSZ / font.unitsPerEm
 
                                         var path = font.getPath(letter, x, y, fontSZ);
                                         var pt = path.toPathData();
@@ -994,63 +992,63 @@
                                                .replaceAll('Q', ' Q ')
                                                .replaceAll('C', ' C ')
                                                .replaceAll('Z', ' Z ');
-                                        var paths = separatePaths(pt);
-                                        finalInnerPaths += paths.inner;
-                                        finalOuterPaths += paths.outer;
+                                        var paths = separatePaths(pt)
+                                        finalInnerPaths += paths.inner
+                                        finalOuterPaths += paths.outer
 
                                         var advanceWidth = (glyph.advanceWidth * fontSZ) / font.unitsPerEm;
-                                        var kerning = 0;
+                                        var kerning = 0
                                         if (i < str.length - 1) {
-                                                var nextGlyph = font.charToGlyph(str[i + 1]);
-                                                kerning = font.getKerningValue(glyph.index, nextGlyph.index);
-                                                kerning = isNaN(kerning) || kerning === undefined ? 0 : (kerning * fontSZ) / font.unitsPerEm;
+                                                var nextGlyph = font.charToGlyph(str[i + 1])
+                                                kerning = font.getKerningValue(glyph.index, nextGlyph.index)
+                                                kerning = isNaN(kerning) || kerning === undefined ? 0 : (kerning * fontSZ) / font.unitsPerEm
                                         }
 
-                                        var bbox2 = glyph.getBoundingBox() || { x1: 0, x2: 0, y1: 0, y2: 0 };
-                                        var unitsPerEm = font.unitsPerEm || 1000;
-                                        var charWidth2 = (bbox2.x2 - bbox2.x1) * fontSZ / unitsPerEm;
-                                        var charHeight2 = (bbox2.y2 - bbox2.y1) * fontSZ / unitsPerEm;
-                                        var aspectRatio = charHeight2 > 0 ? charWidth2 / charHeight2 : 1;
-                                        var extraMargin = charWidth2 * 0.1;
+                                        var bbox2 = glyph.getBoundingBox() || {x1: 0, x2: 0, y1: 0, y2: 0}
+                                        var unitsPerEm = font.unitsPerEm || 1000
+                                        var charWidth2 = (bbox2.x2 - bbox2.x1) * fontSZ / unitsPerEm
+                                        var charHeight2 = (bbox2.y2 - bbox2.y1) * fontSZ / unitsPerEm
+                                        var aspectRatio = charHeight2 > 0 ? charWidth2 / charHeight2 : 1
+                                        var extraMargin = charWidth2 * 0.1
 
                                         if (aspectRatio > 1.5) {
-                                                extraMargin -= fontSZ * 0.03;
+                                                extraMargin -= fontSZ * 0.03
                                         } else if (aspectRatio < 0.5) {
-                                                extraMargin -= fontSZ * 0.03;
+                                                extraMargin -= fontSZ * 0.03
                                         }
 
                                         if (letter === letter.toUpperCase() && i > 0 && str[i - 1] === str[i - 1].toLowerCase()){
-                                                extraMargin -= fontSZ * 0.05;
+                                                extraMargin -= fontSZ * 0.05
                                         } else if (letter === letter.toLowerCase() && i > 0 && str[i - 1] === str[i - 1].toUpperCase()){
-                                                extraMargin -= fontSZ * 0.02;
+                                                extraMargin -= fontSZ * 0.02
                                         }
 
-                                        var letterSpacing = advanceWidth + kerning + extraMargin;
-                                        x += letterSpacing;
+                                        var letterSpacing = advanceWidth + kerning + extraMargin
+                                        x += letterSpacing
                                 }
 
-                                var finalPath = finalInnerPaths + finalOuterPaths;
-                                return processFinalPath(finalPath);
+                                var finalPath = finalInnerPaths + finalOuterPaths
+                                return processFinalPath(finalPath)
                         }
 
-                        var normalResult = buildNormal();
+                        var normalResult = buildNormal()
                         if (normalResult && typeof normalResult === 'object') {
                                 normalResult.onPATH = function(pathSTR) {
-                                        return buildOnPath(pathSTR);
-                                };
+                                        return buildOnPath(pathSTR)
+                                }
                         } else {
                                 normalResult = {
                                         value: normalResult,
                                         onPATH: function(pathSTR) {
-                                                return buildOnPath(pathSTR);
+                                                return buildOnPath(pathSTR)
                                         }
                                 };
-                        }
-                        return normalResult;
-                };
+                        }; return normalResult
+                }
+                var fontDEF = "times", fontSIZE = 30
                 var addTEXT = function(){
                         resetZoom() 
-                        displayString = "\nTEXT('seven', 30, 30, 30, '4321')"
+                        displayString = "\nTEXT('" + fontDEF + "', " + fontSIZE + ", 30, 30, 'HobbyLASER')"
 
                         var editorContent = editor.getValue()
                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
@@ -1255,7 +1253,7 @@
                         }; return svgpath
                 }                   
 
-                var clipper = new ClipperLib.Clipper()
+                var clipper = new ClipperLib.Clipper(), GROUPS = []
                 function clpPath(result){
                         var path = result.map(subPath => subPath.map(point => ({X:point.X, Y:point.Y})))
                         path.translate = function(dx, dy){
@@ -1305,7 +1303,7 @@
                         path.offset = function(offset, bool=true){
                                 ClipperLib.JS.ScaleUpPaths(path, 1000)
                                 var clipperOffset = new ClipperLib.ClipperOffset(2, 0.25)
-                                if(bool == true){var joinType = ClipperLib.JoinType.jtSquare}
+                                if(bool == true){var joinType = ClipperLib.JoinType.jtMiter}
                                 else if(bool == false){var joinType = ClipperLib.JoinType.jtRound}
                                 clipperOffset.AddPaths(path, joinType, ClipperLib.EndType.etClosedPolygon)
                                 const result = new ClipperLib.Paths(); clipperOffset.Execute(result, offset*1000)
@@ -1337,6 +1335,33 @@
                                         }
                                 }; return this
                         }
+                        path.reverse = function(tol = 1e-9){
+                                for (var i = 0; i < this.length; i++){
+                                        var sub = this[i]
+                                        if (!Array.isArray(sub) || sub.length === 0) continue
+                                        let closed = false
+                                        if (sub.length > 1){
+                                                var first = sub[0], last = sub[sub.length - 1];
+                                                if (Math.abs(first.X - last.X) <= tol && Math.abs(first.Y - last.Y) <= tol){
+                                                        closed = true;
+                                                }
+                                        }
+                                        if (closed){
+                                                var trimmed = sub.slice(0, sub.length - 1)
+                                                trimmed.reverse()
+                                                var firstPt = trimmed[0]
+                                                trimmed.push({X: firstPt.X, Y: firstPt.Y})
+                                                this[i].length = 0
+                                                for (var p of trimmed) this[i].push(p)
+                                        } else {sub.reverse()}
+                                }; return this
+                        }
+
+                        path.simplify = function(tolerance = 0.01){
+                                var cleaned = new ClipperLib.Paths()
+                                ClipperLib.CleanPolygons(this, cleaned, tolerance)
+                                return clpPath(cleaned)
+                        }                        
                         path.tab = function(gapWidth, numTabs){
                                 tabBool = true
                                 updateButtons()
@@ -1507,7 +1532,21 @@
                         var combined = [...translatedPath, ...path2]
                         return clpPath(combined)
                 }
-                       
+                function group() {
+                    var combined = []
+                    for (var i = 0; i < arguments.length; i++) {
+                        var p = arguments[i];
+                        if (Array.isArray(p) && Array.isArray(p[0]) && typeof p[0][0] === "object") {
+                                combined = combined.concat(p)
+                        }
+                        else if (Array.isArray(p) && Array.isArray(p[0]) && Array.isArray(p[0][0])) {
+                                combined = combined.concat(p)
+                        }
+                        else {console.warn("group(): unrecognized element:", p)}
+                    }
+                    GROUPS.push(combined); return clpPath(combined)
+                }
+  
                 function use(path) {
                         if (Array.isArray(path) && path.length > 0 && path[0] instanceof ClipperLib.IntPoint) {
                                 return clpPath(path)
@@ -1934,7 +1973,7 @@
                                                         })
                                                 })
                                         });
-                                        canvas.renderAll(); remToEdt(".vecor()"); return this
+                                        canvas.renderAll(); remToEdt(".vector()"); return this
                                 },
                                 get nc() {
                                         toggleGCconv(); remToEdt("nc"); return this
@@ -2123,6 +2162,8 @@
                                 }; reader.readAsText(file)                
                         }
                 }                      
+
+
         </script>                 
                             
         <svg height="0" width="0" style="display:none"><path id="path" d=""/></svg>
@@ -2130,5 +2171,5 @@
 </body>
 
 <!--
-
 -->
+
