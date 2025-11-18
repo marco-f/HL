@@ -1,4 +1,4 @@
- <!-- /HTML/main.html -->
+<!-- /HTML/main.html -->
 <!DOCTYPE html>
 <html xml:lang="en" lang="en">
         <head>
@@ -487,7 +487,10 @@ function simpleGear(numberOfTeeth, radius, heightOfTooth){
         paths[0].push(paths[0][0]); return use(paths);
 }
 //simpleGear(15, 20, 4)
-
+group(
+    POLYLINE("M 10 10 L 50 10 L 50 50 Z"),
+    POLYLINE("M 70 70 L 120 70 L 120 120 Z")
+)
 `)
 editor.clearSelection()
 editor.moveCursorTo(0, 0);
@@ -562,7 +565,7 @@ var runSCRIPT = () => {
                         canvas.add(guidePair.horizontalLine).bringToFront()
                         canvas.add(guidePair.intersectionCircle).bringToFront()                                       
                 }
-                cancBool = false
+                cancBool = false; console.log('svgFromScript ',CONV(svg))
         } catch(error) {console.error(error)}
 }
                         </script>
@@ -688,6 +691,9 @@ var observer = new MutationObserver(() => {
                 cnsLog.scrollTop = cnsLog.scrollHeight
         }, 100)
 }); observer.observe(cnsLog, {childList: true})
+cnsLog.addEventListener("contextmenu", function(e) {
+        e.stopPropagation()
+})
 
 var objNumber = 0;
 function addToConsole() {
