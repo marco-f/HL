@@ -114,7 +114,7 @@
         <div id="wrapper" style="position:absolute; left:4px; top:14px; width:120%; height:200%">            
                 <canvas id="canvas" style="z-index:1; cursor:none !important"></canvas>
         </div>
-	             
+	                    
         <script>
                 var DPI = 96, mmPerInch = 25.4, inchPerMm = 1 / 25.4;
                 var CONV = function(dt, toPixels = false){
@@ -528,8 +528,7 @@
                         if (typeof result === 'object' && result !== null){
                                 result.toSTR = function(){return Points_1.replace(/Z/g, '')}
                         }; return result
-                }
-                            
+                }            
                 var pathVIEW = function(txt,pt){
                         var state = JSON.parse(JSON.stringify(stateInitialize))
                         stateInitialize.placeholderPath = ''; initialize()
@@ -693,9 +692,7 @@
                                 }
                         }        
                 }
-
                 var keySequence = [], sequenceTimer = null
-
                 var handleKeyDown = e => {
                         if (e.shiftKey && e.key === 'Escape') {
                                 e.preventDefault(); e.stopPropagation()
@@ -725,7 +722,6 @@
                                 sequenceTimer = setTimeout(() => keySequence = [], 1000)
                         }
                 }
-          
                 function POLYGON(seg, centerX, centerY, radius){
                         var pt='', ang = 2*Math.PI/seg                                                
                         var plgX = centerX, plgY = centerY, rds = radius
@@ -756,7 +752,6 @@
                                 }
                         }
                 }
-
                 var addPOLYGON = function(){
                         resetZoom()
                         displayString = "\nPOLYGON(seg=20, centerX=10, centerY=10, r=5)"
@@ -787,8 +782,7 @@
                                 opentype.load("../FONT/digital.ttf").then(function(font){fonts.digit = font}),
                         ]; return Promise.all(fontPromises)
                 }
-                preloadFonts().then(function(){console.log('Fonts preloaded')})
-                
+                preloadFonts().then(function(){console.log('Fonts preloaded')})                
                 function transformGlyphPath(glyphPath, matrix){
                         function transformCoordinates(cmd, key){
                                 if (typeof cmd[key] !== "undefined"){
@@ -958,7 +952,6 @@
                                 var finalPath = finalInnerPaths + finalOuterPaths;
                                 return processFinalPath(finalPath);
                         }
-
                         function buildNormal() {
                                 var finalOuterPaths = '', finalInnerPaths = '';
                                 var x = parseInt(startX);
@@ -1045,7 +1038,7 @@
                 var fontDEF = "times", fontSIZE = 30
                 var addTEXT = function(){
                         resetZoom() 
-                        displayString = "\nTEXT('" + fontDEF + "', " + fontSIZE + ", 30, 30, 'HobbyLASER')"
+                        displayString = "\nTEXT('" + fontDEF + "', fontSIZE=30, startX=30, startY=30, 'HobbyLASER')"
 
                         var editorContent = editor.getValue()
                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
@@ -1057,7 +1050,6 @@
                         var factor = 10 ** decimals
                         return Math.round(num * factor) / factor
                 }
-
                 function parseSvgPath(convPath){
                         var commands = [], match
                         const regex = /([MLHVCSQTAZmlhvcsqtaz])((?:\s*-?\d*\.?\d+(?:[eE][-+]?\d+)?\s*){0,6})/g
@@ -1566,7 +1558,6 @@
                                 }
                         }
                 }
-
  
                 //-------------------------------------------------------------------------------------------------------------------------------------------------------------- addIMAGE                      
                 function tempCANVAS(imgInstance) {
