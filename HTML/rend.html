@@ -87,7 +87,7 @@
         }
         .fade {opacity: 0; transition: opacity 2s ease-in-out}
 </style>
-     
+                        
 <body>
         <svg id="allSVG" style="display:block; height:200%;">
                 <path id="svgPath" marker-mid="url(#markerdot)"/>
@@ -114,7 +114,10 @@
         <div id="wrapper" style="position:absolute; left:4px; top:14px; width:120%; height:200%">            
                 <canvas id="canvas" style="z-index:1; cursor:none !important"></canvas>
         </div>
-	                    
+	
+
+
+                     
         <script>
                 var DPI = 96, mmPerInch = 25.4, inchPerMm = 1 / 25.4;
                 var CONV = function(dt, toPixels = false){
@@ -186,10 +189,13 @@
                 //------------------------------------------------------------------------------------------------------------------------------------------------------------- addCANVAS                               
                 state = JSON.parse(JSON.stringify(stateInitialize))
                 stateInitialize.gridSnapSize = GRID; initialize()
+
+
+                        
                         
                 $.ajaxSetup({cache: false})
                 document.addEventListener("contextmenu",
-                function(e) {e.preventDefault()}, false)                               
+                function(e) {e.preventDefault()}, false)                                      
 
                 var rulerInstance, updateZoom, zoomLevel
                 $(document).ready(function(){
@@ -225,7 +231,275 @@
 
                 var cW = window.innerWidth
                 var cH = (window.innerHeight * 2) -80
-                canvas.setDimensions({width:cW, height:cH})     
+                canvas.setDimensions({width:cW, height:cH})
+
+
+
+
+
+
+//======================================================
+// UNIFIED CAD DIMENSION TOOL 
+//======================================================
+
+var activeTool = null 
+var dim = {
+        step:0, type:null,
+        arrow1:null, arrow2:null,
+        p1:null, p2:null, p3:null,
+        line:null, ext1:null, ext2:null,
+        text:null, line1:null, line2:null, arc:null
+}
+
+var snapThreshold = 10
+var ARROW_SIZE = 6
+var TEXT_OFFSET = 15
+var ARC_RADIUS = 45
+
+//------------------------------------------------------
+// INITIALIZE SNAP MARKER
+//------------------------------------------------------
+var snapMarker = new fabric.Circle({
+        radius:4, fill:'transparent', originX:'center', originY:'center',
+        selectable:false, evented:false, visible:false
+})
+canvas.add(snapMarker)
+
+//------------------------------------------------------
+// UTILITIES & GEOMETRY
+//------------------------------------------------------
+var distance = (p1, p2) => Math.hypot(p2.x - p1.x, p2.y - p1.y)
+var getAngle = (p1, p2) => Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI
+
+function createArrow() {
+        return new fabric.Triangle({
+                width:ARROW_SIZE-3, height:ARROW_SIZE, fill:'gray',
+                originX:'center', originY:'top', selectable:false, evented:false
+        })
+}
+
+function snapToPaths(pointer, paths) {
+        var closest = { x: pointer.x, y: pointer.y, dist: Infinity }
+        paths.forEach(path => {
+                path.path.forEach(segment => {
+                        if (segment.length >= 3) {
+                                var vx = segment[segment.length - 2]
+                                var vy = segment[segment.length - 1]
+                                var matrix = path.calcTransformMatrix()
+                                var globalPoint = fabric.util.transformPoint({ x: vx, y: vy }, matrix)
+
+                                var d = distance(pointer, globalPoint)
+                                if (d < closest.dist && d < snapThreshold) {
+                                        closest = { x: globalPoint.x, y: globalPoint.y, dist: d }
+                                }
+                        }
+                })
+        })
+
+        return { 
+                point: closest.dist !== Infinity ? { x: closest.x, y: closest.y } : { x: pointer.x, y: pointer.y }, 
+                snapped: closest.dist !== Infinity 
+        }
+}
+
+function createAngleArc(B, A, C, radius = ARC_RADIUS) {
+        var startAngle = Math.atan2(A.y - B.y, A.x - B.x)
+        var endAngle = Math.atan2(C.y - B.y, C.x - B.x)
+        var diff = endAngle - startAngle
+        while (diff < 0) diff += 2 * Math.PI
+        var largeArcFlag = diff > Math.PI ? 1 : 0
+        var sx = (B.x - 0.5) + radius * Math.cos(startAngle)
+        var sy = B.y + radius * Math.sin(startAngle)
+        var ex = (B.x - 0.5) + radius * Math.cos(startAngle + diff)
+        var ey = B.y + radius * Math.sin(startAngle + diff)
+
+        return new fabric.Path(`M ${sx} ${sy} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${ex} ${ey}`, {
+                stroke:'gray', strokeWidth:1, fill:'transparent', selectable:false, evented:false
+        })
+}
+
+//------------------------------------------------------
+// KEYBOARD LISTENERS
+//------------------------------------------------------
+document.addEventListener('keydown', e => {
+        if (e.key === 'l') activeTool = 'linear'
+        if (e.key === 'a') activeTool = 'angle'
+        if (e.key === 'r') activeTool = 'radius'
+})
+document.addEventListener('keyup', e => {
+        if (e.key === 'l' || e.key === 'a' || e.key === 'r') {
+                resetTool()
+        }
+})
+function resetTool() {
+        activeTool = null
+        snapMarker.set({visible:false})
+        dim = {step:0, type:null, p1:null, p2:null, p3:null, line:null, ext1:null, ext2:null, arrow1:null, arrow2:null, text:null, line1:null, line2:null, arc:null}
+        canvas.renderAll()
+}
+
+//------------------------------------------------------
+// MOUSE DOWN
+//------------------------------------------------------
+canvas.on('mouse:down', e => {
+        if (typeof bV !== 'undefined' && bV === false) return
+        if (!activeTool) return
+
+        var pointer = canvas.getPointer(e.e);
+        var snap = snapToPaths(pointer, canvas.getObjects('path'));
+        var p = snap.point;
+
+        if (activeTool === 'linear') {
+                if (dim.step === 0) {
+                        dim.type = 'linear'; dim.p1 = {...p}
+                        dim.line = new fabric.Line([p.x - 0.5, p.y, p.x - 0.5, p.y], {stroke:'gray', strokeWidth:1, selectable:false, evented:false})
+                        dim.text = new fabric.Text('', {fontSize:11, fill:'gray', fontFamily:'monospace', backgroundColor:'rgba(0,0,0,0.6)', originX:'center', originY:'center', selectable:false, evented:false})
+                        canvas.add(dim.line, dim.text); dim.step = 1
+                } else if (dim.step === 1) {
+                        dim.p2 = {...p}
+                        dim.ext1 = new fabric.Line([0, 0, 0, 0], {stroke:'gray', strokeWidth:0.5, selectable:false, evented:false})
+                        dim.ext2 = new fabric.Line([0, 0, 0, 0], {stroke:'gray', strokeWidth:0.5, selectable:false, evented:false})
+                        dim.arrow1 = createArrow(); dim.arrow2 = createArrow()
+                        canvas.add(dim.ext1, dim.ext2, dim.arrow1, dim.arrow2); dim.step = 2
+                } else {dim.step = 0}
+        } 
+        else if (activeTool === 'angle') {
+                if (dim.step === 0) {
+                        dim.type = 'angle'; dim.p1 = {...p}
+                        dim.line1 = new fabric.Line([p.x - 0.5, p.y, p.x - 0.5, p.y], {stroke:'gray', strokeWidth:1, selectable:false, evented:false})
+                        dim.text = new fabric.Text('', {fontSize:12, fill:'gray', fontFamily:'monospace', backgroundColor:'rgba(0,0,0,0.6)', originX:'center', originY:'center', selectable:false, evented:false})
+                        canvas.add(dim.line1, dim.text); dim.step = 1
+                } else if (dim.step === 1) {
+                        dim.p2 = {...p} 
+                        dim.line2 = new fabric.Line([p.x - 0.5, p.y, p.x - 0.5, p.y], {stroke:'gray', strokeWidth:1, selectable:false, evented:false})
+                        dim.arrow1 = createArrow()
+                        canvas.add(dim.line2, dim.arrow1); dim.step = 2
+                } else {dim.step = 0}
+        }
+        else if (activeTool === 'radius') {
+                if (dim.step === 0) {
+                        dim.type = 'radius'; dim.p1 = {...p}
+                        dim.line = new fabric.Line([p.x - 0.5, p.y, p.x - 0.5, p.y], {stroke:'gray', strokeWidth:1, selectable:false, evented:false})
+                        dim.arrow1 = createArrow()
+                        dim.text = new fabric.Text('', {fontSize:11, fill:'gray', fontFamily:'monospace', backgroundColor:'rgba(0,0,0,0.6)', originX:'center', originY:'center', selectable:false, evented:false})
+                        canvas.add(dim.line, dim.arrow1, dim.text); dim.step = 1
+                } else {dim.step = 0}
+        }
+        canvas.renderAll()
+})
+
+//------------------------------------------------------
+// MOUSE MOVE
+//------------------------------------------------------
+canvas.on('mouse:move', e => {
+        var snap = snapToPaths(e.pointer, canvas.getObjects('path'))
+        var mouse = snap.point
+        
+        snapMarker.set({left:mouse.x - 0.5, top:mouse.y, visible:(activeTool !== null)})
+        if (dim.step === 0) {canvas.renderAll(); return}
+
+        if (dim.type === 'linear') {
+                var p1 = dim.p1, p2 = dim.p2 || mouse
+                var dx = p2.x - p1.x, dy = p2.y - p1.y, len = Math.hypot(dx, dy)
+                if (len < 0.1) return
+
+                var dirX = dx/len, dirY = dy/len, orthoX = -dirY, orthoY = dirX
+                var projT = ((mouse.x - p1.x) * dx + (mouse.y - p1.y) * dy) / (len * len)
+                var projX = p1.x + projT * dx, projY = p1.y + projT * dy
+                var offset = (dim.step === 2) ? ((mouse.x - projX) * orthoX + (mouse.y - projY) * orthoY) : 0
+
+                var q1 = {x:p1.x + orthoX * offset, y:p1.y + orthoY * offset}
+                var q2 = {x:p2.x + orthoX * offset, y:p2.y + orthoY * offset}
+
+                dim.line.set({x1:q1.x - 0.5, y1:q1.y, x2:q2.x - 0.5, y2:q2.y})
+                
+                if (dim.step === 2) {
+                        dim.ext1.set({x1:p1.x - 0.5, y1:p1.y, x2:q1.x - 0.5, y2:q1.y})
+                        dim.ext2.set({x1:p2.x - 0.5, y1:p2.y, x2:q2.x - 0.5, y2:q2.y})
+                        var angle = getAngle(q1, q2)
+                        dim.arrow1.set({left:q1.x - 0.5, top:q1.y, angle:angle - 90})
+                        dim.arrow2.set({left:q2.x - 0.5, top:q2.y, angle:angle + 90})
+
+                        // Correzione misura +0.1 per compensare l'errore di calcolo
+                        var correctedLen = len + 0.1
+                        var displayLen = typeof CONV === 'function' ? CONV(correctedLen) : correctedLen
+                        dim.text.set({
+                                text:`${displayLen.toFixed(1)} mm`,
+                                left:(q1.x + q2.x) / 2 + (orthoX * TEXT_OFFSET * (offset >= 0 ? 1 : -1)) - 0.5,
+                                top:(q1.y + q2.y) / 2 + (orthoY * TEXT_OFFSET * (offset >= 0 ? 1 : -1)),
+                                angle:(angle + 360) % 360 > 90 && (angle + 360) % 360 < 270 ? angle + 180 : angle
+                        })
+                }
+        }
+        else if (dim.type === 'angle') {
+                if (dim.step === 1) dim.line1.set({x2:mouse.x - 0.5, y2:mouse.y})
+                else if (dim.step === 2) {
+                        var A = dim.p1, B = dim.p2, C = mouse
+                        dim.line2.set({x2:C.x - 0.5, y2:C.y})
+                        var startAng = Math.atan2(A.y - B.y, A.x - B.x)
+                        var endAng = Math.atan2(C.y - B.y, C.x - B.x)
+                        var sweep = (endAng - startAng) * 180 / Math.PI
+                        while (sweep < 0) sweep += 360
+
+                        if (dim.arc) canvas.remove(dim.arc)
+                        dim.arc = createAngleArc(B, A, C)
+                        canvas.add(dim.arc)
+
+                        var bisect = startAng + (sweep * Math.PI / 180) / 2
+                        dim.text.set({
+                                text:`${sweep.toFixed(1)}°`,
+                                left:B.x + (ARC_RADIUS + 25) * Math.cos(bisect) - 0.5,
+                                top:B.y + (ARC_RADIUS + 25) * Math.sin(bisect)
+                        })
+                        dim.arrow1.set({left:B.x + ARC_RADIUS * Math.cos(endAng) - 0.5, top:B.y + ARC_RADIUS * Math.sin(endAng), angle:(endAng * 180 / Math.PI) + 90})
+                }
+        }
+        else if (dim.type === 'radius') {
+                var center = dim.p1
+                var dx = mouse.x - center.x
+                var dy = mouse.y - center.y
+                var rLen = Math.hypot(dx, dy)
+
+                var angleDeg = getAngle(center, mouse)
+                var ux = dx / (rLen || 1)
+                var uy = dy / (rLen || 1)
+                var extension = 15
+                dim.line.set({ 
+                        x1:center.x - 0.5, y1:center.y, 
+                        x2:mouse.x + ux * extension - 0.5, 
+                        y2:mouse.y + uy * extension,
+                        visible:true 
+                })
+
+                dim.arrow1.set({ 
+                        left:mouse.x - 0.5, 
+                        top:mouse.y, 
+                        angle:angleDeg - 90,
+                        visible:true 
+                })
+
+                var displayR = typeof CONV === 'function' ? CONV(rLen + 0.1) : (rLen + 0.1)
+                var textOffset = 45
+
+                var textRotation = angleDeg
+                if ((angleDeg + 360) % 360 > 90 && (angleDeg + 360) % 360 < 270) {
+                        textRotation += 180
+                }
+
+                dim.text.set({
+                        text:`r ${displayR.toFixed(1)}`,
+                        left:mouse.x + ux * textOffset - 0.5,
+                        top:mouse.y + uy * textOffset,
+                        angle:textRotation, visible:true
+                })
+        }
+        canvas.renderAll()
+})
+
+
+
+
+                     
 
                 function drawGRID() {
                         var gridLines = [];
@@ -256,6 +530,10 @@
                                 stroke: '#888', selectable: false, strokeWidth: 1, excludeFromExport:true
                         })
                         canvas.add(lineHrz); canvas.add(lineVrt)
+
+                        lineHrz.bringToFront()
+                        lineVrt.bringToFront()
+
                         canvas.on('mouse:move', function(event){
                                 var pointer = canvas.getPointer(event.e)
                                 var x = pointer.x, y = pointer.y
@@ -269,7 +547,7 @@
                                 canvas.renderAll()
                         })                        
                 },0)                            
-
+                            
                 var isDragging = false, activeIntersection = null
                 var horizontalLabel = document.getElementById('horizontalLabel')
                 var interactiveGuides = []
@@ -312,10 +590,6 @@
                         }); return circle                       
                 }
                 function snapToGrid(value){return Math.round(value / GRID) * GRID}
-                function _snapToGrid(value){
-                        var grid = GRID / 5
-                        return Math.round(value / grid) * grid
-                }       
                 function createInteractiveGuide(){
                         var initialX = snapToGrid(GRID)
                         var initialY = snapToGrid(GRID)        
@@ -349,8 +623,9 @@
                                 lineVrt.set({opacity: 0})
                                 
                                 var pointer = canvas.getPointer(event.e)
-                                var snappedX = _snapToGrid(pointer.x)
-                                var snappedY = _snapToGrid(pointer.y)+11
+
+                                var snappedX = snapToGrid(pointer.x)
+                                var snappedY = snapToGrid(pointer.y)+11
 
                                 activeIntersection.intersectionCircle.set({left: snappedX - 5, top: snappedY - 5})
 
@@ -387,7 +662,7 @@
                         else {return Math.round(value / GRID) * GRID}
                 }
 
-                var GRID = 18.8976377952, dWidth=150, dHeight=150, numSEG=30
+                var GRID = 18.8976377952, dWidth=120, dHeight=120, numSEG=30
                 var intersectionCircleWA, isDraggingWA = false
 
                 function setWorkArea() {
@@ -510,11 +785,11 @@
                                 }
                         }; canvas.renderAll(); 
                 }
-         
+   
                 //----------------------------------------------------------------------------------------------------------------------------------------------------------- addSVGPATHS                          
                 var bV = true, pt
                 stroke = color = '#fff', fill = '#00000003'
-                var POLYLINE = function(pt){
+                var MULTILINE = function(pt){
                         Points = pt.replace(/,/g, ' ')
                         Points_1 = svgPathToPoints(Points)
                         Points_1 = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ')
@@ -528,7 +803,8 @@
                         if (typeof result === 'object' && result !== null){
                                 result.toSTR = function(){return Points_1.replace(/Z/g, '')}
                         }; return result
-                }            
+                }
+                            
                 var pathVIEW = function(txt,pt){
                         var state = JSON.parse(JSON.stringify(stateInitialize))
                         stateInitialize.placeholderPath = ''; initialize()
@@ -543,14 +819,14 @@
                                 lastPath = lastPath.replace(/(-?\d+)\.\d+/g, '$1')
                                 if(lastPath){                                                                    
                                         var variableName = `p_${variableCount}`;
-                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                        var displayString = `\MULTILINE(PV['${variableName}'])`
                                         PV[variableName] = lastPath; const editorContent = editor.getValue()
                                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
-                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++                                        
+                                        editor.clearSelection(); editor.blur(); TAOpen(); variableCount++                                        
                                 }
-                        } else {console.log("No to convert")}; TAOpen(); runSCRIPT()
+                        } else {}; TAOpen(); runSCRIPT()
                 }
-                var addPOLYLINE = function(){
+                function addMULTILINE(){remToEdt("addMULTILINE")
                         resetZoom()                        
                         if (bV == true){
                                 bV = false
@@ -692,6 +968,8 @@
                                 }
                         }        
                 }
+                        
+
                 var keySequence = [], sequenceTimer = null
                 var handleKeyDown = e => {
                         if (e.shiftKey && e.key === 'Escape') {
@@ -722,6 +1000,7 @@
                                 sequenceTimer = setTimeout(() => keySequence = [], 1000)
                         }
                 }
+
                 function POLYGON(seg, centerX, centerY, radius){
                         var pt='', ang = 2*Math.PI/seg                                                
                         var plgX = centerX, plgY = centerY, rds = radius
@@ -745,21 +1024,64 @@
                                         Points_1 = svgPathToPoints(Points)
                                         pointsArray = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ')
                                         Points_2 = svgPathToClipperPaths(pointsArray)
-                                        if (!Array.isArray(Points_2) || Points_2.length === 0){
-                                                console.error("array is empty"); return []
-                                        }
+                                        if (!Array.isArray(Points_2) || Points_2.length === 0){console.error("array is empty"); return []}
                                         return use(Points_2);                                      
                                 }
                         }
                 }
+
                 var addPOLYGON = function(){
                         resetZoom()
-                        displayString = "\nPOLYGON(seg=20, centerX=10, centerY=10, r=5)"
+                        displayString = "\nPOLYGON(seg=20, centerX=50, centerY=50, r=20)"
                 
                         var editorContent = editor.getValue()
                         editor.setValue(editorContent ? `${editorContent}${displayString}` : `${displayString}`)
-                        editor.clearSelection(); editor.focus(); TAOpen()//; runSCRIPT()
+                        editor.clearSelection(); editor.blur(); TAOpen()//; runSCRIPT()
                 }
+
+
+                function STAR(points, centerX, centerY, outerR, innerR){
+                        var pt = '', ang = Math.PI / points
+                        var cx = centerX, cy = centerY;
+
+                        if (cx != null && cx == '' || cy != null && cy == '') {
+                                console.error("[ no correct input! ]")
+                        } else if (isNaN(cx) || isNaN(cy)) {
+                                console.error("[ must input numbers! ]")
+                        } else {
+                                var x = cx + outerR;
+                                var y = cy;
+                                pt = `M ${x.toFixed(2)} ${y.toFixed(2)}`;
+                                for (let i = 1; i < points * 2; i++) {
+                                        var r = (i % 2 === 0) ? outerR : innerR;
+                                        var x = cx + r * Math.cos(i * ang);
+                                        var y = cy + r * Math.sin(i * ang);
+                                        pt += ` L ${x.toFixed(2)} ${y.toFixed(2)}`;
+                                }
+
+                                pt += ' Z '
+
+                                Points = pt.replace(/,/g, ' ');
+                                Points_1 = svgPathToPoints(Points);
+                                pointsArray = Points_1
+                                        .map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : ''))
+                                        .join(' ');
+                                Points_2 = svgPathToClipperPaths(pointsArray);
+
+                                if (!Array.isArray(Points_2) || Points_2.length === 0){
+                                        console.error("array is empty"); return [];
+                                }; return use(Points_2)
+                        }
+                }
+                var addSTAR = function(){
+                        resetZoom();
+                        displayString = "\nSTAR(points=5, centerX=50, centerY=50, outerR=40, innerR=20)"
+                        var editorContent = editor.getValue();
+                        editor.setValue(
+                                editorContent ? `${editorContent}${displayString}` : `${displayString}`
+                        )
+                        editor.clearSelection(); editor.blur(); TAOpen()
+                }                     
                      
 
                 var fonts = {}, preloadFonts = function () {
@@ -782,7 +1104,8 @@
                                 opentype.load("../FONT/digital.ttf").then(function(font){fonts.digit = font}),
                         ]; return Promise.all(fontPromises)
                 }
-                preloadFonts().then(function(){console.log('Fonts preloaded')})                
+                preloadFonts().then(function(){console.log('Fonts preloaded')})
+                
                 function transformGlyphPath(glyphPath, matrix){
                         function transformCoordinates(cmd, key){
                                 if (typeof cmd[key] !== "undefined"){
@@ -952,6 +1275,7 @@
                                 var finalPath = finalInnerPaths + finalOuterPaths;
                                 return processFinalPath(finalPath);
                         }
+
                         function buildNormal() {
                                 var finalOuterPaths = '', finalInnerPaths = '';
                                 var x = parseInt(startX);
@@ -962,18 +1286,20 @@
                                         if (letter === " ") {
                                                 var spaceAdvance = font.getAdvanceWidth 
                                                         ? font.getAdvanceWidth(" ", fontSZ) 
-                                                        : fontSZ * 0.3
-                                                x += spaceAdvance; continue
+                                                        : fontSZ * 0.3;
+                                                x += spaceAdvance;
+                                                continue;
                                         }
 
-                                        var glyph = font.charToGlyph(letter)
+                                        var glyph = font.charToGlyph(letter);
                                         if (!glyph) {
-                                                console.error("Glyph error:", letter); continue
+                                                console.error("Glyph error:", letter);
+                                                continue;
                                         }
 
                                         var bbox = glyph.getBoundingBox();
-                                        var charWidth = (bbox.xMax - bbox.xMin) * fontSZ / font.unitsPerEm
-                                        var charHeight = (bbox.yMax - bbox.yMin) * fontSZ / font.unitsPerEm
+                                        var charWidth = (bbox.xMax - bbox.xMin) * fontSZ / font.unitsPerEm;
+                                        var charHeight = (bbox.yMax - bbox.yMin) * fontSZ / font.unitsPerEm;
 
                                         var path = font.getPath(letter, x, y, fontSZ);
                                         var pt = path.toPathData();
@@ -982,63 +1308,63 @@
                                                .replaceAll('Q', ' Q ')
                                                .replaceAll('C', ' C ')
                                                .replaceAll('Z', ' Z ');
-                                        var paths = separatePaths(pt)
-                                        finalInnerPaths += paths.inner
-                                        finalOuterPaths += paths.outer
+                                        var paths = separatePaths(pt);
+                                        finalInnerPaths += paths.inner;
+                                        finalOuterPaths += paths.outer;
 
                                         var advanceWidth = (glyph.advanceWidth * fontSZ) / font.unitsPerEm;
-                                        var kerning = 0
+                                        var kerning = 0;
                                         if (i < str.length - 1) {
-                                                var nextGlyph = font.charToGlyph(str[i + 1])
-                                                kerning = font.getKerningValue(glyph.index, nextGlyph.index)
-                                                kerning = isNaN(kerning) || kerning === undefined ? 0 : (kerning * fontSZ) / font.unitsPerEm
+                                                var nextGlyph = font.charToGlyph(str[i + 1]);
+                                                kerning = font.getKerningValue(glyph.index, nextGlyph.index);
+                                                kerning = isNaN(kerning) || kerning === undefined ? 0 : (kerning * fontSZ) / font.unitsPerEm;
                                         }
 
-                                        var bbox2 = glyph.getBoundingBox() || {x1: 0, x2: 0, y1: 0, y2: 0}
-                                        var unitsPerEm = font.unitsPerEm || 1000
-                                        var charWidth2 = (bbox2.x2 - bbox2.x1) * fontSZ / unitsPerEm
-                                        var charHeight2 = (bbox2.y2 - bbox2.y1) * fontSZ / unitsPerEm
-                                        var aspectRatio = charHeight2 > 0 ? charWidth2 / charHeight2 : 1
-                                        var extraMargin = charWidth2 * 0.1
+                                        var bbox2 = glyph.getBoundingBox() || { x1: 0, x2: 0, y1: 0, y2: 0 };
+                                        var unitsPerEm = font.unitsPerEm || 1000;
+                                        var charWidth2 = (bbox2.x2 - bbox2.x1) * fontSZ / unitsPerEm;
+                                        var charHeight2 = (bbox2.y2 - bbox2.y1) * fontSZ / unitsPerEm;
+                                        var aspectRatio = charHeight2 > 0 ? charWidth2 / charHeight2 : 1;
+                                        var extraMargin = charWidth2 * 0.1;
 
                                         if (aspectRatio > 1.5) {
-                                                extraMargin -= fontSZ * 0.03
+                                                extraMargin -= fontSZ * 0.03;
                                         } else if (aspectRatio < 0.5) {
-                                                extraMargin -= fontSZ * 0.03
+                                                extraMargin -= fontSZ * 0.03;
                                         }
 
                                         if (letter === letter.toUpperCase() && i > 0 && str[i - 1] === str[i - 1].toLowerCase()){
-                                                extraMargin -= fontSZ * 0.05
+                                                extraMargin -= fontSZ * 0.05;
                                         } else if (letter === letter.toLowerCase() && i > 0 && str[i - 1] === str[i - 1].toUpperCase()){
-                                                extraMargin -= fontSZ * 0.02
+                                                extraMargin -= fontSZ * 0.02;
                                         }
 
-                                        var letterSpacing = advanceWidth + kerning + extraMargin
-                                        x += letterSpacing
+                                        var letterSpacing = advanceWidth + kerning + extraMargin;
+                                        x += letterSpacing;
                                 }
 
-                                var finalPath = finalInnerPaths + finalOuterPaths
-                                return processFinalPath(finalPath)
+                                var finalPath = finalInnerPaths + finalOuterPaths;
+                                return processFinalPath(finalPath);
                         }
 
-                        var normalResult = buildNormal()
+                        var normalResult = buildNormal();
                         if (normalResult && typeof normalResult === 'object') {
                                 normalResult.onPATH = function(pathSTR) {
-                                        return buildOnPath(pathSTR)
-                                }
+                                        return buildOnPath(pathSTR);
+                                };
                         } else {
                                 normalResult = {
                                         value: normalResult,
                                         onPATH: function(pathSTR) {
-                                                return buildOnPath(pathSTR)
+                                                return buildOnPath(pathSTR);
                                         }
                                 };
-                        }; return normalResult
-                }
-                var fontDEF = "times", fontSIZE = 30
+                        }
+                        return normalResult;
+                };
                 var addTEXT = function(){
                         resetZoom() 
-                        displayString = "\nTEXT('" + fontDEF + "', fontSIZE=30, startX=30, startY=30, 'HobbyLASER')"
+                        displayString = "\nTEXT(font='cnc_1', size=30, startX=30, startY=30, str='HobbyLASER')"
 
                         var editorContent = editor.getValue()
                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
@@ -1050,6 +1376,7 @@
                         var factor = 10 ** decimals
                         return Math.round(num * factor) / factor
                 }
+
                 function parseSvgPath(convPath){
                         var commands = [], match
                         const regex = /([MLHVCSQTAZmlhvcsqtaz])((?:\s*-?\d*\.?\d+(?:[eE][-+]?\d+)?\s*){0,6})/g
@@ -1063,7 +1390,7 @@
                 
                 var startX, startY
                 function svgPathToPoints(path){
-                        var offsetX = 0, offsetY = 3, isClosed = false
+                        var offsetX = 0, offsetY = 0, isClosed = false
                         
                         function CequivaleL(controlX1, controlY1, controlX2, controlY2, x, y, startX, startY) {
                                 var cmdL = [], curvePath = document.getElementById('path')
@@ -1194,7 +1521,8 @@
                                         default: break
                                 }
                         })
-                        if(currentPath.length > 0){clipperPaths.push(currentPath)}; return clipperPaths
+                        if(currentPath.length > 0){clipperPaths.push(currentPath)}
+                        return clipperPaths
                 }
 
                 //------ boolean OP
@@ -1212,19 +1540,36 @@
                         }; return {minX, minY, maxX, maxY}
                 }
 
-                function SVG(path){
+                var snapDebugMarkers = []
+                function SVG(path) {
                         svgpath = path.map(subPath => {
                                 let subPathStr = subPath.map(
-                                        (point, index) => `${index === 0 ? "M" : "L"} ${point.X} ${point.Y}`
+                                        (point, index) => `${index === 0 ? "M" : "L"} ${point.X} ${point.Y+3 }`
                                 ).join(" ")
                                 
                                 return tabBool ? subPathStr : subPathStr + " Z"
-                        }).join(" ")
+                        }).join(" "); //console.log(svgpath)
 
-                        svg = CONV(svgpath,true)
+                        _svgpath = path.map(subPath => {
+                                let subPathStr = subPath.map(
+                                        (point, index) => `${index === 0 ? "M" : "L"} ${point.X} ${point.Y}`
+                                ).join(" ")
+                                return tabBool ? subPathStr : subPathStr + " Z"
+                        }).join(" "); //console.log(_svgpath)
+
+                        var originalPoints = path.flat().map(point => ({ 
+                                x: point.X, y: point.Y 
+                        }));
+
+                        var correctedSnapPoints = originalPoints.map(p => ({
+                                x: CONV(p.x + 0.25, true),
+                                y: CONV(p.y + 0.25, true)
+                        }));
+
+                        svg = CONV(svgpath, true)
                         if (svg){
                                 var startTime = Date.now()
-                                var path = new fabric.Path(svg, {
+                                var fPath = new fabric.Path(svg, {
                                         fill: fill,
                                         stroke: stroke,
                                         strokeWidth: 1,
@@ -1233,14 +1578,38 @@
                                         hasControls: false,
                                         lockMovementX: true,
                                         lockMovementY: true,
-                                        hoverCursor: 'default'
-                                }); canvas.add(path)
+                                        hoverCursor: 'none'
+                                }); 
+                                canvas.add(fPath)
 
+                                fPath.originalPoints = correctedSnapPoints;
+                                snapDebugMarkers.forEach(m => canvas.remove(m));
+                                snapDebugMarkers = []; 
+                                
+                                correctedSnapPoints.forEach(p => {
+                                        let marker = new fabric.Circle({
+                                                left: p.x, 
+                                                top: p.y,
+                                                radius: 1, 
+                                                fill: 'white', 
+                                                originX: 'center',
+                                                originY: 'center',
+                                                selectable: false,
+                                                evented: false,
+                                                lockMovementX: true,
+                                                lockMovementY: true,
+                                                visible: false // Inizialmente invisibile
+                                        });
+                                        snapDebugMarkers.push(marker);
+                                        canvas.add(marker);
+                                }); canvas.renderAll();
+                                
                                 var endTime = Date.now()
                                 var renderTime = endTime - startTime
                                 console.log(`HL time rendering: ${renderTime} ms`)
+                                console.log(`compile and preview finished`)
                         }; return svgpath
-                }                   
+                }                    
 
                 var clipper = new ClipperLib.Clipper(), GROUPS = []
                 function clpPath(result){
@@ -1301,15 +1670,15 @@
                         }                       
                         path.scale = function(scaleX, scaleY){
                                 var bBox = calculateBoundingBox(this)
-                                var originX = bBox.minX
-                                var originY = bBox.minY
+                                var centerX = (bBox.minX + bBox.maxX) / 2
+                                var centerY = (bBox.minY + bBox.maxY) / 2
                                 for (let subPath of this) {
                                         for (let point of subPath) {
-                                                point.X = originX + (point.X - originX) * scaleX
-                                                point.Y = originY + (point.Y - originY) * scaleY
+                                                point.X = centerX + (point.X - centerX) * scaleX
+                                                point.Y = centerY + (point.Y - centerY) * scaleY
                                         }
                                 }; return this                              
-                        } 
+                        }  
                         path.resize = function(width, height) {
                                 var currentBBox = calculateBoundingBox(this);
                                 var currentWidth = currentBBox.maxX - currentBBox.minX
@@ -1493,35 +1862,52 @@
                         if (result.length > 0){result.push(result.shift())}
                         return clpPath(result)
                 }
-                function difference(){
+                function DIFFERENCE(){
                         var operands = Array.prototype.slice.call(arguments)
                         return performBooleanOperation(operands, ClipperLib.ClipType.ctDifference)
                 }
-                function union(){
+                function UNION(){
                         var operands = Array.prototype.slice.call(arguments)
                         return performBooleanOperation(operands, ClipperLib.ClipType.ctUnion)
                 }
-                function intersection(){
+                function INTERSECTION(){
                         var operands = Array.prototype.slice.call(arguments)
                         return performBooleanOperation(operands, ClipperLib.ClipType.ctIntersection)
                 }
-                function xor(){
+                function XOR(){
                         var operands = Array.prototype.slice.call(arguments)
                         return performBooleanOperation(operands, ClipperLib.ClipType.ctXor)
                 }
-                function center(path1, path2) {
-                        var bbox1 = calculateBoundingBox(path1)
-                        var bbox2 = calculateBoundingBox(path2)
+                function CENTER() {
+                        var paths = Array.prototype.slice.call(arguments)
 
-                        var center1 = {X: (bbox1.minX + bbox1.maxX) / 2, Y: (bbox1.minY + bbox1.maxY) / 2}
-                        var center2 = {X: (bbox2.minX + bbox2.maxX) / 2, Y: (bbox2.minY + bbox2.maxY) / 2}
-                        var translation = {X: center2.X - center1.X, Y: center2.Y - center1.Y}
+                        if (paths.length === 0) return []
+                            if (paths.length === 1) return clpPath(paths[0])
 
-                        var translatedPath = path1.translate(translation.X, translation.Y)
-                        var combined = [...translatedPath, ...path2]
-                        return clpPath(combined)
+                        var bbox1 = calculateBoundingBox(paths[0]);
+                        var targetCenter = {
+                                X: (bbox1.minX + bbox1.maxX) / 2,
+                                Y: (bbox1.minY + bbox1.maxY) / 2
+                        }
+
+                        var result = []
+                        for (var i = 0; i < paths.length; i++) {
+                                var currentPath = paths[i];
+                                if (i === 0) {result = result.concat(currentPath)}
+                                else {
+                                        var bboxN = calculateBoundingBox(currentPath)
+                                        var centerN = {
+                                                X: (bboxN.minX + bboxN.maxX) / 2,
+                                                Y: (bboxN.minY + bboxN.maxY) / 2
+                                        }
+                                        var transX = targetCenter.X - centerN.X
+                                        var transY = targetCenter.Y - centerN.Y
+                                        var translated = currentPath.translate(transX, transY)
+                                        result = result.concat(translated);
+                                }
+                        }; return clpPath(result)
                 }
-                function group() {
+                function GROUP() {
                     var combined = []
                     for (var i = 0; i < arguments.length; i++) {
                         var p = arguments[i];
@@ -1558,6 +1944,7 @@
                                 }
                         }
                 }
+
  
                 //-------------------------------------------------------------------------------------------------------------------------------------------------------------- addIMAGE                      
                 function tempCANVAS(imgInstance) {
@@ -1719,67 +2106,22 @@
                                                         mouseUpHandler: function(){
                                                                 fabric.controlsUtils.scalingEqually
                                                                 var imgBounds = imgInstance.getBoundingRect()
-
-                                                                var cropLeftInBounds = (cropRect.left - imgBounds.left)
-                                                                var cropTopInBounds  = (cropRect.top  - imgBounds.top)
-                                                                var cropWidthInBounds  = (cropRect.width * cropRect.scaleX)
-                                                                var cropHeightInBounds = (cropRect.height * cropRect.scaleY)
-
-                                                                var el = imgInstance._element; // elemento <img>
-                                                                var imgNaturalW = el.naturalWidth || el.width
-                                                                var imgNaturalH = el.naturalHeight || el.height
-
-                                                                var scaleX = imgInstance.scaleX || 1
-                                                                var scaleY = imgInstance.scaleY || 1
-                                                                var angle = (imgInstance.angle || 0) * Math.PI / 180;
-                                                                var tmpW = Math.ceil(imgBounds.width)
-                                                                var tmpH = Math.ceil(imgBounds.height)
-
-                                                                var off = document.createElement('canvas')
-                                                                off.width = tmpW
-                                                                off.height = tmpH
-                                                                var offCtx = off.getContext('2d')
-                                                                var cx = tmpW / 2, cy = tmpH / 2
-
-                                                                offCtx.save()
-                                                                offCtx.translate(cx, cy)
-                                                                offCtx.rotate(angle)
-
-                                                                var flipScaleX = imgInstance.flipX ? -1 : 1
-                                                                var flipScaleY = imgInstance.flipY ? -1 : 1
-                                                                offCtx.scale(flipScaleX, flipScaleY);
-
-                                                                var drawW = imgNaturalW * scaleX
-                                                                var drawH = imgNaturalH * scaleY
-
-                                                                offCtx.drawImage(el, -drawW / 2, -drawH / 2, drawW, drawH)
-                                                                offCtx.restore();
-
-                                                                var cropW = Math.round(cropWidthInBounds)
-                                                                var cropH = Math.round(cropHeightInBounds)
-
-                                                                if (cropW <= 0 || cropH <= 0) { 
-                                                                        canvas.remove(cropRect); return
-                                                                }
-
-                                                                var finalCanvas = document.createElement('canvas')
-                                                                finalCanvas.width = cropW
-                                                                finalCanvas.height = cropH
-                                                                var finalCtx = finalCanvas.getContext('2d')
-
-                                                                finalCtx.drawImage(
-                                                                        off,
-                                                                        Math.round(cropLeftInBounds), Math.round(cropTopInBounds),
-                                                                        cropW, cropH, 0, 0, cropW, cropH
+                                                                var cropLeft = (cropRect.left - imgBounds.left) / imgInstance.scaleX
+                                                                var cropTop = (cropRect.top - imgBounds.top) / imgInstance.scaleY
+                                                                var cropWidth = (cropRect.width * cropRect.scaleX) / imgInstance.scaleX
+                                                                var cropHeight = (cropRect.height * cropRect.scaleY) / imgInstance.scaleY    
+                                                                var {tempCanvas, tempCtx} = tempCANVAS(imgInstance)
+                                                                tempCtx.drawImage(
+                                                                        imgInstance._element,
+                                                                        cropLeft, cropTop, cropWidth, cropHeight, 
+                                                                        0, 0, newWidth, newHeight
                                                                 )
 
                                                                 var updatedImg = new Image()
-                                                                updatedImg.src = finalCanvas.toDataURL()
+                                                                updatedImg.src = tempCanvas.toDataURL()
                                                                 updatedImg.onload = () => {
-                                                                        img = updatedImg;
-                                                                        currentImg = updatedImg;
-
-                                                                        if (imgInstance) canvas.remove(imgInstance); 
+                                                                        img = updatedImg; currentImg = updatedImg
+                                                                        if(imgInstance){canvas.remove(imgInstance)}
                                                                         imgInstance = new fabric.Image(currentImg, {
                                                                                 left: CONV(borderX, true),
                                                                                 top: CONV(borderY, true),
@@ -1788,17 +2130,15 @@
                                                                                 selectable: false,
                                                                                 hasControls: false,
                                                                                 hasBorders: false,
-                                                                                angle: 0 
-                                                                        }); imgInstance.set({ scaleX: 1, scaleY: 1 })
-
+                                                                        })
+                                                                        const scaleX = width / imageData.width
+                                                                        const scaleY = height / imageData.height
+                                                                        imgInstance.set({scaleX: scaleX, scaleY: scaleY})
                                                                         tempIMG(currentImg)
                                                                         canvas.add(imgInstance); canvas.renderAll()
                                                                         lineHrz.bringToFront(); lineVrt.bringToFront()
                                                                 }; canvas.remove(cropRect)
-                                                        }
-
-
-      
+                                                        }       
                                                 })
                                         }
                                         canvas.add(cropRect); canvas.setActiveObject(cropRect)
@@ -1944,7 +2284,7 @@
 
                                                                 combinedPath_1 = createPath(combinedPathData_1, borderX, borderY)
                                                                 var pathData_1 = extractPathData(combinedPath_1)
-                                                                SVG(POLYLINE(pathData_1).translate(borderX,borderY))
+                                                                SVG(MULTILINE(pathData_1).translate(borderX,borderY))
                                                                 combinedPath_2 = createPath(combinedPathData_1, borderX, borderY)
                                                                 var pathData_2 = extractPathData(combinedPath_2)
 
@@ -1961,10 +2301,10 @@
                                                         })
                                                 })
                                         });
-                                        canvas.renderAll(); remToEdt(".vector()"); return this
+                                        canvas.renderAll(); remToEdt(".vecor()"); return this
                                 },
                                 get nc() {
-                                        toggleGCconv(); remToEdt("nc"); return this
+                                        toggleGCconv(); remToEdt(".nc()"); return this
                                 }                   
                         }; return imageController
                 }
@@ -1980,7 +2320,9 @@
                         }; canvas.renderAll(); remToEdt("rstIMG()")
                 }
 
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------ importFILE                                      
+
+
+                 //------------------------------------------------------------------------------------------------------------------------------------------------------------ importFILE                                      
                 var imageLoader = document.getElementById('input')
                 imageLoader.addEventListener('change', handleImage, false)                              
 
@@ -2010,7 +2352,7 @@
                                                                 originalImg = img.cloneNode()
                                                                 currentImg = img.cloneNode()
                                                                 var editorContent = editor.getValue()
-                                                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='').nc`)
+                                                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='')`)
                                                                 editor.clearSelection(); editor.focus(); TAOpen()//runSCRIPT()                                                              
                                                         }; img.src = event.target.result
                                                 }; reader.readAsDataURL(event.target.files[0]); file = event.target.files[0]
@@ -2040,7 +2382,7 @@
 
                                                         var pathData = normalizeAndMergeSVGPaths(svgElement)
                                                         var variableName = `p_${variableCount}`;
-                                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                                        var displayString = `\nMULTILINE(PV['${variableName}'])`
                                                         PV[variableName] = pathData; const editorContent = editor.getValue()
                                                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
                                                         editor.clearSelection(); editor.focus(); TAOpen(); variableCount++
@@ -2052,7 +2394,7 @@
                                                         var dxf2svg = helper.toSVG()
                                                         
                                                         var variableName = `p_${variableCount}`
-                                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                                        var displayString = `\nMULTILINE(PV['${variableName}'])`
                                                         PV[variableName] = dxf2svg; const editorContent = editor.getValue()
                                                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
                                                         editor.clearSelection(); editor.focus(); TAOpen(); variableCount++          
@@ -2103,7 +2445,7 @@
 
                                         var pathData = normalizeAndMergeSVGPaths(svgElement)
                                         var variableName = `p_${variableCount}`
-                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                        var displayString = `\nMULTILINE(PV['${variableName}'])`
                                         PV[variableName] = pathData; const editorContent = editor.getValue()
                                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
                                         editor.clearSelection(); editor.focus(); TAOpen(); variableCount++                                        
@@ -2143,21 +2485,16 @@
                                         var dxf2svg = helper.toSVG()
                                                         
                                         var variableName = `p_${variableCount}`
-                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                        var displayString = `\nMULTILINE(PV['${variableName}'])`
                                         PV[variableName] = dxf2svg; const editorContent = editor.getValue()
                                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
                                         editor.clearSelection(); editor.focus(); TAOpen(); variableCount++  
                                 }; reader.readAsText(file)                
                         }
                 }                      
-
-
         </script>                 
                             
         <svg height="0" width="0" style="display:none"><path id="path" d=""/></svg>
         <div id="alert" class="alert"><p class="bs" id="error" style="top:-5px; width:100%"></p></div>  
 </body>
-
-<!--
--->
 
