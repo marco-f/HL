@@ -69,7 +69,7 @@ Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 ### Features
 
 * **Interactive Drawing** – Create vector designs directly in the browser. Supports polyline, primitives, boolean and transformation operations.
-* **Import/Export** – Support for SVG and DXF files.
+* **Import** – Support for SVG and DXF files.
 * **Advanced Text Paths** – Generate text paths with proper handling of letter holes and micro-junctions.
 * **Image Manipulation** – Resize, rotate, translate, adjust gamma, dithering, halftone, crop, and convert to vector.
 * **Customizable G-code Generation** – Set laser power, speed, passes, air assist, and more.
