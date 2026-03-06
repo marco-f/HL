@@ -68,7 +68,7 @@ Provala ora: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
 ### Funzionalità
 
 * **Disegno Interattivo** – Crea disegni vettoriali direttamente nel browser. Supporta polilinee, primitive, operazioni booleane e trasformazioni geometriche.
-* **Import/Export** – Supporto per file SVG e DXF.
+* **Import** – Supporto per file SVG e DXF.
 * **Testo Avanzato** – Genera percorsi di testo con corretta gestione dei fori delle lettere e delle micro-giunzioni.
 * **Elaborazione Immagini** – Ridimensiona, ruota, trasla, regola gamma, dithering, retinatura, ritaglio e conversione in vettoriale.
 * **Generazione G-code Personalizzata** – Imposta potenza laser, velocità, passate, air assist e altro.
