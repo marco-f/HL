@@ -1,4 +1,4 @@
- 
+
 # HobbyLaser (PWA)
 
 > 🇬🇧 [English](README.md) | 🇮🇹 [Italiano](README.it.md)
