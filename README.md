@@ -229,4 +229,4 @@ Thanks to the open-source community, browser engineers, and CNC enthusiasts.
 
 Incomplete and under active reorganization. [Wiki](https://github.com/marco-f/HobbyLASER/wiki/).
 
-riscrivere in puro markdown aggiungendo le nuove funzionalità, accurato strumento di quotatura; ace editor tooltip per accedere alle principali funzionalità di disegno trasformazione, modifica e conversione in gcode; strumento di 'nesting' per ottimizzare consumo di materiali e tagli
+
