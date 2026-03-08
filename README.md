@@ -1,232 +1,286 @@
+ 
 # HobbyLaser (PWA)
 
-> [![UK Flag](https://flagcdn.com/w20/gb.png) English](README.md) | [![IT Flag](https://flagcdn.com/w20/it.png) Italiano](README.it.md)
+> 🇬🇧 [English](README.md) | 🇮🇹 [Italiano](README.it.md)
 
-![Optimized for Chrome Dark Mode](https://img.shields.io/badge/optimized%20for-Chrome%20Dark%20Mode-black?logo=googlechrome\&logoColor=white\&style=flat-square)
-![PWA Ready](https://img.shields.io/badge/PWA-ready-green?logo=googlechrome\&logoColor=white\&style=flat-square)
+![Optimized for Chrome Dark Mode](https://img.shields.io/badge/optimized%20for-Chrome%20Dark%20Mode-black?logo=googlechrome&logoColor=white&style=flat-square)
+![PWA Ready](https://img.shields.io/badge/PWA-ready-green?logo=googlechrome&logoColor=white&style=flat-square)
 ![Offline Support](https://img.shields.io/badge/offline-support-blue?style=flat-square)
-[![Live Demo](https://img.shields.io/badge/demo-online-brightgreen?style=flat-square\&logo=github)](https://marco-f.github.io/HobbyLASER/)
+[![Live Demo](https://img.shields.io/badge/demo-online-brightgreen?style=flat-square&logo=github)](https://marco-f.github.io/HobbyLASER/)
 ![Version](https://img.shields.io/badge/version-1.0.0-informational?style=flat-square)
 
 ---
 
-A **Progressive Web App (PWA)** for controlling **CNC or laser machines** from the browser using the **Web Serial API**. 
+## Overview
 
-It allows users to draw, process images, generate G-code, and communicate with controllers – directly in Google Chrome, with full offline support.
+**HobbyLASER** is a **Progressive Web App (PWA)** designed to control **CNC machines and laser engravers** directly from the browser using the **Web Serial API**.
 
-HobbyLASER is aimed at users of CNC machines, engravers, and plotters—particularly self-built or budget models. It was developed to fill the gap between the basic software offered by low-cost machine manufacturers and professional software solutions, with a focus on hobby use and rapid prototyping.
+The application allows users to:
 
-Simple but not trivial, it uses a hybrid system of tools and scripts to create and transform vector drawings, process images, and generate files ready to be sent to microcontrollers. HobbyLASER requires no installation, as it runs entirely in the browser—no dependencies, no drivers—using the Web Serial API for USB communication.
+- draw vector graphics
+- manipulate images
+- generate G-code
+- communicate with machine controllers
 
-It should be considered a constant work in progress, but thanks to its nature as a Progressive Web App (PWA), updates are available immediately upon release.
-Currently, it can import text-based files with the following extensions: .svg, .dxf, .gcode, .nc, and raster images in .png, .jpg, or .jpeg format. The .svg format is an open standard, but only absolute commands are accepted. For example, when importing from Inkscape, make sure to convert objects to paths using absolute commands, adjust the document size, and set the scale to millimeters.
-                                                     
-                           
-> ⚠ **Optimized for Google Chrome in Dark Mode**
+—all directly inside **Google Chrome**, with **full offline support**.
 
----
+HobbyLASER targets hobbyists, makers, and users of **self-built or low-cost CNC/laser machines**, providing an intermediate solution between the minimal software shipped with budget hardware and expensive professional CAM tools.
 
-<p align="center">
-    <img src="IMG/anim.svg" alt="logo" style="width: 600px; height: auto;">
-</p>
+The software is designed to be **simple but powerful**, combining graphical tools with script-based processing to generate optimized machine instructions.
 
-<h2 align="center">Disclaimer</h2>
-<h3 align="center" color="red">**A CNC OR A LASER ARE NOT TOYS!** </h3>
-<h4 align="center"> Using a CNC or laser without proper training and protection can cause serious injury and blindness. We do not accept any liability for damages resulting from the use of this software.</h4>
-<h4 align="center"> 🔗 [Read more about laser safety](https://www.lasersafetyfacts.com/laserclasses.html) </h4>  
-<h4 align="center"> **ALWAYS WEAR SAFETY GLASSES!** </h4>
+Since it runs entirely in the browser, **no installation, drivers, or dependencies are required**.
+
+Being a **Progressive Web App**, updates are automatically available as soon as they are released.
 
 ---
 
-### Live Demo
+## Supported File Formats
 
-Try it now: [https://marco-f.github.io/HL/](https://marco-f.github.io/HL/)
+**Vector**
+- .svg
+- .dxf
 
----
+**G-code**
+- .gcode
+- .nc
 
-### Screenshots
+**Raster Images**
+- .png
+- .jpg
+- .jpeg
 
-<p align="center">
-  <img src="IMG/ss.png" alt="Screenshot 1" width="100%"/>
-</p>
+### SVG Notes
 
----
+SVG is an open standard, but **only absolute commands are supported**.
 
-## Table of Contents
+When exporting from software like **Inkscape**, make sure to:
 
-* [Features](#features)
-* [SVG, G-code & Image Manipulation](#svg-g-code--image-manipulation)
-* [Web Serial API](#web-serial-api)
-* [How to Run Locally](#how-to-run-locally)
-* [Contributing](#contributing)
-* [Technologies Used](#technologies-used)
-* [Changelog](#changelog)
-* [Acknowledgments](#acknowledgments)
-* [Documentation](#documentation)
-
----
-
-### Features
-
-* **Interactive Drawing** – Create vector designs directly in the browser. Supports polyline, primitives, boolean and transformation operations.
-* **Import** – Support for SVG and DXF files.
-* **Advanced Text Paths** – Generate text paths with proper handling of letter holes and micro-junctions.
-* **Image Manipulation** – Resize, rotate, translate, adjust gamma, dithering, halftone, crop, and convert to vector.
-* **Customizable G-code Generation** – Set laser power, speed, passes, air assist, and more.
-* **3D Preview & Simulation** – Real-time visualization of cutting paths.
-* **File & Cache Management** – Save G-code files locally with IndexedDB.
-* **GRBL Control** – Connect, send commands, stop, pause, resume, read status, handle errors, and estimate job time.
-* **Offline & PWA** – Work offline and install the app like a native app.
-* **Dark Mode Ready** – Optimized for low-light environments.
+- convert objects to **paths**
+- use **absolute commands**
+- set document units to **millimeters**
+- adjust the **document size** to match the workspace
 
 ---
 
-### SVG, G-code & Image Manipulation
+## Disclaimer
 
-1. **SVG & Vectors**
+### ⚠ A CNC OR A LASER ARE NOT TOYS
 
-   * Create and edit polylines, rectangles, circles, and other primitives.
-   * Boolean operations (union, difference, intersection).
-   * Geometric transformations: scale, rotate, translate, mirror, offset.
+Using CNC machines or lasers without proper training and protection can cause **serious injuries or blindness**.
 
-2. **Text**
+The authors **accept no liability** for damage or injury caused by the use of this software.
 
-   * Convert text to vector paths.
-   * Manage internal letter holes (e.g., "o", "a", "e").
+More information:  
+https://www.lasersafetyfacts.com/laserclasses.html
 
-3. **Images**
-
-   * Transform: resize, rotate, translate.
-   * Process: dithering, halftone, crop, vector conversion.
-
-4. **G-code**
-
-   * Custom parameters: power, speed, passes, air assist ...
-   * Creation of micro joints, pattern fillings.
-   * Real-time 3D preview and simulation.
-   * File saving in local cache (IndexedDB).
-
-5. **GRBL Control**
-
-   * Connection and command sending via Web Serial API.
-   * Stop, pause, resume functionality.
-   * Monitor machine status, error handling, and time estimation.
+**ALWAYS WEAR PROTECTIVE LASER SAFETY GLASSES.**
 
 ---
 
-### Web Serial API
+## Live Demo
 
-This app uses the **Chrome Web Serial API** to communicate with CNC/laser controllers via serial connection.
-
-* Access to serial ports from the browser
-* Configure baud rate, data bits, parity, stop bits
-* Asynchronous read/write via Streams API
-* Detects connect/disconnect events
-* Requires **user permission**
-* Works in **Chromium-based browsers only**
+https://marco-f.github.io/HL/
 
 ---
 
-## How to Run Locally
+## Screenshots
 
-1. Clone the repository:
-
-   bash
-   git clone https://github.com/marco-f/HL
-
-2. Navigate to the project folder:
-
-   bash
-   cd HL
-
-3. Run a local web server (e.g., with http-server):
-
-   bash
-   npm install -g http-server
-   http-server
-
-4. Open your browser:
-
-   http://localhost:8080
-
-5. (Optional) Install the app as a PWA via the browser install prompt.
+![Screenshot](IMG/ss.png)
 
 ---
 
-## Technologies Used
+# Features
 
-* **HTML/CSS/JS** – Core structure, layout, and logic
-* **Service Workers** – Enable offline functionality
-* **Web Manifest** – Metadata for PWA installation
-* **Streams API** – For async serial communication
-* **SVG & Canvas APIs** – Drawing and image rendering
+## Interactive Drawing
+
+Create vector graphics directly in the browser.
+
+Supported tools include:
+
+- polylines
+- rectangles
+- circles
+- geometric primitives
+- boolean operations
+- transformation tools
+
+Transformations include:
+
+- scale
+- rotate
+- translate
+- mirror
+- offset
+- and other
+---
+
+## Precision Dimensioning
+
+A **high-accuracy dimensioning tool** allows precise measurement and annotation of designs.
+
+Features include:
+
+- linear measurements
+- reference dimensions
+- real-time updates while editing geometry
+- millimeter-based precision for fabrication workflows
 
 ---
 
-## Contributing
+## Nesting Optimization
 
-1. Fork the repository
-2. Create a new branch: git checkout -b feature-name
-3. Commit your changes: git commit -am 'Add feature'
-4. Push your branch: git push origin feature-name
-5. Open a Pull Request
+A **material nesting tool** automatically arranges parts to **minimize waste and optimize cutting paths**.
 
-See the full [Contributing Guide](CONTRIBUTING.md)
+Capabilities include:
 
----
-
-## Changelog
-
-**v1.0.0**
-
-* First stable release with support for:
-
-  * Serial connection via Web Serial API
-  * Offline support with Service Workers
-  * G-code generation from drawings and raster images
+- automatic part layout
+- material usage optimization
+- rotation of parts for better packing
+- preparation for batch cutting
 
 ---
 
-### Security and Privacy
+## Advanced Text Paths
 
-* No personal data is collected.
-* All operations run locally in the browser.
-* Serial connection requires explicit user consent.
+Text can be converted to **vector paths**, enabling engraving and cutting.
 
----
+Features include:
 
-### License
-
-This project is licensed under the [GNU GPL v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) – see the LICENSE file for details.
+- correct handling of **internal holes** in letters (e.g., A, O, P, B)
+- automatic generation of **micro-junctions**
+- compatibility with multiple fonts
 
 ---
 
-### Author
+## Image Processing
 
-**Marco-F** – Lead Developer
-[GitHub](https://github.com/marco-f)
+Raster images can be processed and converted for laser engraving.
 
----
+Supported operations:
 
-### Acknowledgments
-
-Thanks to the open-source community, browser engineers, and CNC enthusiasts.
-
----
-
-### Credits
-
-* [clipper.js](https://github.com/junmer/clipper-lib) – Polygon clipping and offsetting
-* [opentype.js](https://github.com/opentypejs/opentype.js) – Font parsing and rendering
-* [fabric.js](http://fabricjs.com/) – Canvas library
-* [three.js](https://threejs.org/) – 3D rendering engine
-* [Ace Editor](https://ace.c9.io/) – Embedded code editor
-* [potrace.js](https://github.com/kilobtye/potrace) – Bitmap tracing
+- resize
+- rotate
+- translate
+- crop
+- gamma correction
+- dithering
+- halftone generation
+- raster-to-vector conversion
 
 ---
 
-### Documentation
+## G-code Generation
 
-Incomplete and under active reorganization. [Wiki](https://github.com/marco-f/HobbyLASER/wiki/).
+Customizable G-code generation allows full control over machine parameters.
 
+Supported options:
 
+- laser power
+- cutting speed
+- multiple passes
+- air assist control
+- pattern filling
+- micro-joints for cut stability
+
+Includes a **real-time 3D preview and toolpath simulation** before sending commands to the machine.
+
+---
+
+## Integrated Code Editor
+
+The built-in **Ace Editor** provides direct editing of generated G-code.
+
+Enhanced usability features include:
+
+- contextual tooltips
+- quick access to drawing tools
+- transformation commands
+- geometry modification
+- direct conversion to G-code
+
+---
+
+## GRBL Machine Control
+
+Direct communication with GRBL-based controllers via the **Web Serial API**.
+
+Capabilities include:
+
+- connect to serial devices
+- send commands
+- start, pause, resume, stop jobs
+- read machine status
+- error handling
+- job time estimation
+
+---
+
+## File and Cache Management
+
+Generated files and working data can be stored locally using **IndexedDB**.
+
+Advantages:
+
+- fast loading
+- persistent local storage
+- offline access to recent jobs
+
+---
+
+## Progressive Web App
+
+HobbyLASER can be installed like a native application.
+
+Features:
+
+- offline operation
+- automatic updates
+- local caching via Service Workers
+- installable on desktop and mobile devices
+
+---
+
+## Dark Mode
+
+The interface is optimized for **Google Chrome Dark Mode**, making it suitable for workshop environments with low lighting.
+
+---
+
+# Running Locally
+
+Clone the repository:
+
+```bash
+git clone https://github.com/marco-f/HL
+```
+
+Enter the project directory:
+
+```bash
+cd HL
+```
+
+Run a local web server:
+
+```bash
+npm install -g http-server
+http-server
+```
+
+Open in your browser:
+
+http://localhost:8080
+
+---
+
+# License
+
+Licensed under **GNU GPL v3.0**  
+https://www.gnu.org/licenses/gpl-3.0.en.html
+
+---
+
+# Author
+
+**Marco-F**  
+https://github.com/marco-f
