@@ -2168,167 +2168,127 @@ indexedDB.deleteDatabase("GCODE_DB")
 request.onupgradeneeded = function(event) {
         db = event.target.result
         var fileStore = db.createObjectStore("gcode_files", {keyPath: "id", autoIncrement: true})
-        fileStore.createIndex("name", "name", {unique: false})
         fileStore.createIndex("order", "order", {unique: false})
-
-        var svgStore = db.createObjectStore("svg_files", {keyPath: "id", autoIncrement: true})
-        svgStore.createIndex("name", "name", {unique: false})
-        svgStore.createIndex("order", "order", {unique: false})        
 }
+
 request.onsuccess = function(event) {
         db = event.target.result
-        var transaction = db.transaction(["gcode_files"], "readwrite")
-        transaction.objectStore("gcode_files").clear()
         loadFiles()
 }
-function saveGCODE(data, visualData, mode) {        
-        var fileName = 'GC', gcode = data
-        if (!fileName || !gcode) return
+function saveGCODE(gcode, visualData, mode) {        
+        if (!gcode || !visualData) return
 
-        var blob = new Blob([gcode], {type: "text/plain"});
-        var transaction = db.transaction("gcode_files", "readwrite");
-        var store = transaction.objectStore("gcode_files");
+        var transaction = db.transaction("gcode_files", "readwrite")
+        var store = transaction.objectStore("gcode_files")
 
         store.getAll().onsuccess = function(e) {
-                var files = e.target.result, nextOrder = files.length;       
                 var entry = {
-                        name: fileName, data: blob, 
-                        mode: mode, order: nextOrder
+                        name: "GC",
+                        gcode: gcode, 
+                        visualData: visualData, 
+                        mode: mode, 
+                        order: e.target.result.length
                 }
-                if (mode === "raster") {
-                        entry.rasterData = visualData
-                        entry.svgPath = visualData
-                }; store.add(entry)
+                store.add(entry)
         }
-        transaction.oncomplete = function() {loadFiles()}
+        transaction.oncomplete = function() { loadFiles() }
 }
 function loadFiles() {
         var transaction = db.transaction("gcode_files", "readonly")
         var store = transaction.objectStore("gcode_files")
         var index = store.index("order")
-        var request = index.getAll()
 
-        request.onsuccess = function() {
+        index.getAll().onsuccess = function(event) {
                 var fileList = document.getElementById("fileList")
                 fileList.innerHTML = ""
 
-                request.result.forEach(file => {
+                event.target.result.forEach(file => {
                         var li = document.createElement("li")
-                        li.textContent = "    ├── " + file.name + "_" + file.id + " [" + (file.mode || "vector") + "]"
+                        li.textContent = "        ├── " + file.name + "_" + file.id + " [" + file.mode + "]"
                         li.dataset.id = file.id
                         li.setAttribute("draggable", "true")
 
-                        li.addEventListener("dragstart", function(e) {
+                        li.ondragstart = (e) => {
                                 e.dataTransfer.setData("text/plain", li.dataset.id)
                                 li.classList.add("dragging")
-                                li.classList.add("ghost")
-                        })
-
-                        li.addEventListener("dragend", function() {
+                        }
+                        li.ondragend = () => {
                                 li.classList.remove("dragging")
-                                li.classList.remove("ghost")
                                 saveOrder()
-                        })
+                        }
 
-                        li.addEventListener("dragover", function(e) {
-                                e.preventDefault()
-                                var dragging = document.querySelector(".dragging")
-                                if (dragging && dragging !== li) {
-                                        var parent = li.parentNode
-                                        var rect = li.getBoundingClientRect()
-                                        var offset = e.clientY - rect.top
-                                        if (offset > rect.height / 2) {
-                                                parent.insertBefore(dragging, li.nextSibling)
-                                        } else {
-                                                parent.insertBefore(dragging, li)
-                                        }
-                                }
-                        })
+                        var btnContainer = document.createElement("div")
+                        btnContainer.className = "button-container"
 
-                        var buttonContainer = document.createElement("div")
-                        buttonContainer.classList.add("button-container")
-
-                        var dBtn = document.createElement("button")
-                        dBtn.textContent = "preview"
-                        dBtn.classList.add("btTool")
-                        dBtn.onclick = function() {
+                        var previewBtn = document.createElement("button")
+                        previewBtn.textContent = "preview"
+                        previewBtn.className = "btTool"
+                        previewBtn.onclick = () => {
                                 preview = true
-                                var reader = new FileReader()
-                                reader.onload = function(e) {
-                                        gcodeText = e.target.result
-                                        isImageMode = (file.mode === "raster")
-                                        clrScene(scene)
-                                        gcVIEW(gcodeText)
-                                        mV = file.mode
-                                        document.getElementById('connect').disabled = !state
+                                gcodeText = file.gcode
+                                isImageMode = (file.mode === "raster")
+                                clrScene(scene); gcVIEW(gcodeText)
+                                document.getElementById('connect').disabled = !state
+                                
+                                var {acc, speedTRVL, speedLSR} = getCurrentGRBLValues()
+                                var estSec = estimateJobTime(gcodeText, speedTRVL, speedLSR, acc)
 
-                                        var {acc, speedTRVL, speedLSR} = getCurrentGRBLValues()
-                                        var estSec = estimateJobTime(gcodeText, speedTRVL, speedLSR, acc)
+                                var h = Math.floor(estSec / 3600)
+                                var m = Math.floor((estSec % 3600) / 60)
+                                var s = Math.floor(estSec % 60)
+                                document.getElementById('time').textContent = `estimtedTime: ${h}:${m}:${s}`
+                        }                        
 
-                                        var h = Math.floor(estSec / 3600)
-                                        var m = Math.floor((estSec % 3600) / 60)
-                                        var s = Math.floor(estSec % 60)
-                                        document.getElementById('time').textContent = `estimtedTime: ${h}:${m}:${s}`
-                                }
-                                reader.readAsText(file.data)
-                        }
+                        var delBtn = document.createElement("button")
+                        delBtn.textContent = "delete"
+                        delBtn.className = "btTool"
+                        delBtn.onclick = () => deleteFile(file.id)
 
-                        var downloadBtn = document.createElement("button")
-                        downloadBtn.textContent = "download"
-                        downloadBtn.classList.add("btTool")
-                        downloadBtn.onclick = function() {
-                                downloadBundle(file)
-                        }
-
-                        var deleteBtn = document.createElement("button")
-                        deleteBtn.textContent = "delete"
-                        deleteBtn.classList.add("btTool")
-                        deleteBtn.onclick = function() {
-                                deleteFile(file.id)
-                        }
-
-                        buttonContainer.appendChild(dBtn)
-                        buttonContainer.appendChild(downloadBtn)
-                        buttonContainer.appendChild(deleteBtn)
-                        li.appendChild(buttonContainer)
+                        btnContainer.append(previewBtn, delBtn)
+                        li.appendChild(btnContainer)
                         fileList.appendChild(li)
                 })
         }
 }
-function downloadBundle(file) {
-    var fileNum = file.id;
-    var urlGcode = URL.createObjectURL(file.data);
-    var aGcode = document.createElement("a");
-    aGcode.href = urlGcode;
-    aGcode.download = "GC_" + fileNum + ".nc";
-    aGcode.click();
-    URL.revokeObjectURL(urlGcode);
-
-    if (file.mode === "raster" && file.rasterData) {
-            var aImg = document.createElement("a")
-            aImg.href = file.rasterData
-            aImg.download = "IMG_" + fileNum + ".png"
-            aImg.click()
-    }
-    else if (file.mode === "vector" && file.svgPath) {
-            var pre = `<svg xmlns="http://www.w3.org/2000/svg" width="${dWidth}mm" height="${dHeight}mm" viewBox="0 0 ${dWidth} ${dHeight}">
-<path style="fill:none;stroke:#000;stroke-width:0.1" d="`
-            var post = `"/>\n</svg>`
-            var blobSvg = new Blob([pre + file.svgPath + post], { type: "image/svg+xml" })
-            var urlSvg = URL.createObjectURL(blobSvg)
-            var aSvg = document.createElement("a")
-            aSvg.href = urlSvg
-            aSvg.download = "SVG_" + fileNum + ".svg"
-            aSvg.click()
-            URL.revokeObjectURL(urlSvg)
-    }
-}
 function deleteFile(id) {
         var transaction = db.transaction("gcode_files", "readwrite")
+        transaction.objectStore("gcode_files").delete(id)
+        transaction.oncomplete = () => loadFiles()
+}
+var prjCount = 0
+var download = function() {
+        prjCount++
+        if (!db) return
+
+        var tableData = getConfigData() 
+        var finalSettings = (tableData && tableData.length > 0) ? tableData : configData
+
+        var transaction = db.transaction("gcode_files", "readonly")
         var store = transaction.objectStore("gcode_files")
-        store.delete(id)
-        transaction.oncomplete = function() {
-                loadFiles()
+        
+        store.getAll().onsuccess = function(event) {
+                var allFiles = event.target.result
+                
+                var projectBundle = {
+                        projectInfo: {
+                                name: "Laser_Bundle",
+                                date: new Date().toLocaleString()
+                        },
+                        grblConfig: finalSettings,
+                        assets: allFiles.map(f => ({
+                                id: f.id,
+                                mode: f.mode,
+                                order: f.order,
+                                gcode: f.gcode,
+                                visualSource: f.visualData
+                        }))
+                }
+                var blob = new Blob([JSON.stringify(projectBundle, null, 8)], {type: "application/json"})
+                var url = URL.createObjectURL(blob)
+                var a = document.createElement("a")
+                a.href = url
+                a.download = "Project_" + prjCount + ".hlprj"
+                a.click(); URL.revokeObjectURL(url)
         }
 }
 function saveOrder() {
@@ -2338,16 +2298,18 @@ function saveOrder() {
 
         items.forEach((li, index) => {
                 var id = parseInt(li.dataset.id)
-                var request = store.get(id)
-                request.onsuccess = function() {
-                        var file = request.result
-                        if (!file) return
-                        file.order = index
-                        store.put(file)
+                var req = store.get(id)
+                req.onsuccess = function() {
+                        var file = req.result
+                        if (file) {
+                                file.order = index
+                                store.put(file)
+                        }
                 }
         })
 }
 /* ====================== */
+
 
 /* =========================
       SPINNER
