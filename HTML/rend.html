@@ -118,7 +118,7 @@
 
 
                      
-        <script>
+        <script>                        
                 var DPI = 96, mmPerInch = 25.4, inchPerMm = 1 / 25.4;
                 var CONV = function(dt, toPixels = false){
                         var conversionFactor = toPixels ? DPI * inchPerMm : 1 / (DPI * inchPerMm);
@@ -233,11 +233,6 @@
                 var cH = (window.innerHeight * 2) -80
                 canvas.setDimensions({width:cW, height:cH})
 
-
-
-
-
-
 //======================================================
 // UNIFIED CAD DIMENSION TOOL 
 //======================================================
@@ -251,7 +246,7 @@ var dim = {
         text:null, line1:null, line2:null, arc:null
 }
 
-var snapThreshold = 10
+var threshold = 10
 var ARROW_SIZE = 6
 var TEXT_OFFSET = 15
 var ARC_RADIUS = 45
@@ -277,31 +272,31 @@ function createArrow() {
                 originX:'center', originY:'top', selectable:false, evented:false
         })
 }
-
-function snapToPaths(pointer, paths) {
+function snapToPaths(pointer, objects) {
         var closest = { x: pointer.x, y: pointer.y, dist: Infinity }
-        paths.forEach(path => {
-                path.path.forEach(segment => {
+
+        objects.forEach(obj => {
+                if (obj === snapMarker || obj.stroke === 'gray' || !obj.path) return
+                var matrix = obj.calcTransformMatrix()
+                
+                obj.path.forEach(segment => {
                         if (segment.length >= 3) {
                                 var vx = segment[segment.length - 2]
                                 var vy = segment[segment.length - 1]
-                                var matrix = path.calcTransformMatrix()
-                                var globalPoint = fabric.util.transformPoint({ x: vx, y: vy }, matrix)
-
-                                var d = distance(pointer, globalPoint)
-                                if (d < closest.dist && d < snapThreshold) {
-                                        closest = { x: globalPoint.x, y: globalPoint.y, dist: d }
+                                var p = fabric.util.transformPoint({ x: vx, y: vy }, matrix)
+                                var d = Math.hypot(p.x - pointer.x, p.y - pointer.y)
+                                if (d < threshold && d < closest.dist) {
+                                        closest = { x: p.x, y: p.y, dist: d }
                                 }
                         }
                 })
         })
 
-        return { 
-                point: closest.dist !== Infinity ? { x: closest.x, y: closest.y } : { x: pointer.x, y: pointer.y }, 
-                snapped: closest.dist !== Infinity 
+        return {
+                point: { x: closest.x, y: closest.y },
+                snapped: closest.dist !== Infinity
         }
 }
-
 function createAngleArc(B, A, C, radius = ARC_RADIUS) {
         var startAngle = Math.atan2(A.y - B.y, A.x - B.x)
         var endAngle = Math.atan2(C.y - B.y, C.x - B.x)
@@ -331,6 +326,27 @@ document.addEventListener('keyup', e => {
                 resetTool()
         }
 })
+/*var DIM_L = function() {resetTool(); activeTool = 'linear'}
+var DIM_A = function() {resetTool(); activeTool = 'angle'}
+var DIM_R = function() {resetTool(); activeTool = 'radius'}*/
+var DIM = function(l, a, r) {
+        resetTool()        
+        var activeCount = (l ? 1 : 0) + (a ? 1 : 0) + (r ? 1 : 0)
+
+        if (activeCount === 0) {
+                console.error("no tools selected")
+                activeTool = null; return
+        }
+        if (activeCount > 1) {
+                console.warn("activate exactly one tool at a time")
+                activeTool = null; return
+        }
+        if (l) activeTool = 'linear'
+        if (a) activeTool = 'angle'
+        if (r) activeTool = 'radius'
+
+        console.log("Active Tool:", activeTool); remToEdt("DIM")
+}                        
 function resetTool() {
         activeTool = null
         snapMarker.set({visible:false})
@@ -662,7 +678,7 @@ canvas.on('mouse:move', e => {
                         else {return Math.round(value / GRID) * GRID}
                 }
 
-                var GRID = 18.8976377952, dWidth=120, dHeight=120, numSEG=30
+                var GRID = 18.8976377952, dWidth=100, dHeight=100, numSEG=30
                 var intersectionCircleWA, isDraggingWA = false
 
                 function setWorkArea() {
@@ -681,6 +697,7 @@ canvas.on('mouse:move', e => {
                                 strokeWidth: 1,
                                 selectable: false,
                                 evented: false,
+                                excludeFromExport: true
                         }); vLineWA.workAreaLine = true;
 
                         oLineWA = new fabric.Line([0, pxHeight, pxWidth, pxHeight], {
@@ -689,6 +706,7 @@ canvas.on('mouse:move', e => {
                                 strokeWidth: 1,
                                 selectable: false,
                                 evented: false,
+                                excludeFromExport: true
                         }); oLineWA.workAreaLine = true;
 
                         intersectionCircleWA = new fabric.Circle({
@@ -729,6 +747,7 @@ canvas.on('mouse:move', e => {
                                         originY: 'top',
                                         selectable: false,
                                         evented: false,
+                                        excludeFromExport: true 
                                 })
                                 img.waImage = true;
                                 imgWA = img;
@@ -745,12 +764,15 @@ canvas.on('mouse:move', e => {
 
                 canvas.on('mouse:move', function(event) {
                         if (isDraggingWA && intersectionCircleWA) {
-                                const pointer = canvas.getPointer(event.e);
-                                const newX = snapToGrid(pointer.x);
-                                const newY = snapToGrid(pointer.y) + 10;
+                                const pointer = canvas.getPointer(event.e)
+                                const newX = snapToGrid(pointer.x)
+                                const newY = snapToGrid(pointer.y) + 10
 
                                 dWidth = CONV(newX)
-                                dHeight = CONV(newY) - 2.65;
+                                dHeight = CONV(newY) - 2.65
+
+                                document.getElementById("sheetW").value = dWidth.toFixed(0)
+                                document.getElementById("sheetH").value = dHeight.toFixed(0)
 
                                 vLineWA.set({x1: newX, x2: newX, y1: 10, y2: newY})
                                 oLineWA.set({x1: 0, y1: newY, x2: newX, y2: newY})
@@ -789,11 +811,11 @@ canvas.on('mouse:move', e => {
                 //----------------------------------------------------------------------------------------------------------------------------------------------------------- addSVGPATHS                          
                 var bV = true, pt
                 stroke = color = '#fff', fill = '#00000003'
-                var MULTILINE = function(pt){
+                var POLYLINE = function(pt){
                         Points = pt.replace(/,/g, ' ')
                         Points_1 = svgPathToPoints(Points)
                         Points_1 = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ')
-                        Points_2 = svgPathToClipperPaths(Points_1);
+                        Points_2 = svgPathToClipperPaths(Points_1)
 
                         if (!Array.isArray(Points_2) || Points_2.length === 0){
                                 console.error("array is empty"); return []
@@ -805,7 +827,7 @@ canvas.on('mouse:move', e => {
                         }; return result
                 }
                             
-                var pathVIEW = function(txt,pt){
+                var pathVIEW = function(pt){
                         var state = JSON.parse(JSON.stringify(stateInitialize))
                         stateInitialize.placeholderPath = ''; initialize()
                         
@@ -819,14 +841,14 @@ canvas.on('mouse:move', e => {
                                 lastPath = lastPath.replace(/(-?\d+)\.\d+/g, '$1')
                                 if(lastPath){                                                                    
                                         var variableName = `p_${variableCount}`;
-                                        var displayString = `\MULTILINE(PV['${variableName}'])`
+                                        var displayString = `\POLYLINE(PV['${variableName}'])`
                                         PV[variableName] = lastPath; const editorContent = editor.getValue()
                                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
-                                        editor.clearSelection(); editor.blur(); TAOpen(); variableCount++                                        
+                                        editor.clearSelection(); editor.blur(); variableCount++                                        
                                 }
-                        } else {}; TAOpen(); runSCRIPT()
+                        } else {}; TAOpen(); //runSCRIPT()
                 }
-                function addMULTILINE(){remToEdt("addMULTILINE")
+                function addPOLYLINE(){
                         resetZoom()                        
                         if (bV == true){
                                 bV = false
@@ -841,7 +863,7 @@ canvas.on('mouse:move', e => {
                                 window.addEventListener('keydown', handleCancel)
                         } else {
                                 bV = true
-                                pt = $('#datadiv').html(); pathVIEW('POLYLINE',pt)                                
+                                pt = $('#datadiv').html(); pathVIEW(pt)                                
        
                                 //------ remove listen events
                                 window.removeEventListener('mousemove', handleMouseMove)
@@ -1029,7 +1051,6 @@ canvas.on('mouse:move', e => {
                                 }
                         }
                 }
-
                 var addPOLYGON = function(){
                         resetZoom()
                         displayString = "\nPOLYGON(seg=20, centerX=50, centerY=50, r=20)"
@@ -1081,8 +1102,118 @@ canvas.on('mouse:move', e => {
                                 editorContent ? `${editorContent}${displayString}` : `${displayString}`
                         )
                         editor.clearSelection(); editor.blur(); TAOpen()
-                }                     
-                     
+                }
+
+
+function ELLIPSE(seg, centerX, centerY, radiusX, radiusY) {
+    var pt = '', ang = 2 * Math.PI / seg;
+    var plgX = centerX, plgY = centerY, rdsX = radiusX, rdsY = radiusY;
+
+    if ((plgX != null && plgX === '') || (plgY != null && plgY === '')) {
+        console.error("[ no correct input! ]");
+        return [];
+    } else if (isNaN(plgX) || isNaN(plgY) || isNaN(rdsX) || isNaN(rdsY)) {
+        console.error("[ must input numbers! ]");
+        return [];
+    } else {
+        if (plgX !== null) {
+            var x0 = plgX + rdsX; 
+            var y0 = plgY;
+            pt = `M ${x0.toFixed(2)} ${y0.toFixed(2)}`;
+
+            for (let i = 1; i <= seg; i++) {
+                var x = plgX + rdsX * Math.cos(i * ang);
+                var y = plgY + rdsY * Math.sin(i * ang);
+                pt += ` L ${x.toFixed(2)} ${y.toFixed(2)}`;
+            }
+
+            pt = pt + ' Z ';
+            var Points = pt.replace(/,/g, ' ');
+            var Points_1 = svgPathToPoints(Points);
+            var pointsArray = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ');
+            var Points_2 = svgPathToClipperPaths(pointsArray);
+
+            if (!Array.isArray(Points_2) || Points_2.length === 0) {
+                console.error("array is empty");
+                return [];
+            }
+            return use(Points_2);
+        }
+    }
+}                        
+var addELLIPSE = function() {
+    resetZoom();
+    var displayString = "\nELLIPSE(seg=40, centerX=50, centerY=50, rx=30, ry=20)";
+
+    var editorContent = editor.getValue();
+    editor.setValue(editorContent ? `${editorContent}${displayString}` : `${displayString}`);
+    
+    editor.clearSelection(); editor.blur(); 
+    TAOpen(); runSCRIPT()
+}
+
+
+function ROUNDRECT(centerX, centerY, width, height, radius) {
+    var pt = '';
+    var x = centerX, y = centerY, w = width, h = height, r = radius;
+
+    if (r > w / 2) r = w / 2;
+    if (r > h / 2) r = h / 2;
+
+    if (isNaN(x) || isNaN(y) || isNaN(w) || isNaN(h)) {
+        console.error("[ must input numbers! ]");
+        return [];
+    } else {
+
+        let startX = x + w / 2;
+        let startY = y - h / 2 + r;
+        
+        pt = `M ${startX.toFixed(2)} ${startY.toFixed(2)}`;
+
+        function drawArc(targetX, targetY, startAngle, endAngle) {
+            let steps = 10; // Precisione dell'angolo arrotondato
+            for (let i = 1; i <= steps; i++) {
+                let ang = startAngle + (endAngle - startAngle) * (i / steps);
+                let currX = targetX + r * Math.cos(ang);
+                let currY = targetY + r * Math.sin(ang);
+                pt += ` L ${currX.toFixed(2)} ${currY.toFixed(2)}`;
+            }
+        }
+
+        pt += ` L ${(x + w / 2).toFixed(2)} ${(y + h / 2 - r).toFixed(2)}`;
+        drawArc(x + w / 2 - r, y + h / 2 - r, 0, Math.PI / 2);
+
+        pt += ` L ${(x - w / 2 + r).toFixed(2)} ${(y + h / 2).toFixed(2)}`;
+        drawArc(x - w / 2 + r, y + h / 2 - r, Math.PI / 2, Math.PI);
+
+        pt += ` L ${(x - w / 2).toFixed(2)} ${(y - h / 2 + r).toFixed(2)}`;
+        drawArc(x - w / 2 + r, y - h / 2 + r, Math.PI, 3 * Math.PI / 2);
+
+        pt += ` L ${(x + w / 2 - r).toFixed(2)} ${(y - h / 2).toFixed(2)}`;
+        drawArc(x + w / 2 - r, y - h / 2 + r, 3 * Math.PI / 2, 2 * Math.PI);
+
+        pt += ' Z ';
+        var Points = pt.replace(/,/g, ' ');
+        var Points_1 = svgPathToPoints(Points);
+        var pointsArray = Points_1.map(cmd => cmd.command + (cmd.values ? cmd.values.join(' ') : '')).join(' ');
+        var Points_2 = svgPathToClipperPaths(pointsArray);
+
+        if (!Array.isArray(Points_2) || Points_2.length === 0) {
+            console.error("array is empty");
+            return [];
+        }
+        return use(Points_2);
+    }
+}
+var addROUNDRECT = function() {
+    resetZoom();
+    var displayString = "\nROUNDRECT(centerX=50, centerY=50, w=60, h=40, r=10)";
+
+    var editorContent = editor.getValue();
+    editor.setValue(editorContent ? `${editorContent}${displayString}` : `${displayString}`);  
+    editor.clearSelection(); editor.blur(); TAOpen(); 
+}
+                        
 
                 var fonts = {}, preloadFonts = function () {
                         var fontPromises = [
@@ -1104,247 +1235,198 @@ canvas.on('mouse:move', e => {
                                 opentype.load("../FONT/digital.ttf").then(function(font){fonts.digit = font}),
                         ]; return Promise.all(fontPromises)
                 }
-                preloadFonts().then(function(){console.log('Fonts preloaded')})
-                
-                function transformGlyphPath(glyphPath, matrix){
-                        function transformCoordinates(cmd, key){
-                                if (typeof cmd[key] !== "undefined"){
-                                        let x = Number(cmd[key]), y = Number(cmd[key.replace("x", "y")])
-                                        if (!isFinite(x) || !isFinite(y)) { 
-                                                x = 0
-                                                y = 0
-                                        }
-                                        cmd[key] = matrix.a * x + matrix.c * y + matrix.e
-                                        cmd[key.replace("x", "y")] = matrix.b * x + matrix.d * y + matrix.f
-                                }
+                preloadFonts().then(function(){console.log('Fonts preloaded')})                
+                function getTransformedPoint(x, y, m, type) {
+                        x = Number(x) || 0; y = Number(y) || 0
+                        var nx = m.a * x + m.c * y + m.e, ny = m.b * x + m.d * y + m.f
+                        return (type ? type + ' ' : '') + nx.toFixed(3) + ' ' + ny.toFixed(3)
+                }
+                function commandsToPathString(commands, matrix) {
+                        var out = []
+                        for (var i = 0; i < commands.length; i++) {
+                                var c = commands[i], t = c.type
+                                if (t === 'Z' || t === 'z') {out.push('Z'); continue}
+                                if (t === 'M' || t === 'L') {out.push(getTransformedPoint(c.x, c.y, matrix, t))}
+                                else if (t === 'Q') {
+                                        out.push('Q ' + getTransformedPoint(c.x1, c.y1, matrix) + ' ' + getTransformedPoint(c.x, c.y, matrix))}
+                                else if (t === 'C') {
+                                        out.push('C ' + getTransformedPoint(c.x1, c.y1, matrix) + ' ' + getTransformedPoint(c.x2, c.y2, matrix) + ' ' + getTransformedPoint(c.x, c.y, matrix))}
                         }
-
-                        for (let cmd of glyphPath.commands){
-                                transformCoordinates(cmd, "x")
-                                transformCoordinates(cmd, "x1")
-                                transformCoordinates(cmd, "x2")
-                        }; return glyphPath
-                }                              
+                        return out.join(' ')
+                }
                 var TEXT = function(FONT, fontSZ, startX, startY, str) {
-                        var font = fonts[FONT];
+                        var font = fonts[FONT]
                         if (!font) {
-                                console.error("Invalid or unloaded font specified");
-                                return;
+                                console.error("Invalid or unloaded font specified"); return
                         }
 
                         function separatePaths(svgPath) {
-                                var commands = svgPath.split(' M');
-                                var outerPaths = [], innerPaths = [];
+                                var commands = svgPath.split(' M')
+                                var outerPaths = [], innerPaths = []
                                 if (commands.length > 1) {
-                                        outerPaths.push(' M ' + commands[1].trim());
+                                        outerPaths.push(' M ' + commands[1].trim())
                                 }
                                 for (var i = 2; i < commands.length; i++){
-                                        var cmd = commands[i].trim();
+                                        var cmd = commands[i].trim()
                                         if (cmd.indexOf('Z') !== -1){
-                                                innerPaths.push(' M ' + cmd);
+                                                innerPaths.push(' M ' + cmd)
                                         }
                                 }
-                                return { outer: outerPaths.join(''), inner: innerPaths.join('') };
+                                return {outer:outerPaths.join(''), inner:innerPaths.join('')}
                         }
 
                         function processFinalPath(finalPath) {
-                                var pointsStr = finalPath.replace(/,/g, ' ');
-                                var pointsArr = svgPathToPoints(pointsStr);
+                                var pointsStr = finalPath.replace(/,/g, ' ')
+                                var pointsArr = svgPathToPoints(pointsStr)
                                 var pointsString = pointsArr.map(function(cmd) {
-                                        return cmd.command + (cmd.values ? cmd.values.join(' ') : '');
-                                }).join(' ');
-                                var clipperPaths = svgPathToClipperPaths(pointsString);
+                                        return cmd.command + (cmd.values ? cmd.values.join(' ') : '')
+                                }).join(' ')
+                                var clipperPaths = svgPathToClipperPaths(pointsString)
                                 if (!Array.isArray(clipperPaths) || clipperPaths.length === 0) {
-                                        console.error("Array is empty");
-                                        return [];
-                                }
-                                return use(clipperPaths);
+                                        console.error("Array is empty"); return []
+                                }; return use(clipperPaths)
                         }
 
                         function buildOnPath(pathSTR) {
-                                var finalOuterPaths = '', finalInnerPaths = '';
-                                var svgNS = "http://www.w3.org/2000/svg";
-                                var svg = document.createElementNS(svgNS, "svg");
-                                var pathElement = document.createElementNS(svgNS, "path");
-                                pathElement.setAttribute("d", pathSTR);
-                                svg.appendChild(pathElement);
-                                document.body.appendChild(svg);
+                                let finalPaths = ''
+                                let svgNS = "http://www.w3.org/2000/svg"
 
-                                var pathLength = pathElement.getTotalLength();
-                                var startOffset = 0;
+                                if (!pathSTR || typeof pathSTR !== 'string') return []
 
-                                for (var i = 0; i < str.length; i++){
-                                        var letter = str[i];
-                                        if (letter === " ") {
-                                                var spaceAdvance = font.getAdvanceWidth 
-                                                        ? font.getAdvanceWidth(" ", fontSZ) 
-                                                        : fontSZ * 0.3;
-                                                startOffset += spaceAdvance;
-                                                continue;
-                                        }
+                                let svg = document.createElementNS(svgNS, "svg")
+                                let pathElement = document.createElementNS(svgNS, "path")
+                                pathElement.setAttribute("d", pathSTR.trim())
+                                svg.appendChild(pathElement)
+                                document.body.appendChild(svg)
 
-                                        var glyph = font.charToGlyph(letter);
-                                        if (!glyph) {
-                                                console.error("Glyph error:", letter);
-                                                continue;
-                                        }
-
-                                        var advanceWidth = (glyph.advanceWidth * fontSZ) / font.unitsPerEm;
-                                        if (!isFinite(advanceWidth)) {
-                                                console.error("Non-finite advanceWidth for letter:", letter);
-                                                continue;
-                                        }
-
-                                        var kerning = 0;
-                                        if (i > 0) {
-                                                var prevGlyph = font.charToGlyph(str[i - 1]);
-                                                kerning = font.getKerningValue(prevGlyph.index, glyph.index);
-                                                kerning = isNaN(kerning) ? 0 : (kerning * fontSZ) / font.unitsPerEm;
-                                        }
-
-                                        var bbox = glyph.getBoundingBox();
-                                        if (!bbox || !isFinite(bbox.xMin) || !isFinite(bbox.xMax)) {
-                                                bbox = { xMin: 0, xMax: advanceWidth };
-                                        }
-                                        var leftMargin = ((bbox.xMin) * fontSZ) / font.unitsPerEm;
-                                        leftMargin = Math.max(0, leftMargin * 0.2);
-
-                                        var letterSpacing = advanceWidth + kerning + leftMargin;
-                                        var charOffset = startOffset + leftMargin;
-                                        if (!isFinite(charOffset)) {
-                                                console.error("Non-finite charOffset for letter:", letter);
-                                                continue;
-                                        }
-                                        if (charOffset > pathLength) {
-                                                console.warn("Text exceeds path length");
-                                                break;
-                                        }
-
-                                        var point = pathElement.getPointAtLength(charOffset);
-                                        if (!point || !isFinite(point.x) || !isFinite(point.y)) {
-                                                console.error("Invalid point for letter:", letter);
-                                                continue;
-                                        }
-
-                                        var delta = 1;
-                                        var p1 = pathElement.getPointAtLength(Math.max(0, charOffset - delta));
-                                        var p2 = pathElement.getPointAtLength(Math.min(pathLength, charOffset + delta));
-                                        if (!p1 || !p2 || !isFinite(p1.x) || !isFinite(p1.y) || !isFinite(p2.x) || !isFinite(p2.y)) {
-                                                console.error("Invalid tangent for letter:", letter);
-                                                continue;
-                                        }
-                                        var tangent = { x: p2.x - p1.x, y: p2.y - p1.y };
-                                        var angleRad = Math.atan2(tangent.y, tangent.x);
-
-                                        var glyphPath = font.getPath(letter, 0, 0, fontSZ);
-                                        glyphPath.commands.forEach(function(cmd) {
-                                                if (typeof cmd.x !== "undefined") { cmd.x += point.x; }
-                                                if (typeof cmd.y !== "undefined") { cmd.y += point.y; }
-                                                if (typeof cmd.x1 !== "undefined") { cmd.x1 += point.x; }
-                                                if (typeof cmd.y1 !== "undefined") { cmd.y1 += point.y; }
-                                                if (typeof cmd.x2 !== "undefined") { cmd.x2 += point.x; }
-                                                if (typeof cmd.y2 !== "undefined") { cmd.y2 += point.y; }
-                                        });
-
-                                        var cos = Math.cos(angleRad);
-                                        var sin = Math.sin(angleRad);
-                                        var rotationMatrix = {
-                                                a: cos, b: sin, c: -sin, d: cos,
-                                                e: point.x - point.x * cos + point.y * sin,
-                                                f: point.y - point.x * sin - point.y * cos
-                                        };
-                                        transformGlyphPath(glyphPath, rotationMatrix);
-
-                                        var pt = glyphPath.toPathData();
-                                        if (!pt || pt.indexOf("NaN") !== -1) {
-                                                console.error("Invalid glyph path for letter:", letter);
-                                                continue;
-                                        }
-                                        pt = pt.replaceAll('M', ' M ')
-                                               .replaceAll('L', ' L ')
-                                               .replaceAll('Q', ' Q ')
-                                               .replaceAll('C', ' C ')
-                                               .replaceAll('Z', ' Z ');
-
-                                        finalInnerPaths += pt;
-                                        finalOuterPaths += pt;
-                                        startOffset += letterSpacing;
+                                let pathLength = 0
+                                try {
+                                        pathLength = pathElement.getTotalLength()
+                                } catch(e) {
+                                        console.error("SVG Path error", e)
                                 }
-                                document.body.removeChild(svg);
 
-                                var finalPath = finalInnerPaths + finalOuterPaths;
-                                return processFinalPath(finalPath);
+                                if (pathLength <= 0) {
+                                        if (svg.parentNode) document.body.removeChild(svg)
+                                        return []
+                                }
+
+                                let startOffset = 0
+                                for (let i = 0; i < str.length; i++) {
+                                        let letter = str[i]
+                                        if (letter === " ") {
+                                                startOffset += font.getAdvanceWidth ? font.getAdvanceWidth(" ", fontSZ) : fontSZ * 0.3
+                                                continue
+                                        }
+
+                                        let glyph = font.charToGlyph(letter)
+                                        if (!glyph) continue
+
+                                        let advanceWidth = (glyph.advanceWidth * fontSZ) / (font.unitsPerEm || 1000)
+                                        let bbox = glyph.getBoundingBox ? glyph.getBoundingBox() : {}
+                                        let leftMin = (bbox.xMin !== undefined ? bbox.xMin : (bbox.x1 !== undefined ? bbox.x1 : 0))
+                                        let leftMargin = (leftMin * fontSZ) / (font.unitsPerEm || 1000)
+
+                                        let pos = Math.max(0, Math.min(pathLength, startOffset + (leftMargin * 0.2)))
+                                        if (pos > pathLength) break
+
+                                        let delta = 0.5
+                                        let pPrev = pathElement.getPointAtLength(Math.max(0, pos - delta))
+                                        let pNext = pathElement.getPointAtLength(Math.min(pathLength, pos + delta))
+                                        let point = pathElement.getPointAtLength(pos)
+
+                                        if (!point || isNaN(point.x)) {
+                                                startOffset += advanceWidth
+                                                continue
+                                        }
+
+                                        let angleRad = Math.atan2(pNext.y - pPrev.y, pNext.x - pPrev.x)
+                                        let cos = Math.cos(angleRad)
+                                        let sin = Math.sin(angleRad)
+
+                                        let matrix = {
+                                                a: cos, b: sin, c: -sin, d: cos,
+                                                e: point.x, f: point.y
+                                        }
+
+                                        let glyphPath = font.getPath(letter, 0, 0, fontSZ)
+                                        let transformed = commandsToPathString(glyphPath.commands, matrix)
+
+                                        if (transformed && !/undefined|NaN/.test(transformed)) {
+                                                finalPaths += ' ' + transformed
+                                        }
+                                        startOffset += (advanceWidth + (leftMargin * 0.2))
+                                }
+
+                                if (svg.parentNode) document.body.removeChild(svg)
+                                
+                                let combined = finalPaths.trim().replace(/,/g, ' ').replace(/\s+/g, ' ')
+                                return processFinalPath(combined)
                         }
 
                         function buildNormal() {
-                                var finalOuterPaths = '', finalInnerPaths = '';
-                                var x = parseInt(startX);
-                                var y = parseInt(startY) + fontSZ / 2;
+                                var finalOuterPaths = '', finalInnerPaths = ''
+                                var x = parseInt(startX)
+                                var y = parseInt(startY) + fontSZ / 2
 
                                 for (var i = 0; i < str.length; i++){
-                                        var letter = str[i];
+                                        var letter = str[i]
                                         if (letter === " ") {
                                                 var spaceAdvance = font.getAdvanceWidth 
-                                                        ? font.getAdvanceWidth(" ", fontSZ) 
-                                                        : fontSZ * 0.3;
-                                                x += spaceAdvance;
-                                                continue;
+                                                        ? font.getAdvanceWidth(" ", fontSZ) : fontSZ * 0.3
+                                                x += spaceAdvance; continue
                                         }
 
                                         var glyph = font.charToGlyph(letter);
                                         if (!glyph) {
-                                                console.error("Glyph error:", letter);
-                                                continue;
+                                                console.error("Glyph error:", letter); continue
                                         }
 
                                         var bbox = glyph.getBoundingBox();
-                                        var charWidth = (bbox.xMax - bbox.xMin) * fontSZ / font.unitsPerEm;
-                                        var charHeight = (bbox.yMax - bbox.yMin) * fontSZ / font.unitsPerEm;
+                                        var charWidth = (bbox.xMax - bbox.xMin) * fontSZ / font.unitsPerEm
+                                        var charHeight = (bbox.yMax - bbox.yMin) * fontSZ / font.unitsPerEm
 
-                                        var path = font.getPath(letter, x, y, fontSZ);
+                                        var path = font.getPath(letter, x, y, fontSZ)
                                         var pt = path.toPathData();
                                         pt = pt.replaceAll('M', ' M ')
                                                .replaceAll('L', ' L ')
                                                .replaceAll('Q', ' Q ')
                                                .replaceAll('C', ' C ')
-                                               .replaceAll('Z', ' Z ');
-                                        var paths = separatePaths(pt);
-                                        finalInnerPaths += paths.inner;
-                                        finalOuterPaths += paths.outer;
+                                               .replaceAll('Z', ' Z ')
+                                        var paths = separatePaths(pt)
+                                        finalInnerPaths += paths.inner
+                                        finalOuterPaths += paths.outer
 
-                                        var advanceWidth = (glyph.advanceWidth * fontSZ) / font.unitsPerEm;
+                                        var advanceWidth = (glyph.advanceWidth * fontSZ) / font.unitsPerEm
                                         var kerning = 0;
                                         if (i < str.length - 1) {
                                                 var nextGlyph = font.charToGlyph(str[i + 1]);
                                                 kerning = font.getKerningValue(glyph.index, nextGlyph.index);
                                                 kerning = isNaN(kerning) || kerning === undefined ? 0 : (kerning * fontSZ) / font.unitsPerEm;
                                         }
+                                        
+                                        var bbox2 = glyph.getBoundingBox() || {x1: 0, x2: 0, y1: 0, y2: 0}
+                                        var unitsPerEm = font.unitsPerEm || 1000
+                                        var charWidth2 = (bbox2.x2 - bbox2.x1) * fontSZ / unitsPerEm
+                                        var charHeight2 = (bbox2.y2 - bbox2.y1) * fontSZ / unitsPerEm
+                                        var aspectRatio = charHeight2 > 0 ? charWidth2 / charHeight2 : 1
+                                        var extraMargin = charWidth2 * 0.1
 
-                                        var bbox2 = glyph.getBoundingBox() || { x1: 0, x2: 0, y1: 0, y2: 0 };
-                                        var unitsPerEm = font.unitsPerEm || 1000;
-                                        var charWidth2 = (bbox2.x2 - bbox2.x1) * fontSZ / unitsPerEm;
-                                        var charHeight2 = (bbox2.y2 - bbox2.y1) * fontSZ / unitsPerEm;
-                                        var aspectRatio = charHeight2 > 0 ? charWidth2 / charHeight2 : 1;
-                                        var extraMargin = charWidth2 * 0.1;
-
-                                        if (aspectRatio > 1.5) {
-                                                extraMargin -= fontSZ * 0.03;
-                                        } else if (aspectRatio < 0.5) {
-                                                extraMargin -= fontSZ * 0.03;
-                                        }
+                                        if (aspectRatio > 1.5) {extraMargin -= fontSZ * 0.03}
+                                        else if (aspectRatio < 0.5) {extraMargin -= fontSZ * 0.03}
 
                                         if (letter === letter.toUpperCase() && i > 0 && str[i - 1] === str[i - 1].toLowerCase()){
-                                                extraMargin -= fontSZ * 0.05;
+                                                extraMargin -= fontSZ * 0.05
                                         } else if (letter === letter.toLowerCase() && i > 0 && str[i - 1] === str[i - 1].toUpperCase()){
-                                                extraMargin -= fontSZ * 0.02;
+                                                extraMargin -= fontSZ * 0.02
                                         }
 
-                                        var letterSpacing = advanceWidth + kerning + extraMargin;
-                                        x += letterSpacing;
+                                        var letterSpacing = advanceWidth + kerning + extraMargin
+                                        x += letterSpacing
                                 }
 
-                                var finalPath = finalInnerPaths + finalOuterPaths;
-                                return processFinalPath(finalPath);
+                                var finalPath = finalInnerPaths + finalOuterPaths
+                                return processFinalPath(finalPath)
                         }
 
                         var normalResult = buildNormal();
@@ -1359,17 +1441,21 @@ canvas.on('mouse:move', e => {
                                                 return buildOnPath(pathSTR);
                                         }
                                 };
-                        }
-                        return normalResult;
-                };
+                        }; return normalResult
+                }
                 var addTEXT = function(){
                         resetZoom() 
-                        displayString = "\nTEXT(font='cnc_1', size=30, startX=30, startY=30, str='HobbyLASER')"
+                        displayString = "\nTEXT(font='arial', size=30, startX=30, startY=30, str='abc')"
 
                         var editorContent = editor.getValue()
                         editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
                         editor.clearSelection(); editor.focus(); TAOpen()//; runSCRIPT()
                 }
+
+
+
+
+                        
 
                 //---------------------------------------------------------------------------------------------------------------------------------------------------------- pathToPoints
                 function roundNumber(num, decimals){
@@ -1542,6 +1628,9 @@ canvas.on('mouse:move', e => {
 
                 var snapDebugMarkers = []
                 function SVG(path) {
+
+        if (!path || !Array.isArray(path)) {return ""}
+                    
                         svgpath = path.map(subPath => {
                                 let subPathStr = subPath.map(
                                         (point, index) => `${index === 0 ? "M" : "L"} ${point.X} ${point.Y+3 }`
@@ -1559,12 +1648,12 @@ canvas.on('mouse:move', e => {
 
                         var originalPoints = path.flat().map(point => ({ 
                                 x: point.X, y: point.Y 
-                        }));
+                        }))
 
                         var correctedSnapPoints = originalPoints.map(p => ({
                                 x: CONV(p.x + 0.25, true),
                                 y: CONV(p.y + 0.25, true)
-                        }));
+                        }))
 
                         svg = CONV(svgpath, true)
                         if (svg){
@@ -1666,7 +1755,7 @@ canvas.on('mouse:move', e => {
                                 clipperOffset.AddPaths(path, joinType, ClipperLib.EndType.etClosedPolygon)
                                 const result = new ClipperLib.Paths(); clipperOffset.Execute(result, offset*1000)
                                 ClipperLib.JS.ScaleDownPaths(result, 1000)
-                                return result
+                                return clpPath(result);
                         }                       
                         path.scale = function(scaleX, scaleY){
                                 var bBox = calculateBoundingBox(this)
@@ -1835,7 +1924,7 @@ canvas.on('mouse:move', e => {
                                 return this
                         }
                         Object.defineProperty(path, "nc", {
-                                get() {toggleGCconv(); remToEdt("nc"); return this}
+                                get() {toggleGCconv(); remNC(".nc"); return this}
                         })
                         return path                            
                 }                      
@@ -1940,7 +2029,7 @@ canvas.on('mouse:move', e => {
                                                 subPath.map(point => new ClipperLib.IntPoint(point.X, point.Y))
                                         ); return clpPath(clp)
                                 } catch (e) {
-                                        console.error("Errore in use():", e)
+                                        console.error("Error in use():", e)
                                 }
                         }
                 }
@@ -1970,6 +2059,21 @@ canvas.on('mouse:move', e => {
                         imgData = ctxIMG.getImageData(0, 0, scaledWidth, scaledHeight)
                         ctxIMG.putImageData(imgData, 0, 0)
                 }
+
+                function updateCanvasForGCode() {
+                        if (!imgInstance) return
+                        var renderedCanvas = imgInstance.toCanvasElement()
+                            
+                        scaledWidth = renderedCanvas.width
+                        scaledHeight = renderedCanvas.height
+
+                        cnvsIMG.width = scaledWidth
+                        cnvsIMG.height = scaledHeight
+                            
+                        ctxIMG.clearRect(0, 0, cnvsIMG.width, cnvsIMG.height)
+                        ctxIMG.drawImage(renderedCanvas, 0, 0)
+                        imgData = ctxIMG.getImageData(0, 0, scaledWidth, scaledHeight)
+                }                        
 
                 var borderX = 0, borderY = 0, imageController, cropRect = null                      
                 function IMAGE(size, gamma, x, y, rot, flip){                     
@@ -2013,9 +2117,10 @@ canvas.on('mouse:move', e => {
                         const scaleY = newHeight / img.height
                         imgInstance.set({scaleX: scaleX, scaleY: scaleY})
 
-                        if(flip !== null){
-                                if(flip === 'x'){imgInstance.set('flipX', !imgInstance.flipX)}
-                                else if(flip === 'y'){imgInstance.set('flipY', !imgInstance.flipY)}
+                        if (flip) {
+                                var f = flip.toLowerCase();
+                                if (f === 'x') {imgInstance.set('flipX', !imgInstance.flipX)}
+                                else if (f === 'y') {imgInstance.set('flipY', !imgInstance.flipY)}
                         }
 
                         canvas.add(imgInstance)
@@ -2284,7 +2389,7 @@ canvas.on('mouse:move', e => {
 
                                                                 combinedPath_1 = createPath(combinedPathData_1, borderX, borderY)
                                                                 var pathData_1 = extractPathData(combinedPath_1)
-                                                                SVG(MULTILINE(pathData_1).translate(borderX,borderY))
+                                                                SVG(POLYLINE(pathData_1).translate(borderX,borderY))
                                                                 combinedPath_2 = createPath(combinedPathData_1, borderX, borderY)
                                                                 var pathData_2 = extractPathData(combinedPath_2)
 
@@ -2304,25 +2409,23 @@ canvas.on('mouse:move', e => {
                                         canvas.renderAll(); remToEdt(".vecor()"); return this
                                 },
                                 get nc() {
-                                        toggleGCconv(); remToEdt(".nc()"); return this
+                                        toggleGCconv(); remNC(".nc"); return this
                                 }                   
                         }; return imageController
                 }
-                   
+                 
                 function rstIMG(){
                         if(originalImg){
                                 img = new Image()
                                 img.src = originalImg.src
                                 img.onload = function(){
-                                        addIMAGE(size=100, gamma=0, x=0, y=0, rot=0, flip='', dithering='n')
+                                        addIMAGE(size=100, gamma=0, x=0, y=0, rot=0, flip='')
                                         lineHrz.bringToFront(); lineVrt.bringToFront(); canvas.remove(cropRect)
                                 }
                         }; canvas.renderAll(); remToEdt("rstIMG()")
                 }
 
-
-
-                 //------------------------------------------------------------------------------------------------------------------------------------------------------------ importFILE                                      
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------ importFILE                                      
                 var imageLoader = document.getElementById('input')
                 imageLoader.addEventListener('change', handleImage, false)                              
 
@@ -2332,169 +2435,244 @@ canvas.on('mouse:move', e => {
                 var newWidth, newHeight, gamma = 0
                 var originalImg, currentImg
                                   
-                function handleImage(event){
-                        var content = editor.getValue()
-                        var updatedContent = content.replace(/addIMAGE\([^)]*\)/g, "")
-                        editor.setValue(updatedContent, -1)
-                        
-                        file = imageLoader.value
-                        var ext = /(\.svg|\.jpg|\.jpeg|\.png|\.gcode|\.nc|\.dxf)$/i
-                        if (file !== '') {
-                                if (!ext.exec(file)) {
-                                        imageLoader.value = ''; return false
-                                } else {
-                                        ext = file.substring(file.lastIndexOf('.') + 1).toLowerCase()
-                                        if (['png', 'jpg', 'jpeg'].includes(ext)){
-                                                var reader = new FileReader();
-                                                reader.onload = function(event){
-                                                        img = new Image()
-                                                        img.onload = function(){
-                                                                originalImg = img.cloneNode()
-                                                                currentImg = img.cloneNode()
-                                                                var editorContent = editor.getValue()
-                                                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='')`)
-                                                                editor.clearSelection(); editor.focus(); TAOpen()//runSCRIPT()                                                              
-                                                        }; img.src = event.target.result
-                                                }; reader.readAsDataURL(event.target.files[0]); file = event.target.files[0]
-                                        } else if (['gcode', 'nc'].includes(ext)){
-                                                var reader = new FileReader()
-                                                reader.onload = function(e){
-                                                        var gcode = e.target.result
-                                                        var lines = gcode.split('\n')
+function handleImage(event) {
+        var content = editor.getValue()
+        var updatedContent = content.replace(/addIMAGE\([^)]*\)/g, "")
+        editor.setValue(updatedContent, -1)
 
-                                                        var hasVectorMode = lines.some(line => line.trim() === '; mode:vector')
-                                                        var baseName = (file.name).replace(/\.(gcode|nc)$/i, '')
-                                                        if (hasVectorMode) {
-                                                                isImageMode = false
-                                                                gcBool = true; saveGCODE(gcode, baseName, 'vector'); GCSenderShow()                                                
-                                                        }
-                                                        else {
-                                                                isImageMode = true
-                                                                gcBool = true; saveGCODE(gcode, baseName, 'vector'); GCSenderShow() 
-                                                        } 
-                                                }; reader.readAsText(event.target.files[0]); file = event.target.files[0] 
-                                        } else if (['svg'].includes(ext)){
-                                                var reader = new FileReader()
-                                                reader.onload = (e) => {
-                                                        var parser = new DOMParser()
-                                                        var svgDoc = parser.parseFromString(e.target.result, 'image/svg+xml')
-                                                        var svgElement = svgDoc.documentElement
+        var fileInput = event.target.files[0]
+        if (!fileInput) return
 
-                                                        var pathData = normalizeAndMergeSVGPaths(svgElement)
-                                                        var variableName = `p_${variableCount}`;
-                                                        var displayString = `\nMULTILINE(PV['${variableName}'])`
-                                                        PV[variableName] = pathData; const editorContent = editor.getValue()
-                                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
-                                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++
-                                                }; reader.readAsText(event.target.files[0]); file = event.target.files[0]
-                                        } else if (['dxf'].includes(ext)){
-                                                var reader = new FileReader()
-                                                reader.onload = (e) => {
-                                                        var helper = new dxf.Helper(reader.result)
-                                                        var dxf2svg = helper.toSVG()
-                                                        
+        var fileName = fileInput.name
+        var ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase()
+        var reader = new FileReader()
+
+        if (['png', 'jpg', 'jpeg'].includes(ext)) {
+                reader.onload = function(e) {
+                        img = new Image()
+                        img.onload = function() {
+                                originalImg = img.cloneNode()
+                                currentImg = img.cloneNode()
+                                var editorContent = editor.getValue()
+                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='')`)
+                                editor.clearSelection()
+                                editor.focus()
+                                TAOpen()
+                        }; img.src = e.target.result
+                }; reader.readAsDataURL(fileInput)
+        } else if (['gcode', 'nc'].includes(ext)) {
+                reader.onload = function(e) {
+                        var gcode = e.target.result
+                        var hasVectorMode = gcode.includes('; mode:vector')
+                        var baseName = fileName.replace(/\.(gcode|nc)$/i, '')
+                        saveGCODE(gcode, baseName, hasVectorMode ? 'vector' : 'raster')
+                        GCSenderShow()
+                }; reader.readAsText(fileInput)
+        } else if (ext === 'hlprj') {
+                reader.onload = async function(e) {
+                        try {
+                                var bundle = JSON.parse(e.target.result)
+                                if (bundle.assets && Array.isArray(bundle.assets)) {
+                                        
+                                        for (const asset of bundle.assets) {                                                
+                                                saveGCODE(asset.gcode, asset.visualSource, asset.mode)
+                                                if (asset.mode === 'vector' && asset.visualSource) {
                                                         var variableName = `p_${variableCount}`
-                                                        var displayString = `\nMULTILINE(PV['${variableName}'])`
-                                                        PV[variableName] = dxf2svg; const editorContent = editor.getValue()
-                                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
-                                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++          
-                                                }; reader.readAsText(event.target.files[0]); file = event.target.files[0]                                          
-                                        }                                        
-                                }
-                        }; $("#input")[0].value='' 
-                }
-                //------ drag&drop      
-                var dropZone = document.getElementById('wrapper')
-                dropZone.addEventListener('dragover', handleDragOver)
-                dropZone.addEventListener('drop', handleDrop)
-
-                function handleDragOver(event){
-                        event.preventDefault()
-                        dropZone.classList.add('drag-over')                    
-                }
-                var roundToTwo = (num) => Math.round(num * 100) / 100
-                var normalizeAndMergeSVGPaths = (svgElement) => {
-                        var paths = svgElement.querySelectorAll('path')
-                        var combinedPathData = ''
-                        paths.forEach((path) => {
-                                var normalizedPathData = path.getPathData({ normalize: true })
-                                var roundedPathData = normalizedPathData.map(segment => {
-                                        segment.values = segment.values.map(roundToTwo)
-                                        return segment
-                                })
-                                path.setPathData(roundedPathData)
-                                combinedPathData += path.getAttribute('d') + ' '
-                        })
-                        paths.forEach((path) => path.remove())
-                        return combinedPathData.trim()
-                }
-
-                function handleDrop(event){
-                        event.preventDefault()
-                        dropZone.classList.remove('drag-over')
-                        var file = event.dataTransfer.files[0]
-                        if (!file) return
-
-                        var fileName = file.name.toLowerCase()
-                        if (fileName.endsWith('.svg')) {
-                                var reader = new FileReader()
-                                reader.onload = (e) => {
-                                        var parser = new DOMParser()
-                                        var svgDoc = parser.parseFromString(e.target.result, 'image/svg+xml')
-                                        var svgElement = svgDoc.documentElement
-
-                                        var pathData = normalizeAndMergeSVGPaths(svgElement)
-                                        var variableName = `p_${variableCount}`
-                                        var displayString = `\nMULTILINE(PV['${variableName}'])`
-                                        PV[variableName] = pathData; const editorContent = editor.getValue()
-                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
-                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++                                        
-                                }; reader.readAsText(file)
-                        } else if (fileName.endsWith('.png') || fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
-                                var reader = new FileReader()
-                                reader.onload = function(event){
-                                        img = new Image()
-                                        img.onload = function(){
-                                                originalImg = img.cloneNode()
-                                                currentImg = img.cloneNode()
-                                                var editorContent = editor.getValue()
-                                                editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0 flip='')`)
-                                                editor.clearSelection(); editor.focus(); TAOpen()//runSCRIPT()                  
-                                        }; img.src = event.target.result
-                                }; reader.readAsDataURL(file)
-                        } else if (fileName.endsWith('.gcode') || fileName.endsWith('.nc')) {
-                                var reader = new FileReader()
-                                reader.onload = function(e){
-                                        var gcode = e.target.result
-                                        var lines = gcode.split('\n');
-                                        var hasVectorMode = lines.some(line => line.trim() === '; mode:vector')
-                                        var baseName = fileName.replace(/\.(gcode|nc)$/i, '');
-                                        if (hasVectorMode) {
-                                                isImageMode = false
-                                                gcBool = true; saveGCODE(gcode, baseName, 'vector'); GCSenderShow()                                                
+                                                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                                        PV[variableName] = asset.visualSource
+                                                        editor.setValue(editor.getValue() + displayString + "\n")
+                                                        variableCount++
+                                                } 
+                                                else if (asset.mode === 'raster' && asset.visualSource) {
+                                                        await new Promise((resolve, reject) => {
+                                                                var tempImg = new Image()
+                                                                tempImg.onload = function() {
+                                                                        img = tempImg 
+                                                                        originalImg = tempImg.cloneNode()
+                                                                        currentImg = tempImg.cloneNode()
+                                                                        
+                                                                        var editorContent = editor.getValue()
+                                                                        editor.setValue(editorContent + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='')\n`)
+                                                                        resolve()
+                                                                }
+                                                                tempImg.onerror = () => {
+                                                                        console.error("Errore caricamento immagine base64")
+                                                                        resolve()
+                                                                }
+                                                                tempImg.src = asset.visualSource
+                                                        })
+                                                }
                                         }
-                                        else {
-                                                isImageMode = true
-                                                gcBool = true; saveGCODE(gcode, baseName, 'vector'); GCSenderShow() 
-                                        }                                         
-                                }; reader.readAsText(file)                
-                        } else if (fileName.endsWith('.dxf')) {
-                                var reader = new FileReader()
-                                reader.onload = function(e){
-                                        var helper = new dxf.Helper(e.target.result)
-                                        var dxf2svg = helper.toSVG()
-                                                        
-                                        var variableName = `p_${variableCount}`
-                                        var displayString = `\nMULTILINE(PV['${variableName}'])`
-                                        PV[variableName] = dxf2svg; const editorContent = editor.getValue()
-                                        editor.setValue(editorContent ? `${editorContent}${displayString}\n` : `${displayString}\n`)
-                                        editor.clearSelection(); editor.focus(); TAOpen(); variableCount++  
-                                }; reader.readAsText(file)                
+                                        editor.clearSelection(); editor.focus()
+                                        if (typeof TAOpen === "function") TAOpen()
+                                }
+                        } catch (err) {
+                                console.error("Error in bundle .hlprj:", err)
                         }
-                }                      
+                }; reader.readAsText(fileInput)
+
+        } else if (ext === 'svg') {
+                reader.onload = (e) => {
+                        var parser = new DOMParser()
+                        var svgDoc = parser.parseFromString(e.target.result, 'image/svg+xml')
+                        var pathData = normalizeAndMergeSVGPaths(svgDoc.documentElement)
+                        var variableName = `p_${variableCount}`
+                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                        PV[variableName] = pathData
+                        editor.insert(displayString + "\n")
+                        editor.clearSelection()
+                        editor.focus()
+                        TAOpen()
+                        variableCount++
+                }; reader.readAsText(fileInput)
+        }; event.target.value = ''
+}
+                       //------ drag&drop      
+var dropZone = document.getElementById('wrapper')
+dropZone.addEventListener('dragover', handleDragOver)
+dropZone.addEventListener('drop', handleDrop)
+
+function handleDragOver(event) {
+        event.preventDefault()
+        dropZone.classList.add('drag-over')
+}
+//------ Utility Functions
+var roundToTwo = (num) => Math.round(num * 100) / 100
+var normalizeAndMergeSVGPaths = (svgElement) => {
+        var paths = svgElement.querySelectorAll('path')
+        var combinedPathData = ''
+        paths.forEach((path) => {
+                var normalizedPathData = path.getPathData({ normalize: true })
+                var roundedPathData = normalizedPathData.map(segment => {
+                        segment.values = segment.values.map(roundToTwo)
+                        return segment
+                })
+                path.setPathData(roundedPathData)
+                combinedPathData += path.getAttribute('d') + ' '
+        })
+        paths.forEach((path) => path.remove())
+        return combinedPathData.trim()
+}
+//------ Main Drop Handler
+async function handleDrop(event) {
+        event.preventDefault()
+        dropZone.classList.remove('drag-over')
+        
+        var file = event.dataTransfer.files[0]
+        if (!file) return
+
+        var fileName = file.name.toLowerCase()
+        var ext = fileName.substring(fileName.lastIndexOf('.') + 1)
+        var content = editor.getValue()
+        var updatedContent = content.replace(/addIMAGE\([^)]*\)/g, "")
+        editor.setValue(updatedContent, -1)
+
+        try {
+                if (ext === 'hlprj') {
+                        const fileContent = await new Promise((resolve, reject) => {
+                                var reader = new FileReader()
+                                reader.onload = (e) => resolve(e.target.result)
+                                reader.onerror = reject
+                                reader.readAsText(file)
+                        })
+
+                        var bundle = JSON.parse(fileContent)
+                        if (bundle.assets && Array.isArray(bundle.assets)) {
+                                for (const asset of bundle.assets) {
+                                        saveGCODE(asset.gcode, asset.visualSource, asset.mode)
+
+                                        if (asset.mode === 'vector' && asset.visualSource) {
+                                                var variableName = `p_${variableCount}`
+                                                var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                                                PV[variableName] = asset.visualSource
+                                                editor.setValue(editor.getValue() + displayString + "\n")
+                                                variableCount++
+                                        } 
+                                        else if (asset.mode === 'raster' && asset.visualSource) {
+                                                await new Promise((resolve) => {
+                                                        var tempImg = new Image()
+                                                        tempImg.onload = function() {
+                                                                img = tempImg
+                                                                originalImg = tempImg.cloneNode()
+                                                                currentImg = tempImg.cloneNode()
+                                                                editor.setValue(editor.getValue() + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='')\n`)
+                                                                resolve()
+                                                        }
+                                                        tempImg.onerror = resolve
+                                                        tempImg.src = asset.visualSource
+                                                })
+                                        }
+                                }
+                        }
+                } else if (ext === 'svg') {
+                        const text = await file.text()
+                        var parser = new DOMParser()
+                        var svgDoc = parser.parseFromString(text, 'image/svg+xml')
+                        var pathData = normalizeAndMergeSVGPaths(svgDoc.documentElement)
+                        var variableName = `p_${variableCount}`
+                        var displayString = `\nPOLYLINE(PV['${variableName}'])`
+                        PV[variableName] = pathData
+                        editor.setValue(editor.getValue() + displayString + "\n")
+                        variableCount++
+                } else if (['png', 'jpg', 'jpeg'].includes(ext)) {
+                        const dataUrl = await new Promise((resolve) => {
+                                var reader = new FileReader()
+                                reader.onload = (e) => resolve(e.target.result)
+                                reader.readAsDataURL(file)
+                        })
+                        
+                        await new Promise((resolve) => {
+                                img = new Image()
+                                img.onload = function() {
+                                        originalImg = img.cloneNode()
+                                        currentImg = img.cloneNode()
+                                        editor.setValue(editor.getValue() + `\nIMAGE(size=100, gamma=0, x=10, y=10, rot=0, flip='')`)
+                                        resolve()
+                                }
+                                img.src = dataUrl
+                        })
+                } else if (['gcode', 'nc'].includes(ext)) {
+                        const gcode = await file.text()
+                        var hasVectorMode = gcode.includes('; mode:vector')
+                        var baseName = fileName.replace(/\.(gcode|nc)$/i, '')
+                        saveGCODE(gcode, baseName, hasVectorMode ? 'vector' : 'raster')
+                        GCSenderShow()
+                } else if (ext === 'dxf') {
+                        const dxfText = await file.text()
+                        var helper = new dxf.Helper(dxfText)
+                        var dxf2svg = helper.toSVG()
+                        var variableName = `p_${variableCount}`
+                        var displayString = `\nMULTILINE(PV['${variableName}'])`
+                        PV[variableName] = dxf2svg
+                        editor.setValue(editor.getValue() + displayString + "\n")
+                        variableCount++
+                }
+                editor.clearSelection(); editor.focus()
+                if (typeof TAOpen === "function") TAOpen()
+
+        } catch (err) {
+                console.error("Errore durante il caricamento del file:", err)
+        }
+}
+//------ Input File Handler (Standard)
+function handleImage(event) {
+        var file = event.target.files[0]
+        if (!file) return
+        var dummyEvent = {
+                preventDefault: () => {},
+                dataTransfer: { files: [file] }
+        }
+        handleDrop(dummyEvent)
+        event.target.value = ''
+}
+
+
+ 
         </script>                 
                             
         <svg height="0" width="0" style="display:none"><path id="path" d=""/></svg>
         <div id="alert" class="alert"><p class="bs" id="error" style="top:-5px; width:100%"></p></div>  
 </body>
-
+<!--
+                    
+-->
